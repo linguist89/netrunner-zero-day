@@ -49,7 +49,7 @@ Every objective shows a "look around" hint, and each room holds its own cheat sh
 
 ## Character creator
 
-Before dropping in (and whenever you continue) the runner is styled Morrowind-style with arrows: three faces, five hair styles, four facial-hair options, ten hair colours, seven skin tones, ten jacket and eight trouser colours, plus Random. Hair and beards can be borrowed across the three rigs (the bone indices are remapped by name). The look is saved with the profile.
+Before dropping in (and whenever you continue) the runner is styled Morrowind-style with arrows. A new profile first picks a body, man or woman; that choice is fixed for the profile. Then: five hair styles, four facial-hair options, ten hair colours, seven skin tones, ten jacket and eight trouser colours, plus Random. The woman has no facial-hair row; hair and beards borrowed from the other rigs are carried by the head bone, so they follow every animation. The look is saved with the profile.
 
 ## People
 
