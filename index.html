@@ -2764,7 +2764,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   function placeCourierBeacon() { /* beacons for Act 2 live in the BEACON table */ }
   /* ---------- sound: everything is synthesised with Web Audio, nothing is streamed ---------- */
   const SFX = (function () {
-    let ctx = null, master = null, white = null, brown = null, bus = {}, humG = null, muted = false, musicOff = false, voicesOff = false, padTimers = [], mix = {}; const music = { out: null, in: null, zone: 'out', step: { out: 0, in: 0 }, next: 0 };
+    let ctx = null, master = null, white = null, brown = null, bus = {}, humG = null, muted = false, musicOff = false, musicSuspended = false, voicesOff = false, padTimers = [], mix = {}; const music = { out: null, in: null, zone: 'out', step: { out: 0, in: 0 }, next: 0 };
     const vol = { master: 100, music: 70, sfx: 100, ambient: 80 };
     const VOICES = { courier: { female: true, pitch: 0.95, rate: 0.97, pick: 2 }, caller: { female: false, pitch: 0.55, rate: 0.85, pick: 1 }, rosa: { female: true, pitch: 1.0, rate: 1.0, pick: 0 }, julien: { female: false, pitch: 0.85, rate: 0.95, pick: 0 }, nadia: { female: true, pitch: 1.12, rate: 1.08, pick: 1 }, ped: { female: false, pitch: 1.0, rate: 1.0, pick: 0 } };
     if (window.speechSynthesis) { try { window.speechSynthesis.getVoices(); window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices(); } catch (e) { /* no speech */ } }
@@ -2892,12 +2892,13 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const api = {
       get muted() { return muted; },
       get musicOff() { return musicOff; },
-      toggleMusic() { musicOff = !musicOff; try { localStorage.setItem('nz-music', musicOff ? 'off' : 'on'); } catch (e) { /* ignore */ } if (ctx && mix.music) mix.music.gain.setTargetAtTime(musicOff ? 0 : vol.music / 100, ctx.currentTime, 0.1); if (mus.cur) { if (musicOff) mus.cur.el.pause(); else mus.cur.el.play().catch(() => {}); } return musicOff; },
+      toggleMusic() { musicOff = !musicOff; try { localStorage.setItem('nz-music', musicOff ? 'off' : 'on'); } catch (e) { /* ignore */ } if (ctx && mix.music) mix.music.gain.setTargetAtTime(musicOff || musicSuspended ? 0 : vol.music / 100, ctx.currentTime, 0.1); if (mus.cur) { if (musicOff || musicSuspended) mus.cur.el.pause(); else mus.cur.el.play().catch(() => {}); } return musicOff; },
+      suspendMusic(paused) { musicSuspended = !!paused; if (ctx && mix.music) mix.music.gain.setTargetAtTime(musicSuspended || musicOff ? 0 : vol.music / 100, ctx.currentTime, 0.05); if (mus.cur) { if (musicSuspended || musicOff) mus.cur.el.pause(); else mus.cur.el.play().catch(() => {}); } },
       init() { if (ctx) { api.resume(); return; } const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; try { ctx = new AC(); } catch (e) { return; } const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4; master = g(muted ? 0 : vol.master / 100); master.connect(comp); comp.connect(ctx.destination); white = noiseBuf(false); brown = noiseBuf(true); build(); },
       resume() { if (ctx && ctx.state === 'suspended') ctx.resume(); api.retry(); },
       zone(name) { const bedName = name === 'out' ? 'out' : 'in'; music.zone = bedName; if (!ctx) return; const t = ctx.currentTime; Object.keys(bus).forEach(k => bus[k].gain.setTargetAtTime(k === bedName ? 1 : 0, t, 0.6)); setBeds(name); if (name !== mus.zone) playTrack(name); },
       title() { if (ctx && mus.zone !== 'title') playTrack('title'); },
-      retry() { if (!ctx) return; if (mus.cur && mus.cur.el.paused) mus.cur.el.play().catch(() => {}); Object.values(beds).forEach(b => { if (b.gain.gain.value > 0.001 && b.el.paused) b.el.play().catch(() => {}); }); },
+      retry() { if (!ctx) return; if (!musicSuspended && mus.cur && mus.cur.el.paused) mus.cur.el.play().catch(() => {}); Object.values(beds).forEach(b => { if (!musicSuspended && b.gain.gain.value > 0.001 && b.el.paused) b.el.play().catch(() => {}); }); },
       credits: [['Car models', 'Kenney Car Kit 3.1 (CC0), www.kenney.nl, repainted per car in game'], ['Music', 'HoliznaCC0 (Night Driving, Retro Synths, Cyber Anxiety, City Lights, Retro Soundtrack), John Bartmann (Profound Mystery, Ominous Night), Komiku (Action Investigation), SUPERARE (Neon). All CC0, via the Free Music Archive.'], ['Ambience', 'hmoosher (machine-room drone). CC0, via freesound.org. The street bed is synthesised.'], ['Effects', 'Kenney.nl Interface Sounds and UI Audio (CC0). Horns and impacts from the Godot demo projects (MIT). Footsteps and the engine are synthesised.']],
       toggle() { muted = !muted; try { localStorage.setItem('nz-sound', muted ? 'off' : 'on'); } catch (e) { /* ignore */ } if (ctx) { master.gain.setTargetAtTime(muted ? 0 : vol.master / 100, ctx.currentTime, 0.05); api.resume(); } return muted; },
       volumes() { return Object.assign({}, vol); },
@@ -3056,7 +3057,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   $('journalBtn').addEventListener('click', () => { if (state.ui === 'journal') ui.closeAll(); else if (!state.ui) ui.openJournal(); });
   document.querySelectorAll('#jrHead .tab').forEach(b => b.addEventListener('click', () => { ui.jrTab = b.dataset.tab; ui.renderJournal(); }));
   canvas.addEventListener('pointerdown', () => { if (!state.ui) canvas.focus(); });
-  window.addEventListener('pointerdown', () => { SFX.init(); SFX.resume(); if (!state.playing) SFX.title(); }, { capture: true });
+  window.addEventListener('pointerdown', () => { SFX.init(); SFX.resume(); if (!state.playing && $('assessment').classList.contains('off')) SFX.title(); }, { capture: true });
   SFX.onTrack = (name) => { if (state.playing) ui.toast({ kind: '', title: 'Radio', text: name }); };
   $('soundBtn').addEventListener('click', () => ui.setSound(SFX.toggle()));
   $('musicBtn').addEventListener('click', () => ui.setMusic(SFX.toggleMusic()));
@@ -3182,11 +3183,11 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   let pendingCyberResult = null;
   function renderAssessment() {
     const item = CYBER_ASSESSMENT[assessment.index]; $('assessmentProgress').textContent = 'Question ' + (assessment.index + 1) + ' of ' + CYBER_ASSESSMENT.length; $('assessmentQuestion').textContent = item.q; $('assessmentOptions').innerHTML = ''; $('assessmentNote').textContent = '';
-    item.a.forEach((text, i) => { const label = document.createElement('label'); label.className = 'assessmentOption'; label.innerHTML = '<input type="radio" name="cyberAnswer" value="' + i + '"><span>' + esc(text) + '</span>'; label.querySelector('input').addEventListener('change', () => { assessment.answers[assessment.index] = i; $('assessmentNext').disabled = false; }); $('assessmentOptions').appendChild(label); });
+    item.a.forEach((text, i) => { const label = document.createElement('label'); label.className = 'assessmentOption'; label.innerHTML = '<input type="radio" name="cyberAnswer" value="' + i + '"><span>' + esc(text) + '</span>'; label.querySelector('input').addEventListener('change', () => { assessment.answers[assessment.index] = i; SFX.tick(); $('assessmentNext').disabled = false; }); $('assessmentOptions').appendChild(label); });
     $('assessmentNext').disabled = assessment.answers[assessment.index] == null; $('assessmentNext').textContent = assessment.index === CYBER_ASSESSMENT.length - 1 ? 'Finish assessment' : 'Next question';
   }
-  function openAssessment(resume) { assessment.index = 0; assessment.answers = []; assessment.resume = resume; $('start').classList.add('off'); $('customize').classList.add('off'); $('assessment').classList.remove('off'); renderAssessment(); }
-  function finishAssessment() { const result = assessmentResult(assessment.answers); if (assessment.resume) pendingCyberResult = result; else { store.state.cyberScore = result.score; store.state.cyberLevel = result.level; } $('assessment').classList.add('off'); $('assessmentNote').textContent = result.level + ' briefing selected.'; openCustomizer(assessment.resume); }
+  function openAssessment(resume) { assessment.index = 0; assessment.answers = []; assessment.resume = resume; SFX.init(); SFX.suspendMusic(true); $('start').classList.add('off'); $('customize').classList.add('off'); $('assessment').classList.remove('off'); renderAssessment(); }
+  function finishAssessment() { const result = assessmentResult(assessment.answers); if (assessment.resume) pendingCyberResult = result; else { store.state.cyberScore = result.score; store.state.cyberLevel = result.level; } SFX.suspendMusic(false); $('assessment').classList.add('off'); $('assessmentNote').textContent = result.level + ' briefing selected.'; openCustomizer(assessment.resume); }
   $('assessmentNext').addEventListener('click', () => { if (assessment.answers[assessment.index] == null) return; if (assessment.index === CYBER_ASSESSMENT.length - 1) finishAssessment(); else { assessment.index++; renderAssessment(); } });
 
   /* ---------- persistence ---------- */
