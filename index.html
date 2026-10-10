@@ -232,7 +232,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
     <label><span>Music vol</span><input type="range" id="volMusic" min="0" max="100" value="70"></label>
     <label><span>SFX</span><input type="range" id="volSfx" min="0" max="100" value="100"></label>
     <label><span>Ambient</span><input type="range" id="volAmbient" min="0" max="100" value="80"></label>
-    <div class="eyebrow" style="margin-top:6px">Audio credits</div><div id="credits" class="credits"></div>
+    <div class="eyebrow" style="margin-top:6px">Credits</div><div id="credits" class="credits"></div>
     <p class="note">On foot: W and S run along the facing at 8.5 m/s, A and D turn, Shift strolls at 3.8 m/s. Indoors the default is a walk at 2.5 m/s and Shift runs at 5 m/s. In a car: W and S are gas and brake, A and D steer, Space is the handbrake. The camera rides overhead and climbs with speed.</p>
     <button class="btn" type="button" id="setClose">Done</button></div></div>
   <div id="shop" class="overlay off" role="dialog" aria-label="Byte Mart"><div id="shopBox" class="card"><div id="shopHead"><div><div class="eyebrow">Byte Mart · hardware, software, caffeine</div><h3>What do you need?</h3></div><div id="shopCash">0 cr</div></div><div id="shopList"></div><p class="note" id="shopNote">Everything here changes how the street or the terminals behave. Credits: quests, the gig board by the door, and the chips on the sidewalks.</p><button class="btn" type="button" id="shopClose">Done</button></div></div>
@@ -1374,32 +1374,61 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   }
 
   /* ---------- vehicles ---------- */
+  // the fleet: each type maps to a Kenney Car Kit model (CC0); cols are the paint options, cell is the palette swatch the body uses
   const CARS = [
-    { name: 'MERIDIAN HATCH', len: 3.9, wid: 1.8, h: 0.62, cab: 0.55, top: 165, acc: 9, cols: ['#c73a3a', '#2b6cb0', '#d4d0c4', '#6a8a3a'] },
-    { name: 'KORTEX SEDAN', len: 4.6, wid: 2.0, h: 0.66, cab: 0.55, top: 190, acc: 10, cols: ['#1d2a44', '#3a3a3a', '#8a2a4a', '#b8b0a0'] },
-    { name: 'STYX CAB', len: 4.5, wid: 2.0, h: 0.7, cab: 0.6, top: 175, acc: 10, cols: ['#f2c21c'] },
-    { name: 'OKAFOR PANEL VAN', len: 5.3, wid: 2.2, h: 1.3, cab: 0.6, top: 140, acc: 7, cols: ['#e8e4d8', '#4a5a6a', '#8a4a2a'] },
-    { name: 'CADUCEUS COUPE', len: 4.3, wid: 1.9, h: 0.6, cab: 0.5, top: 230, acc: 13, cols: ['#3ee8f0', '#ff3d7f', '#101216'] }
+    { name: 'MERIDIAN HATCH', model: 'hatchback-sports', cell: 3, len: 3.9, wid: 1.8, h: 0.62, cab: 0.55, top: 165, acc: 9, cols: ['#c73a3a', '#2b6cb0', '#d4d0c4', '#6a8a3a', '#e07a2a'] },
+    { name: 'KORTEX SEDAN', model: 'sedan', cell: 6, len: 4.6, wid: 2.0, h: 0.66, cab: 0.55, top: 190, acc: 10, cols: ['#1d2a44', '#3a3a3a', '#8a2a4a', '#b8b0a0', '#2f5d8c'] },
+    { name: 'STYX CAB', model: 'taxi', cell: 4, len: 4.5, wid: 2.0, h: 0.7, cab: 0.6, top: 175, acc: 10, cols: ['#f2c21c'] },
+    { name: 'OKAFOR PANEL VAN', model: 'van', cell: 7, len: 5.3, wid: 2.2, h: 1.3, cab: 0.6, top: 140, acc: 7, cols: ['#e8e4d8', '#4a5a6a', '#8a4a2a', '#2f3a4a'] },
+    { name: 'CADUCEUS COUPE', model: 'sedan-sports', cell: 6, len: 4.3, wid: 1.9, h: 0.6, cab: 0.5, top: 230, acc: 13, cols: ['#3ee8f0', '#ff3d7f', '#101216', '#ffd23f'] },
+    { name: 'HALCYON SUV', model: 'suv', cell: 3, len: 4.5, wid: 2.1, h: 0.9, cab: 0.6, top: 170, acc: 9, cols: ['#3a4a44', '#8a2a2a', '#d4d0c4', '#2a2a3a'] },
+    { name: 'KORTEX LUXE', model: 'suv-luxury', cell: 4, len: 4.9, wid: 2.1, h: 0.9, cab: 0.6, top: 205, acc: 11, cols: ['#101216', '#5a4a3a', '#b8b0a0', '#1d2a44'] },
+    { name: 'OKAFOR DELIVERY', model: 'delivery', cell: 6, len: 5.2, wid: 2.2, h: 1.4, cab: 0.6, top: 135, acc: 7, cols: ['#e8e4d8', '#ffd23f', '#2f5d8c'] }
   ];
   const cars = []; const peds = [];
+  // car paint: the Kenney palette with the body swatch repainted in the car's colour, one texture per model and colour
+  const CARTEX = { img: null, cache: {} };
+  function carPaint(type, color) {
+    const key = type.cell + color; if (CARTEX.cache[key]) return CARTEX.cache[key];
+    const t = new BABYLON.DynamicTexture('paint' + key, { width: 512, height: 512 }, scene, true, BABYLON.Texture.TRILINEAR_SAMPLINGMODE, BABYLON.Engine.TEXTUREFORMAT_RGBA, false); // invertY false: glTF UVs start at the top
+    const c = t.getContext(); if (CARTEX.img) c.drawImage(CARTEX.img, 0, 0);
+    const base = C3(color); const mix = (k, w) => 'rgb(' + [base.r, base.g, base.b].map(v => Math.round(Math.min(1, Math.max(0, v * (1 - w) + k * w)) * 255)).join(',') + ')';
+    const x0 = type.cell * 64; [[x0, 0.32, 0.0], [x0 + 32, 0.08, 0.28]].forEach(h => { const g = c.createLinearGradient(0, 128, 0, 256); g.addColorStop(0, mix(1, h[1])); g.addColorStop(1, mix(0, h[2])); c.fillStyle = g; c.fillRect(h[0], 128, 32, 128); }); // the swatch is two 32 px columns, lighter and darker, each a top to bottom gradient
+    t.update(false); t.hasAlpha = false; CARTEX.cache[key] = t; return t;
+  }
   function makeCarMesh(type, color) {
     const root = new BABYLON.TransformNode('car', scene); root.parent = Z.root;
-    const bodyM = mat('carBody' + color, color, { spec: 0.6, power: 48 }); const glassM = mat('carGlass', '#10161e', { spec: 0.9, power: 96 }); const tyreM = mat('tyre', '#15161a', { spec: 0.1 }); const chromeM = mat('chrome', '#9aa0a8', { spec: 0.9, power: 96 });
-    const L = type.len, Wd = type.wid, H = type.h;
-    const b = box(bodyM, Wd, H, L, 0, 0.42, 0, { parent: root, cast: true, name: 'carBody' });
-    const cabL = type.name.indexOf('VAN') >= 0 ? L * 0.72 : L * 0.5; const cabZ = type.name.indexOf('VAN') >= 0 ? -L * 0.1 : -L * 0.05;
-    box(glassM, Wd - 0.24, type.cab, cabL, 0, 0.42 + H, cabZ, { parent: root, cast: true });
-    box(bodyM, Wd - 0.4, 0.06, cabL - 0.3, 0, 0.42 + H + type.cab, cabZ, { parent: root, cast: false }); // roof panel
-    [[-1, 1], [1, 1], [-1, -1], [1, -1]].forEach(w => cyl(tyreM, 0.62, 0.3, w[0] * (Wd / 2 - 0.05), 0.0, w[1] * (L / 2 - 0.85), { parent: root, cast: true, rz: PI / 2, tess: 12 }));
-    [-0.6, 0.6].forEach(dx => { box(mat('headlamp', '#fff4d6', { emissive: '#ffe9b0', unlit: true }), 0.34, 0.18, 0.08, dx * Wd / 2, 0.42 + H * 0.55, L / 2 + 0.02, { parent: root, cast: false }); box(mat('taillamp', '#ff2a2a', { emissive: '#ff1a1a', unlit: true }), 0.34, 0.16, 0.08, dx * Wd / 2, 0.42 + H * 0.55, -L / 2 - 0.02, { parent: root, cast: false }); });
-    box(chromeM, Wd + 0.1, 0.16, 0.12, 0, 0.42, L / 2, { parent: root, cast: false }); box(chromeM, Wd + 0.1, 0.16, 0.12, 0, 0.42, -L / 2, { parent: root, cast: false });
+    const L = type.len, Wd = type.wid, H = type.h; let b = null, wheels = [];
+    const container = AV.cars && AV.cars[type.model];
+    if (container) {
+      // the real model: scaled to the type's length, repainted, wheels kept for spinning
+      const fix = new BABYLON.TransformNode('carfix', scene); fix.parent = root;
+      const inst = container.instantiateModelsToScene(n => n, false); const mroot = inst.rootNodes[0]; mroot.parent = fix;
+      const info = container.carInfo; const s = L / info.len; fix.scaling.set(s, s, s); fix.position.y = 0.02;
+      const paint = carPaint(type, color);
+      mroot.getChildMeshes().forEach(m => {
+        m.isPickable = false; if (m.material) { const pm = m.material.clone('paint_' + m.material.name + color); pm.albedoTexture = paint; pm.metallic = 0.15; pm.roughness = 0.38; pm.environmentIntensity = 0.8; pm.maxSimultaneousLights = 8; if (pm.clearCoat) { pm.clearCoat.isEnabled = true; pm.clearCoat.intensity = 0.55; pm.clearCoat.roughness = 0.12; } m.material = pm; }
+        if (Z.sg && !NULL_ENGINE) Z.sg.addShadowCaster(m); Z.meshes.push(m); if (m.name === 'body') b = m;
+      });
+      mroot.getChildTransformNodes().concat(mroot.getChildMeshes()).forEach(n => { if (/^wheel/.test(n.name)) wheels.push(n); });
+      if (!b) b = mroot.getChildMeshes()[0];
+    } else {
+      const bodyM = mat('carBody' + color, color, { spec: 0.6, power: 48 }); const glassM = mat('carGlass', '#10161e', { spec: 0.9, power: 96 }); const tyreM = mat('tyre', '#15161a', { spec: 0.1 }); const chromeM = mat('chrome', '#9aa0a8', { spec: 0.9, power: 96 });
+      b = box(bodyM, Wd, H, L, 0, 0.42, 0, { parent: root, cast: true, name: 'carBody' });
+      const cabL = type.name.indexOf('VAN') >= 0 ? L * 0.72 : L * 0.5; const cabZ = type.name.indexOf('VAN') >= 0 ? -L * 0.1 : -L * 0.05;
+      box(glassM, Wd - 0.24, type.cab, cabL, 0, 0.42 + H, cabZ, { parent: root, cast: true });
+      box(bodyM, Wd - 0.4, 0.06, cabL - 0.3, 0, 0.42 + H + type.cab, cabZ, { parent: root, cast: false }); // roof panel
+      [[-1, 1], [1, 1], [-1, -1], [1, -1]].forEach(w => cyl(tyreM, 0.62, 0.3, w[0] * (Wd / 2 - 0.05), 0.0, w[1] * (L / 2 - 0.85), { parent: root, cast: true, rz: PI / 2, tess: 12 }));
+      [-0.6, 0.6].forEach(dx => { box(mat('headlamp', '#fff4d6', { emissive: '#ffe9b0', unlit: true }), 0.34, 0.18, 0.08, dx * Wd / 2, 0.42 + H * 0.55, L / 2 + 0.02, { parent: root, cast: false }); box(mat('taillamp', '#ff2a2a', { emissive: '#ff1a1a', unlit: true }), 0.34, 0.16, 0.08, dx * Wd / 2, 0.42 + H * 0.55, -L / 2 - 0.02, { parent: root, cast: false }); });
+      box(chromeM, Wd + 0.1, 0.16, 0.12, 0, 0.42, L / 2, { parent: root, cast: false }); box(chromeM, Wd + 0.1, 0.16, 0.12, 0, 0.42, -L / 2, { parent: root, cast: false });
+    }
     const cone = decal(coneMat, Wd + 4, 7, 0, 0.17, L / 2 + 3.6, { parent: root, name: 'cone' });
-    return { root, body: b, cone };
+    return { root, body: b, cone, wheels };
   }
   function spawnCar(o) {
     const type = o.type || CARS[Math.floor(rnd() * CARS.length)]; const color = o.color || type.cols[Math.floor(rnd() * type.cols.length)];
     const m = makeCarMesh(type, color); m.root.position.set(o.x, o.y || 0, o.z); m.root.rotation.y = o.heading || 0;
-    const car = { type, color, root: m.root, cone: m.cone, x: o.x, z: o.z, y: o.y || 0, heading: o.heading || 0, speed: 0, parked: !!o.parked, deck: !!o.deck, dir: o.dir == null ? -1 : o.dir, lane: 0, driver: !o.parked, honk: 0 };
+    const car = { type, color, root: m.root, cone: m.cone, wheels: m.wheels, roll: 0, x: o.x, z: o.z, y: o.y || 0, heading: o.heading || 0, speed: 0, parked: !!o.parked, deck: !!o.deck, dir: o.dir == null ? -1 : o.dir, lane: 0, driver: !o.parked, honk: 0 };
     if (car.parked) m.cone.setEnabled(false);
     cars.push(car); return car;
   }
@@ -1437,6 +1466,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       w.dir = nd;
     } else { w.x += d[0] * step; w.z += d[1] * step; if (alongX) w.z += ((road + rz * offset) - w.z) * Math.min(1, dt * 4); else w.x += ((road + rx * offset) - w.x) * Math.min(1, dt * 4); }
   }
+  function rollWheels(dt) { cars.forEach(c => { if (!c.wheels || !c.wheels.length || !c.speed) return; c.roll += c.speed * dt / 0.32; const a = c.roll % (2 * PI); c.wheels.forEach(w => { w.rotation.x = a; }); }); }
   function updateTraffic(dt) {
     const pl = chars.player; const pp = pl ? pl.pivot.position : null; const pcar = state.driving;
     cars.forEach(c => {
@@ -1474,7 +1504,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     chars[name] = ch; return ch;
   }
   /* ---------- Ready Player Me avatars: the same rigs and clips as the street build, instanced from asset containers ---------- */
-  const AV = { ready: false, rigs: {}, clips: {} };
+  const AV = { ready: false, rigs: {}, clips: {}, cars: null };
   async function loadGLB(file, onProgress, asContainer) {
     const res = await fetch('./models/' + file + '.txt'); if (!res.ok) throw new Error(file + ': HTTP ' + res.status);
     let b64 = '';
@@ -2182,7 +2212,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   let t = 0; let blinkT = 0; let mapT = 0;
   scene.onBeforeRenderObservable.add(() => {
     const dt = Math.min(engine.getDeltaTime() / 1000, 0.05); t += dt;
-    if (state.playing) { updatePlayer(dt); updateCamera(dt); updateInteract(); updateNPCs(dt, t); updateMart(dt, t); if (state.zone === 'out') { updateTraffic(dt); updatePeds(dt); } mapT += dt; if (mapT > 0.08) { mapT = 0; drawMap(t); } }
+    if (state.playing) { updatePlayer(dt); updateCamera(dt); updateInteract(); updateNPCs(dt, t); updateMart(dt, t); if (state.zone === 'out') { updateTraffic(dt); updatePeds(dt); rollWheels(dt); } mapT += dt; if (mapT > 0.08) { mapT = 0; drawMap(t); } }
     blinkT += dt; if (blinkT > 0.4) { blinkT = 0; const z = zones[state.zone]; if (z && z !== zones.out) z.meshes.forEach(m => { if (m.metadata && m.metadata.blink) m.setEnabled(!m.isEnabled()); }); }
   });
 
@@ -2446,7 +2476,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       zone(name) { const bedName = name === 'out' ? 'out' : 'in'; music.zone = bedName; if (!ctx) return; const t = ctx.currentTime; Object.keys(bus).forEach(k => bus[k].gain.setTargetAtTime(k === bedName ? 1 : 0, t, 0.6)); setBeds(name); if (name !== mus.zone) playTrack(name); },
       title() { if (ctx && mus.zone !== 'title') playTrack('title'); },
       retry() { if (!ctx) return; if (mus.cur && mus.cur.el.paused) mus.cur.el.play().catch(() => {}); Object.values(beds).forEach(b => { if (b.gain.gain.value > 0.001 && b.el.paused) b.el.play().catch(() => {}); }); },
-      credits: [['Music', 'HoliznaCC0 (Night Driving, Retro Synths, Cyber Anxiety, City Lights, Retro Soundtrack), John Bartmann (Profound Mystery, Ominous Night), Komiku (Action Investigation), SUPERARE (Neon). All CC0, via the Free Music Archive.'], ['Ambience', 'hmoosher (machine-room drone). CC0, via freesound.org. The street bed is synthesised.'], ['Effects', 'Kenney.nl Interface Sounds and UI Audio (CC0). Horns and impacts from the Godot demo projects (MIT). Footsteps and the engine are synthesised.']],
+      credits: [['Car models', 'Kenney Car Kit 3.1 (CC0), www.kenney.nl, repainted per car in game'], ['Music', 'HoliznaCC0 (Night Driving, Retro Synths, Cyber Anxiety, City Lights, Retro Soundtrack), John Bartmann (Profound Mystery, Ominous Night), Komiku (Action Investigation), SUPERARE (Neon). All CC0, via the Free Music Archive.'], ['Ambience', 'hmoosher (machine-room drone). CC0, via freesound.org. The street bed is synthesised.'], ['Effects', 'Kenney.nl Interface Sounds and UI Audio (CC0). Horns and impacts from the Godot demo projects (MIT). Footsteps and the engine are synthesised.']],
       toggle() { muted = !muted; try { localStorage.setItem('nz-sound', muted ? 'off' : 'on'); } catch (e) { /* ignore */ } if (ctx) { master.gain.setTargetAtTime(muted ? 0 : vol.master / 100, ctx.currentTime, 0.05); api.resume(); } return muted; },
       volumes() { return Object.assign({}, vol); },
       setVolume(kind, v) {
@@ -2605,6 +2635,16 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     rigs.forEach((n, i) => { AV.rigs[n.replace('avatar-', '')] = res[i]; }); clips.forEach((n, i) => { AV.clips[n] = res[rigs.length + i]; });
     AV.ready = true;
   }
+  // the Kenney car models (CC0): loaded as containers, measured once, with the palette image kept for repainting
+  async function loadCars() {
+    const line = $('loadline'); const names = CARS.map(t => t.model).filter((m, i, a) => a.indexOf(m) === i); const prog = names.map(() => 0);
+    const show = () => { line.textContent = 'LOADING CARS ' + Math.round(prog.reduce((a, b) => a + b, 0) / prog.length * 100) + '%'; };
+    const img = new Image(); const imgDone = new Promise(r => { img.onload = () => r(true); img.onerror = () => r(false); img.src = 'tex/car-colormap.png'; });
+    const res = await Promise.all(names.map((n, i) => loadGLB('car-' + n + '.glb', v => { prog[i] = v; show(); }, true)));
+    if (await imgDone) CARTEX.img = img;
+    AV.cars = {};
+    names.forEach((n, i) => { const c = res[i]; const body = c.meshes.find(m => m.name === 'body') || c.meshes[1] || c.meshes[0]; const bb = body.getBoundingInfo().boundingBox; c.carInfo = { len: (bb.maximum.z - bb.minimum.z) || 2.6 }; AV.cars[n] = c; });
+  }
   function populate() {
     Z = zones.out;
     let pl, rosa, jul;
@@ -2645,6 +2685,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
 
   async function start(hot) {
     try { if (document.fonts && document.fonts.load) await Promise.race([Promise.all([document.fonts.load('48px "Bebas Neue"'), document.fonts.load('600 22px "JetBrains Mono"')]), new Promise(r => setTimeout(r, 2500))]); } catch (e) { /* fonts are optional */ }
+    try { await loadCars(); } catch (err) { AV.cars = null; }
     buildWorld();
     if (!NULL_ENGINE) { engine.runRenderLoop(() => scene.render()); window.addEventListener('resize', () => engine.resize()); }
     $('fade').classList.add('clear');
