@@ -3171,8 +3171,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     spawnTraffic(22); spawnPeds(AV.ready ? 18 : 28);
     [[-20, -3.6, PI / 2], [26, 3.6, -PI / 2], [-30, 3.6, -PI / 2], [-40, -20, 0], [40, 22, PI], [-40, 60, 0], [40, -60, PI], [-76, 20, 0], [76, -20, PI]].forEach(p => spawnCar({ x: p[0], z: p[1], heading: p[2], parked: true }));
     if (!NULL_ENGINE && AV.ready) { const sg = zones.out.sg; Object.values(chars).forEach(ch => { if (ch.kind === 'avatar' && ch !== chars.nadia) charMeshes(ch).forEach(m => sg.addShadowCaster(m)); }); }
-    // the clip rigs have done their job
-    Object.values(AV.clips).forEach(clip => { clip.animationGroups.forEach(g => g.dispose()); clip.meshes.forEach(m => m.dispose(false, false)); clip.transformNodes.forEach(n => { if (!n.isDisposed()) n.dispose(); }); });
+    // the clip rigs' meshes have done their job; the animation groups stay, because the character creator rebuilds the player and retargets them again
+    Object.values(AV.clips).forEach(clip => { clip.animationGroups.forEach(g => g.stop()); clip.meshes.forEach(m => m.dispose(false, false)); });
     loaded = true; $('loadline').textContent = 'READY.'; $('enterBtn').disabled = false;
   }
   function begin(resume) {
