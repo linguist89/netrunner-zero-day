@@ -265,7 +265,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
       <div id="customizePanel" class="card">
         <div class="eyebrow">Before drop-in</div>
         <h2 style="font:32px var(--font-display);margin:0;color:var(--cash);letter-spacing:.05em">Style your runner</h2>
-        <p style="margin:0;color:#d9d2c5">Face, hair, facial hair, colours. Saved with your profile; change it whenever you continue.</p>
+        <p style="margin:0;color:#d9d2c5">Hair, facial hair, skin and clothing. Saved with your profile; change it whenever you continue.</p>
         <div id="styleChoices" class="lookRows" aria-label="Character options"></div>
         <div class="row"><button id="customizeBack" class="btn ghost" type="button">Back</button><button id="customizeRandom" class="btn ghost" type="button">Random</button><button id="customizeStart" class="btn" type="button">Jump in</button></div>
       </div>
@@ -3030,26 +3030,29 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     top: [[null, 'Factory orange'], ['#3ee8f0', 'Cyan'], ['#ff9f43', 'Amber'], ['#a78bfa', 'Violet'], ['#8cf28c', 'Mint'], ['#d9d2c5', 'Bone'], ['#ff477e', 'Red'], ['#15161b', 'Black'], ['#2f5d8c', 'Navy'], ['#7a5a3a', 'Leather']],
     bottom: [[null, 'Factory'], ['#1a1d26', 'Charcoal'], ['#332018', 'Brown'], ['#20203b', 'Ink'], ['#1d332d', 'Forest'], ['#d9d2c5', 'Bone'], ['#8a2a4a', 'Wine'], ['#2b6cb0', 'Denim']]
   };
-  const LOOK_ROWS = [['face', 'Face'], ['hair', 'Hair'], ['hairCol', 'Hair colour'], ['beard', 'Facial hair'], ['skin', 'Skin'], ['top', 'Jacket'], ['bottom', 'Trousers']];
+  const LOOK_ROWS = [['hair', 'Hair'], ['hairCol', 'Hair colour'], ['beard', 'Facial hair'], ['skin', 'Skin'], ['top', 'Jacket'], ['bottom', 'Trousers']];
   function defaultLook() { return { face: 0, hair: 0, hairCol: 0, beard: 0, skin: 0, top: 0, bottom: 0 }; }
-  function normalizeLook(l) { const d = defaultLook(); if (!l || typeof l !== 'object') return d; Object.keys(d).forEach(k => { const n = LOOK_OPTS[k].length; d[k] = typeof l[k] === 'number' && l[k] >= 0 && l[k] < n ? l[k] : 0; }); return d; }
+  function normalizeLook(l) { const d = defaultLook(); if (!l || typeof l !== 'object') return d; Object.keys(d).forEach(k => { const n = LOOK_OPTS[k].length; d[k] = typeof l[k] === 'number' && l[k] >= 0 && l[k] < n ? l[k] : 0; }); d.face = 0; return d; } // the face and body are fixed: changing them swapped the whole character, clothes included
   LOOK.current = defaultLook();
   const opt = (k, look) => LOOK_OPTS[k][look[k]][0];
 
   // a hair or beard mesh from another rig, skinned onto this body: the bone indices are remapped by name because the rigs do not share a bone order
+  // a hair or beard mesh from another rig, carried by this body's head bone: its vertices are moved from the donor's head space into the head bone's own space, so it follows every animation and sits on this head whatever its height
   function borrowPart(targetMeshes, container, meshName, tag) {
     const src = container.meshes.find(m => m.name === meshName); const ref = targetMeshes.find(m => m.name === 'Wolf3D_Head'); if (!src || !ref || !ref.skeleton || !src.skeleton) return null;
-    const clone = src.clone(meshName + '_' + tag, null, true); clone.makeGeometryUnique(); clone.parent = ref.parent; clone.position.copyFrom(ref.position); clone.rotationQuaternion = ref.rotationQuaternion ? ref.rotationQuaternion.clone() : null; clone.rotation.copyFrom(ref.rotation); clone.scaling.copyFrom(ref.scaling);
-    const skA = ref.skeleton, skB = src.skeleton; const byName = {}; skA.bones.forEach((b, i) => { byName[b.name] = i; }); const map = skB.bones.map(b => byName[b.name] == null ? 0 : byName[b.name]);
-    ['matricesIndices', 'matricesIndicesExtra'].forEach(kind => { const idx = clone.getVerticesData(kind); if (!idx) return; const out = new Float32Array(idx.length); for (let i = 0; i < idx.length; i++) out[i] = map[idx[i]] == null ? 0 : map[idx[i]]; clone.setVerticesData(kind, out, false); });
-    clone.skeleton = skA; clone.isPickable = false; clone.material = src.material.clone(src.material.name + '_' + tag); clone.material.maxSimultaneousLights = 8; clone.setEnabled(true); return clone;
+    const boneA = ref.skeleton.bones.find(b => b.name === 'Head'), boneB = src.skeleton.bones.find(b => b.name === 'Head'); const tn = boneA && boneA.getTransformNode(); if (!boneA || !boneB || !tn) return null;
+    const clone = src.clone(meshName + '_' + tag, null, true); clone.makeGeometryUnique(); clone.skeleton = null;
+    ['matricesIndices', 'matricesWeights', 'matricesIndicesExtra', 'matricesWeightsExtra'].forEach(k => { if (clone.isVerticesDataPresent(k)) clone.removeVerticesData(k); }); clone.numBoneInfluencers = 0;
+    clone.bakeTransformIntoVertices(boneB.getAbsoluteInverseBindMatrix()); // donor mesh space to donor head space
+    clone.parent = tn; clone.position.set(0, 0, 0); clone.rotationQuaternion = BABYLON.Quaternion.Identity(); clone.scaling.set(1, 1, 1);
+    clone.isPickable = false; clone.alwaysSelectAsActiveMesh = true; clone.material = src.material.clone(src.material.name + '_' + tag); clone.material.maxSimultaneousLights = 8; clone.setEnabled(true); return clone;
   }
   function tintLook(meshes, look) {
     meshes.forEach(m => {
       const n = m.material ? m.material.name : ''; const kind = /Outfit_Top/i.test(n) ? 'top' : /Outfit_Bottom|Outfit_Footwear/i.test(n) ? 'bottom' : /Hair|Beard/i.test(n) ? 'hairCol' : /Skin|Body/i.test(n) ? 'skin' : null; if (!kind || !m.material || !m.material.albedoColor) return;
       const md = m.metadata = m.metadata || {}; if (!md.look) md.look = { orig: m.material, clone: m.material.clone(m.material.name + '-look') };
       const colour = opt(kind, look); if (!colour) { m.material = md.look.orig; return; }
-      const matl = md.look.clone; m.material = matl; matl.albedoColor = C3(colour);
+      const matl = md.look.clone; m.material = matl; matl.albedoColor = C3(colour); if (kind === 'hairCol') { matl.metallic = 0; matl.roughness = 0.78; if (matl.sheen) matl.sheen.isEnabled = false; }
       matl.albedoTexture = kind === 'skin' ? md.look.orig.albedoTexture : null; // skin keeps its texture and is tinted; cloth and hair take a flat colour over their normal maps
     });
   }
@@ -3090,12 +3093,12 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     });
     box.querySelectorAll('.arrow').forEach(b => b.addEventListener('click', () => { const k = b.dataset.k, n = LOOK_OPTS[k].length; LOOK.current[k] = (LOOK.current[k] + (+b.dataset.d) + n) % n; SFX.tick(); renderLookRows(); dressPreview(); }));
   }
-  function randomLook() { const l = {}; Object.keys(LOOK_OPTS).forEach(k => { l[k] = Math.floor(Math.random() * LOOK_OPTS[k].length); }); LOOK.current = l; SFX.swish(); renderLookRows(); dressPreview(); }
+  function randomLook() { const l = {}; Object.keys(LOOK_OPTS).forEach(k => { l[k] = Math.floor(Math.random() * LOOK_OPTS[k].length); }); l.face = 0; LOOK.current = l; SFX.swish(); renderLookRows(); dressPreview(); }
   async function initCreator() {
     if (creator.engine) return creator.readyP;
     const pc = $('characterPreviewCanvas'); creator.engine = new BABYLON.Engine(pc, true, { preserveDrawingBuffer: true, stencil: true }); const ps = creator.scene = new BABYLON.Scene(creator.engine); ps.clearColor = new BABYLON.Color4(.025, .035, .055, 1);
     const camera = new BABYLON.ArcRotateCamera('creatorCam', -Math.PI / 2, Math.PI / 2.15, 2.6, new BABYLON.Vector3(0, .95, 0), ps); camera.detachControl(); camera.minZ = 0.05; creator.cam = camera;
-    const key = new BABYLON.HemisphericLight('creatorKey', new BABYLON.Vector3(-.4, 1, -.6), ps); key.intensity = 1.1; const rim = new BABYLON.PointLight('creatorRim', new BABYLON.Vector3(1, 1.8, 1.5), ps); rim.diffuse = new BABYLON.Color3(.25, .9, 1); rim.intensity = 10; const fill = new BABYLON.PointLight('creatorFill', new BABYLON.Vector3(-1.2, 1.6, 1.6), ps); fill.diffuse = new BABYLON.Color3(1, .85, .7); fill.intensity = 6;
+    const key = new BABYLON.HemisphericLight('creatorKey', new BABYLON.Vector3(-.4, 1, -.6), ps); key.intensity = 1.1; const rim = new BABYLON.PointLight('creatorRim', new BABYLON.Vector3(1, 1.8, 1.5), ps); rim.diffuse = new BABYLON.Color3(.25, .9, 1); rim.intensity = 3; const fill = new BABYLON.PointLight('creatorFill', new BABYLON.Vector3(-1.2, 1.6, 1.6), ps); fill.diffuse = new BABYLON.Color3(1, .85, .7); fill.intensity = 6;
     creator.root = new BABYLON.TransformNode('creatorRoot', ps); creator.root.rotation.y = Math.PI;
     const rotate = amount => { creator.root.rotation.y += amount; }; $('previewRotateLeft').addEventListener('click', () => rotate(-Math.PI / 8)); $('previewRotateRight').addEventListener('click', () => rotate(Math.PI / 8));
     pc.addEventListener('pointerdown', e => { creator.dragging = true; creator.lastX = e.clientX; pc.setPointerCapture(e.pointerId); }); pc.addEventListener('pointermove', e => { if (!creator.dragging) return; creator.root.rotation.y += (e.clientX - creator.lastX) * .012; creator.lastX = e.clientX; }); pc.addEventListener('pointerup', e => { creator.dragging = false; pc.releasePointerCapture(e.pointerId); });
@@ -3202,7 +3205,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (hot && hot.appearance) LOOK.current = normalizeLook(hot.appearance);
     if (hot && hot.save && hot.playing) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(hot)); } catch (e) { /* ignore */ } begin(true); }
   }
-  window.__zdDebug = { scene, store, chars, zones, state, cam, inter, cars, peds, ui, SFX, chips, CAM, LOOK };
+  window.__zdDebug = { scene, store, chars, zones, state, cam, inter, cars, peds, ui, SFX, chips, CAM, LOOK, creator };
   const hot = window.claude && window.claude.hot;
   if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
 })();
