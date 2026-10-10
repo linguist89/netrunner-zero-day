@@ -27,6 +27,8 @@ then visit http://localhost:8000/. Babylon.js itself loads from jsDelivr.
 | P | missions and journal |
 | L | settings and audio credits |
 | M / N | sound and music on or off |
+| B | drink an OVERCLOCK (from Byte Mart) |
+| K | whistle your own car back to Byte Mart |
 
 ## Quests
 
@@ -37,6 +39,22 @@ then visit http://localhost:8000/. Babylon.js itself loads from jsDelivr.
 5. Ghost Host: the host with no name (arp, nmap, ssh)
 
 Every objective shows a "look around" hint, and each room holds its own cheat sheet or handout.
+
+## Byte Mart
+
+The shop under the orange sign, west of Building A on the north side of Meridian Row. Nadia sells gear that changes how the street and the terminals behave:
+
+| Item | Credits | What it does |
+| --- | --- | --- |
+| OVERCLOCK energy drink | 15 | B drinks one: 90 seconds of faster running and a quicker car |
+| USB Rubber Ducky | 110 | `duck` on any terminal types the command the current objective needs |
+| Wi-Fi Pineapple | 90 | `scan` sweeps the STYX network: every host, name, port and service |
+| Proxmark RFID cloner | 120 | the card readers on Buildings F and D accept the clone |
+| STYX scanner app | 60 | credit chips show on the minimap |
+| Car keys: Caduceus Coupe | 220 | your own coupe outside the mart; K whistles it back |
+| Books (three) | 35 to 45 | add `man grep`, `man nmap`, `man ps` and friends to every terminal |
+
+Credits come from the five quests, the four gigs on the board by the mart door (find, ls -a, grep -c, ps | wc), and the chips lying on the sidewalks, which respawn a few minutes after they are picked up.
 
 ## Layout
 

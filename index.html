@@ -34,6 +34,30 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 #cash{position:absolute;right:16px;top:16px;text-align:right;pointer-events:none;display:flex;flex-direction:column;align-items:flex-end;gap:0}
 #cash .num{font-family:var(--font-display);font-size:clamp(34px,6vw,56px);line-height:.9;color:var(--cash);text-shadow:3px 3px 0 #000,0 0 18px rgba(255,210,63,.35);font-variant-numeric:tabular-nums;letter-spacing:.02em}
 #cash .name{font-family:var(--font-display);font-size:18px;letter-spacing:.08em;color:var(--fg);text-shadow:2px 2px 0 #000}
+#boost{font-family:var(--font-display);font-size:18px;letter-spacing:.1em;color:var(--hot);text-shadow:2px 2px 0 #000;margin-top:2px}
+#cashPop{position:absolute;right:0;top:-22px;font-family:var(--font-display);font-size:26px;color:var(--ok);text-shadow:2px 2px 0 #000;opacity:0;pointer-events:none}
+#cashPop.on{animation:cashpop 1.1s ease-out forwards}
+@keyframes cashpop{0%{opacity:0;transform:translateY(10px)}15%{opacity:1}100%{opacity:0;transform:translateY(-26px)}}
+/* Byte Mart */
+#shopBox{width:min(680px,100%);max-height:calc(100% - 24px);display:flex;flex-direction:column;gap:10px;padding:16px 18px}
+#shopHead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:2px solid var(--line);padding-bottom:8px}
+#shopHead h3{margin:0;font:30px var(--font-display);letter-spacing:.06em;color:var(--warn)}
+#shopCash{font-family:var(--font-display);font-size:34px;line-height:.9;color:var(--cash);text-shadow:2px 2px 0 #000}
+#shopList{overflow:auto;display:flex;flex-direction:column;gap:6px;min-height:0}
+#shopList .item{display:grid;grid-template-columns:76px 1fr 96px;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:2px;background:rgba(255,255,255,.02)}
+#shopList .item.owned{opacity:.75}
+#shopList .tag{font:600 10px var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);border:1px solid var(--line);padding:4px 6px;text-align:center;border-radius:2px}
+#shopList h4{margin:0 0 2px;font:19px var(--font-display);letter-spacing:.04em;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+#shopList h4 .own{font:600 10px var(--font-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--ok)}
+#shopList p{margin:0;font-size:12.5px;line-height:1.4;color:#d8d2c5}
+#shopList .buy{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+#shopList .price{font-family:var(--font-display);font-size:20px;color:var(--cash)}
+#shopList .have{font:600 10px var(--font-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.btn.small{font-size:15px;padding:6px 12px 4px}
+.btn:disabled{opacity:.4;filter:none;transform:none}
+#shopBox .note{margin:0;font-size:12px;color:var(--mute);min-height:16px}
+#shopBox>.btn{align-self:flex-end;padding:6px 14px 4px;font-size:16px}
+@media (max-width:640px){#shopList .item{grid-template-columns:1fr 84px}#shopList .tag{display:none}}
 #carName{position:absolute;right:16px;top:calc(16px + 92px);font-family:var(--font-display);font-size:clamp(22px,4vw,34px);letter-spacing:.08em;color:var(--cyan);text-shadow:3px 3px 0 #000;opacity:0;transition:opacity .25s;pointer-events:none;text-align:right}
 #carName.on{opacity:1}
 #quest{position:absolute;left:16px;top:16px;width:min(300px,52vw);padding:10px 12px 12px}
@@ -159,10 +183,10 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 
   <div id="hud" aria-live="polite">
     <div id="quest" class="card"><div class="eyebrow" id="qEyebrow">Foundation</div><div class="title" id="qTitle"></div><ul id="qList"></ul><div class="next" id="qNext" hidden></div></div>
-    <div id="cash"><div class="num" id="hudCredits">000000</div><div class="name" id="hudName">...</div></div>
+    <div id="cash"><div id="cashPop"></div><div class="num" id="hudCredits">000000</div><div class="name" id="hudName">...</div><div id="boost" hidden></div></div>
     <div id="carName"></div>
     <div id="prompt" class="card" hidden><kbd>E</kbd><span id="promptText"></span></div>
-    <div id="hints"><span><b>W S</b> run</span><span><b>A D</b> turn</span><span><b>Shift</b> stroll / run inside</span><span><b>E</b> interact / car</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> camera</span><span><b>P</b> missions</span><span><b>L</b> settings</span><span><b>M</b> sound</span><span><b>N</b> music</span><span><b>wheel</b> zoom</span></div>
+    <div id="hints"><span><b>W S</b> run</span><span><b>A D</b> turn</span><span><b>Shift</b> stroll / run inside</span><span><b>E</b> interact / car</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> camera</span><span><b>B</b> drink</span><span><b>K</b> whistle car</span><span><b>P</b> missions</span><span><b>L</b> settings</span><span><b>M</b> sound</span><span><b>N</b> music</span><span><b>wheel</b> zoom</span></div>
     <canvas id="map" width="170" height="186" aria-label="Minimap"></canvas>
     <div id="pager"><div class="lbl"><span>STYX PAGER</span><span id="pagerTime">--:--</span></div><div class="lcd" id="pagerText"></div></div>
     <button id="musicBtn" class="btn ghost" type="button" aria-pressed="true">Music on</button>
@@ -181,11 +205,11 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
     <div id="startBox">
       <div class="eyebrow">Overhead cut · Meridian Row · nine blocks, one gateway</div>
       <h1>Netrunner <span>Zero Day</span></h1>
-      <p id="brief">Seen from the rooftops, Meridian Row is nine city blocks that no map admits to. Traffic circles, pedestrians drift, and under the asphalt runs STYX, the network that keeps the lights on. Building A belonged to Dara Okafor, a penetration tester. She left in a hurry. Her workstation is still logged in, and the trail runs through all four buildings.</p>
+      <p id="brief">Seen from the rooftops, Meridian Row is nine city blocks that no map admits to. Traffic circles, pedestrians drift, and under the asphalt runs STYX, the network that keeps the lights on. Building A belonged to Dara Okafor, a penetration tester. She left in a hurry. Her workstation is still logged in, and the trail runs through all four buildings. Byte Mart, under the orange sign, sells the gear that bends the rules; credits come from quests, gigs and the chips lying around the street.</p>
       <p><b>Follow the arrow to Building A. Steal a car if you like, nobody here is counting. Except the gateway.</b></p>
       <div class="field"><label class="eyebrow" for="pname">Profile name</label><input id="pname" value="Fresh Investigator" maxlength="24" autocomplete="off"></div>
       <div class="row"><button id="enterBtn" class="btn" type="button" disabled>Drop into Meridian Row</button><button id="continueBtn" class="btn ghost" type="button" hidden>Continue saved profile</button><span id="loadline">LOADING ENGINE...</span></div>
-      <div id="controls"><span><b>W / S</b> run forward, back</span><span><b>A / D</b> turn</span><span><b>Shift</b> stroll outside, run inside</span><span><b>E</b> interact, enter or leave a car</span><span><b>W / S</b> gas and brake in a car</span><span><b>A / D</b> steer</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> switch between overhead and chase camera</span><span><b>Wheel</b> zoom the camera</span><span><b>P</b> missions and journal</span><span><b>L</b> settings</span><span><b>N</b> music on or off</span><span><b>Esc</b> close window</span><span>On a phone: stick to move, tap E, tap BRAKE in a car.</span></div>
+      <div id="controls"><span><b>W / S</b> run forward, back</span><span><b>A / D</b> turn</span><span><b>Shift</b> stroll outside, run inside</span><span><b>E</b> interact, enter or leave a car</span><span><b>W / S</b> gas and brake in a car</span><span><b>A / D</b> steer</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> switch between overhead and chase camera</span><span><b>B</b> drink an OVERCLOCK from Byte Mart</span><span><b>K</b> whistle your own car back to the mart</span><span><b>Wheel</b> zoom the camera</span><span><b>P</b> missions and journal</span><span><b>L</b> settings</span><span><b>N</b> music on or off</span><span><b>Esc</b> close window</span><span>On a phone: stick to move, tap E, tap BRAKE in a car.</span></div>
     </div>
   </div>
 
@@ -211,6 +235,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
     <div class="eyebrow" style="margin-top:6px">Audio credits</div><div id="credits" class="credits"></div>
     <p class="note">On foot: W and S run along the facing at 8.5 m/s, A and D turn, Shift strolls at 3.8 m/s. Indoors the default is a walk at 2.5 m/s and Shift runs at 5 m/s. In a car: W and S are gas and brake, A and D steer, Space is the handbrake. The camera rides overhead and climbs with speed.</p>
     <button class="btn" type="button" id="setClose">Done</button></div></div>
+  <div id="shop" class="overlay off" role="dialog" aria-label="Byte Mart"><div id="shopBox" class="card"><div id="shopHead"><div><div class="eyebrow">Byte Mart · hardware, software, caffeine</div><h3>What do you need?</h3></div><div id="shopCash">0 cr</div></div><div id="shopList"></div><p class="note" id="shopNote">Everything here changes how the street or the terminals behave. Credits: quests, the gig board by the door, and the chips on the sidewalks.</p><button class="btn" type="button" id="shopClose">Done</button></div></div>
   <div id="jr" role="dialog" aria-label="Journal"><div id="jrHead"><button class="tab on" data-tab="quests" type="button">Missions</button><button class="tab" data-tab="log" type="button">Log</button><button class="tab" data-tab="notebook" type="button">Notebook</button><button class="x" type="button" id="jrClose">Close</button></div><div id="jrBody"></div></div>
 
   <div id="fade"></div>
@@ -546,10 +571,10 @@ Welcome, investigator. The next build is yours.
       journalStart: 'A terminal in Building A is still logged in. Someone named Dara left in a hurry. Time to see what she left behind.',
       journalDone: 'Explored Dara’s workstation. She was investigating the STYX network and Caduceus Analytics. Her notes point to Rosa at Building H and Julien at Building F.',
       objectives: [
-        { id: 'o1', text: 'Read the STYX welcome message', sig: 'The door was never locked', hint: 'The terminal greets you with the exact command to type.' },
-        { id: 'o2', text: 'Read Dara’s research notes', sig: 'STYX-SERVICE-CATALOGUE-DRAFT', hint: 'Her notes folder: ls notes, then cat the file about STYX services.' },
-        { id: 'o3', text: 'List Dara’s home directory', sig: 'notes/  tools/', hint: 'From the home directory (cd on its own takes you there), type ls.' },
-        { id: 'o4', text: 'Find Dara’s note about Building H', sig: 'Rosa at the Solarpunk Lab taught me the basics', hint: 'The note about Building H is in notes/ too: cat notes/building-h.md.' }
+        { id: 'o1', text: 'Read the STYX welcome message', cmd: 'cat /var/mail/dara', sig: 'The door was never locked', hint: 'The terminal greets you with the exact command to type.' },
+        { id: 'o2', text: 'Read Dara’s research notes', cmd: 'cat ~/notes/styx-services.md', sig: 'STYX-SERVICE-CATALOGUE-DRAFT', hint: 'Her notes folder: ls notes, then cat the file about STYX services.' },
+        { id: 'o3', text: 'List Dara’s home directory', cmd: 'ls ~', sig: 'notes/  tools/', hint: 'From the home directory (cd on its own takes you there), type ls.' },
+        { id: 'o4', text: 'Find Dara’s note about Building H', cmd: 'cat ~/notes/building-h.md', sig: 'Rosa at the Solarpunk Lab taught me the basics', hint: 'The note about Building H is in notes/ too: cat notes/building-h.md.' }
       ]
     },
     {
@@ -558,11 +583,11 @@ Welcome, investigator. The next build is yours.
       journalStart: 'Rosa handed over the Knock Knock set: dig, ping, nmap, traceroute, curl. Five tools, five answers. Any STYX terminal will do.',
       journalDone: 'Knock Knock complete. The STYX map is open: a gateway that counts visitors, a database on a port nobody admits to, and a hit from a host that does not exist. Next stop: Julien at Building F.',
       objectives: [
-        { id: 'o1', text: 'Run a DNS lookup for styx.local', sig: 'styx.local.\t\t300\tIN\tA\t10.0.0.1', hint: 'Dara’s recipe is tools/knock.sh on her workstation. Its first line: dig styx.local.' },
-        { id: 'o2', text: 'Ping the STYX gateway', sig: '64 bytes from 10.0.0.1', hint: 'Second line of knock.sh: ping -c 4 10.0.0.1.' },
-        { id: 'o3', text: 'Port scan the gateway', sig: '80/tcp     open     http', hint: 'nmap 10.0.0.1 lists what the gateway listens on.' },
-        { id: 'o4', text: 'Traceroute to Caduceus', sig: 'caduceus.styx.local (10.0.0.60)', hint: 'traceroute caduceus.styx.local shows every hop on the way.' },
-        { id: 'o5', text: 'Discover the HTTP counter', sig: 'STYX hit counter', hint: 'curl http://10.0.0.1/ fetches the gateway’s web page.' }
+        { id: 'o1', text: 'Run a DNS lookup for styx.local', cmd: 'dig styx.local', sig: 'styx.local.\t\t300\tIN\tA\t10.0.0.1', hint: 'Dara’s recipe is tools/knock.sh on her workstation. Its first line: dig styx.local.' },
+        { id: 'o2', text: 'Ping the STYX gateway', cmd: 'ping -c 4 10.0.0.1', sig: '64 bytes from 10.0.0.1', hint: 'Second line of knock.sh: ping -c 4 10.0.0.1.' },
+        { id: 'o3', text: 'Port scan the gateway', cmd: 'nmap 10.0.0.1', sig: '80/tcp     open     http', hint: 'nmap 10.0.0.1 lists what the gateway listens on.' },
+        { id: 'o4', text: 'Traceroute to Caduceus', cmd: 'traceroute caduceus.styx.local', sig: 'caduceus.styx.local (10.0.0.60)', hint: 'traceroute caduceus.styx.local shows every hop on the way.' },
+        { id: 'o5', text: 'Discover the HTTP counter', cmd: 'curl http://10.0.0.1/', sig: 'STYX hit counter', hint: 'curl http://10.0.0.1/ fetches the gateway’s web page.' }
       ]
     },
     {
@@ -571,11 +596,11 @@ Welcome, investigator. The next build is yours.
       journalStart: 'Julien let me into Caduceus. Every night at 03:12 someone logs in as ops from 10.0.0.254. His advice: grep the auth log, then find what runs at 03:12 rather than who.',
       journalDone: 'The 03:12 visitor is not a person. A cron job installed by “STYX provisioning” pulls the catalogue from db.styx.local on port 31337 and reports it to 10.0.0.254. Dara’s mail says the utilities keycard on Julien’s desk opens Building D.',
       objectives: [
-        { id: 'o1', text: 'Grep the auth log for the 03:12 logins', sig: 'Accepted publickey for ops from 10.0.0.254', hint: 'Julien’s notes.txt spells it out: grep 03:12 /var/log/auth.log.' },
-        { id: 'o2', text: 'Count how many logins the log holds', sigs: ['matches in /var/log/auth.log', '36 /var/log/auth.log', '\n     27', '\n27', '\n     36'], needs: ['grep -c', 'wc -l'], hint: 'The cheat sheet on the ops desk (or Rosa’s 03-logs.md): grep -c PATTERN FILE counts matches, wc -l FILE counts lines.' },
-        { id: 'o3', text: 'Find the job scheduled for 03:12', sig: '12 3 * * * ops /opt/styx/sync.sh', hint: 'Julien’s todo.txt: ls /etc/cron.d, then cat the file you find there.' },
-        { id: 'o4', text: 'Read what the sync script does', sig: 'curl -s -X POST http://10.0.0.254/report', hint: 'The cron line names the script. cat /opt/styx/sync.sh.' },
-        { id: 'o5', text: 'Read Dara’s last mail to Julien', sig: 'the keycard on your desk opens Utilities', hint: 'The banner said there is mail: cat /var/mail/julien.' }
+        { id: 'o1', text: 'Grep the auth log for the 03:12 logins', cmd: 'grep 03:12 /var/log/auth.log', sig: 'Accepted publickey for ops from 10.0.0.254', hint: 'Julien’s notes.txt spells it out: grep 03:12 /var/log/auth.log.' },
+        { id: 'o2', text: 'Count how many logins the log holds', cmd: 'grep -c 03:12 /var/log/auth.log', sigs: ['matches in /var/log/auth.log', '36 /var/log/auth.log', '\n     27', '\n27', '\n     36'], needs: ['grep -c', 'wc -l'], hint: 'The cheat sheet on the ops desk (or Rosa’s 03-logs.md): grep -c PATTERN FILE counts matches, wc -l FILE counts lines.' },
+        { id: 'o3', text: 'Find the job scheduled for 03:12', cmd: 'cat /etc/cron.d/styx-sync', sig: '12 3 * * * ops /opt/styx/sync.sh', hint: 'Julien’s todo.txt: ls /etc/cron.d, then cat the file you find there.' },
+        { id: 'o4', text: 'Read what the sync script does', cmd: 'cat /opt/styx/sync.sh', sig: 'curl -s -X POST http://10.0.0.254/report', hint: 'The cron line names the script. cat /opt/styx/sync.sh.' },
+        { id: 'o5', text: 'Read Dara’s last mail to Julien', cmd: 'cat /var/mail/julien', sig: 'the keycard on your desk opens Utilities', hint: 'The banner said there is mail: cat /var/mail/julien.' }
       ]
     },
     {
@@ -584,10 +609,10 @@ Welcome, investigator. The next build is yours.
       journalStart: 'The keycard opens Meridian Utilities, Building D. Behind the hum there is a rack, and on it the database nobody catalogued. Use the service console on the cart in there: find the process on 31337 and what it reports to.',
       journalDone: 'Building D is the database. A daemon called styxd serves the catalogue on 31337 and reports every pull to 10.0.0.254, owner “ghost”. Dara’s note in the config: ghost is where the door was never locked. Rosa knows how to find a host with no name.',
       objectives: [
-        { id: 'o1', text: 'List the running processes', sig: 'styxd --listen 0.0.0.0:31337', hint: 'On the service console in Building D (the cart by the racks): ps aux.' },
-        { id: 'o2', text: 'See what the box listens on', sig: '0.0.0.0:31337' , needs: ['ss', 'netstat'], hint: 'Same console in Building D. The laminated card on the cart: ss -ltnp lists listening ports.' },
-        { id: 'o3', text: 'Find where styxd lives', sig: '/opt/.styx/styxd' , needs: ['find'], hint: 'Still in Building D: find / -name styxd, as on the card.' },
-        { id: 'o4', text: 'Read the styxd configuration', sig: 'report=http://10.0.0.254/report', hint: 'On the Building D console, the config sits next to the binary: cat /opt/.styx/config.' }
+        { id: 'o1', text: 'List the running processes', cmd: 'ps aux', sig: 'styxd --listen 0.0.0.0:31337', hint: 'On the service console in Building D (the cart by the racks): ps aux.' },
+        { id: 'o2', text: 'See what the box listens on', cmd: 'ss -ltnp', sig: '0.0.0.0:31337' , needs: ['ss', 'netstat'], hint: 'Same console in Building D. The laminated card on the cart: ss -ltnp lists listening ports.' },
+        { id: 'o3', text: 'Find where styxd lives', cmd: 'find / -name styxd', sig: '/opt/.styx/styxd' , needs: ['find'], hint: 'Still in Building D: find / -name styxd, as on the card.' },
+        { id: 'o4', text: 'Read the styxd configuration', cmd: 'cat /opt/.styx/config', sig: 'report=http://10.0.0.254/report', hint: 'On the Building D console, the config sits next to the binary: cat /opt/.styx/config.' }
       ]
     },
     {
@@ -596,14 +621,85 @@ Welcome, investigator. The next build is yours.
       journalStart: 'Rosa’s last handout: a host with no name still has a hardware address, and the switch remembers. arp, nmap, ssh. Find 10.0.0.254 and say hello.',
       journalDone: 'The ghost host is Dara’s. She built it to watch who maps STYX, and a third token appeared in its records: not her, not Julien, not Rosa. She left to find out whose. Zero Day is open. End of this build.',
       objectives: [
-        { id: 'o1', text: 'List the hardware addresses the switch has seen', sig: 'de:ad:0a:00:00:fe', hint: 'Rosa’s whiteboard, and workshop/04-ghosts.md on lab-h: arp -a.' },
-        { id: 'o2', text: 'Port scan 10.0.0.254', sig: 'Nmap scan report for 10.0.0.254', hint: 'nmap 10.0.0.254, the address that has no name.' },
-        { id: 'o3', text: 'Log in to the ghost host', sig: 'You found the door. It was never locked.', hint: 'The nmap note shows the banner. ssh ghost@10.0.0.254.' },
-        { id: 'o4', text: 'Read Dara’s message on the ghost host', sig: 'Welcome, investigator. The next build is yours.', hint: 'Once inside: cat READ_ME.' },
-        { id: 'o5', text: 'Read the latest report', sig: 'not me, not Julien, not Rosa', hint: 'ls reports, then cat reports/latest.json. exit brings you back.' }
+        { id: 'o1', text: 'List the hardware addresses the switch has seen', cmd: 'arp -a', sig: 'de:ad:0a:00:00:fe', hint: 'Rosa’s whiteboard, and workshop/04-ghosts.md on lab-h: arp -a.' },
+        { id: 'o2', text: 'Port scan 10.0.0.254', cmd: 'nmap 10.0.0.254', sig: 'Nmap scan report for 10.0.0.254', hint: 'nmap 10.0.0.254, the address that has no name.' },
+        { id: 'o3', text: 'Log in to the ghost host', cmd: 'ssh ghost@10.0.0.254', sig: 'You found the door. It was never locked.', hint: 'The nmap note shows the banner. ssh ghost@10.0.0.254.' },
+        { id: 'o4', text: 'Read Dara’s message on the ghost host', cmd: 'cat READ_ME', sig: 'Welcome, investigator. The next build is yours.', hint: 'Once inside: cat READ_ME.' },
+        { id: 'o5', text: 'Read the latest report', cmd: 'cat reports/latest.json', sig: 'not me, not Julien, not Rosa', hint: 'ls reports, then cat reports/latest.json. exit brings you back.' }
       ]
     }
   ];
+
+  /* ---- side gigs from the board in Byte Mart: small, self-contained, paid in credits ---- */
+  const GIGS = [
+    { id: 'gig_find', title: 'Lost Script', category: 'Gig', location: 'dara-ws (Building A)', reward: 40, gig: true,
+      start: 'Byte Mart gig board: somebody wants Dara’s knock script found without opening a single folder.',
+      journalStart: 'Gig accepted: locate knock.sh on dara-ws using find, not by browsing.',
+      journalDone: 'Gig done: find / -name knock.sh turned it up in /home/dara/tools.',
+      objectives: [{ id: 'o1', text: 'Locate knock.sh on dara-ws with find', cmd: 'find / -name knock.sh', sig: '/home/dara/tools/knock.sh', needs: ['find'], hint: 'On the workstation in Building A: find / -name knock.sh searches the whole disk.' }] },
+    { id: 'gig_hidden', title: 'Dotfiles', category: 'Gig', location: 'dara-ws (Building A)', reward: 60, gig: true,
+      start: 'Byte Mart gig board: Dara kept an account token in her home directory. It is hidden. Find it and read it.',
+      journalStart: 'Gig accepted: list the hidden files in Dara’s home and read the token.',
+      journalDone: 'Gig done: ls -a shows dotfiles; the token was .styx_token.',
+      objectives: [
+        { id: 'o1', text: 'List the hidden files in Dara’s home', cmd: 'ls -a ~', sig: '.styx_token', needs: ['ls', 'find'], hint: 'Files starting with a dot are hidden. ls -a shows them.' },
+        { id: 'o2', text: 'Read the hidden token file', cmd: 'cat ~/.styx_token', sig: 'STYX-ACCT-DARA-7F3A91', hint: 'cat .styx_token from her home directory.' }
+      ] },
+    { id: 'gig_failed', title: 'Brute Force', category: 'Gig', location: 'Caduceus ops terminal (Building F)', reward: 50, gig: true,
+      start: 'Byte Mart gig board: Julien wants a number. How many failed root logins does the Caduceus auth log hold?',
+      journalStart: 'Gig accepted: count the “Failed password” lines in /var/log/auth.log on caduceus.',
+      journalDone: 'Gig done: three failed root logins, all from 10.0.1.60, all at five past five.',
+      objectives: [{ id: 'o1', text: 'Count the failed logins in the Caduceus auth log', cmd: 'grep -c Failed /var/log/auth.log', sigs: ['3  (matches in /var/log/auth.log', '\n      3 '], needs: ['grep'], hint: 'On the ops terminal in Building F: grep -c Failed /var/log/auth.log, or grep Failed /var/log/auth.log | wc -l.' }] },
+    { id: 'gig_census', title: 'Headcount', category: 'Gig', location: 'Service console (Building D)', reward: 50, gig: true,
+      start: 'Byte Mart gig board: Utilities wants to know how many processes the database box runs, header line included.',
+      journalStart: 'Gig accepted: ps aux piped into wc -l on the Building D console.',
+      journalDone: 'Gig done: six lines, five processes and a header.',
+      objectives: [{ id: 'o1', text: 'Count the process lines on the db console', cmd: 'ps aux | wc -l', sig: '\n      6 ', needs: ['ps', 'wc'], hint: 'In Building D: ps aux | wc -l. The pipe feeds the process list into the line counter.' }] }
+  ];
+
+  /* ---- Byte Mart stock: every item changes how the game plays ---- */
+  const SHOP = [
+    { id: 'drink', name: 'OVERCLOCK energy drink', price: 15, kind: 'consumable', tag: 'Boost', desc: 'Taurine, caffeine and something the can calls a clock multiplier. Press B to drink one: 90 seconds of 40% faster running and a quicker car.' },
+    { id: 'ducky', name: 'USB Rubber Ducky', price: 110, kind: 'gear', tag: 'Terminal', desc: 'A keystroke injector disguised as a flash drive. Type duck on any terminal and it types the exact command the current objective needs, so you see it before you learn it.' },
+    { id: 'pineapple', name: 'Wi-Fi Pineapple', price: 90, kind: 'gear', tag: 'Network', desc: 'Rogue access point and recon kit in a yellow box. Adds the scan command: one sweep of 10.0.0.0/24 with every name, port and service, no DNS kit needed.' },
+    { id: 'cloner', name: 'Proxmark RFID cloner', price: 120, kind: 'gear', tag: 'Physical', desc: 'Reads a badge from across a lobby and writes a copy. The readers on Buildings F and D accept the clone, appointment or no appointment, keycard or no keycard.' },
+    { id: 'scanner', name: 'STYX scanner app', price: 60, kind: 'gear', tag: 'Map', desc: 'Side-loaded onto the pager. Every credit chip lying around the nine blocks shows on the minimap, so the street pays for the next purchase.' },
+    { id: 'keys', name: 'Car keys: Caduceus Coupe', price: 220, kind: 'gear', tag: 'Wheels', desc: 'The fastest car on Meridian Row, in orange, parked outside Byte Mart. Lose it or wreck it and K whistles it back to the mart.' },
+    { id: 'book_grep', name: 'Book: grep, pipes and wc', price: 35, kind: 'book', tag: 'Manual', desc: 'A thin, well-thumbed paperback. Adds man grep, wc, sort, uniq, cat, head, tail and pipes to every terminal.' },
+    { id: 'book_net', name: 'Book: the Knock Knock set', price: 45, kind: 'book', tag: 'Manual', desc: 'Rosa’s workshop notes, bound. Adds man dig, ping, nmap, traceroute, curl, arp and ssh.' },
+    { id: 'book_sys', name: 'Book: what is running', price: 40, kind: 'book', tag: 'Manual', desc: 'Process and socket forensics for people in a hurry. Adds man ps, ss, find, cron, ls, cd and history.' }
+  ];
+  const BOOKS = {
+    book_grep: ['grep', 'wc', 'sort', 'uniq', 'cat', 'head', 'tail', 'pipes', 'pipe'],
+    book_net: ['dig', 'ping', 'nmap', 'traceroute', 'curl', 'arp', 'ssh'],
+    book_sys: ['ps', 'ss', 'netstat', 'find', 'cron', 'ls', 'cd', 'pwd', 'history']
+  };
+  const MAN = {
+    grep: 'GREP(1)\n\nNAME\n  grep - print lines that match a pattern\n\nSYNOPSIS\n  grep [-c] [-i] [-v] PATTERN [FILE...]\n\nDESCRIPTION\n  Searches FILE (or whatever a pipe feeds it) for PATTERN and prints the matching lines.\n  -c  print only a count of matching lines\n  -i  ignore case\n  -v  print the lines that do NOT match\n\nEXAMPLES\n  grep 03:12 /var/log/auth.log\n  grep -c Failed /var/log/auth.log\n  cat /var/log/auth.log | grep ops | wc -l',
+    wc: 'WC(1)\n\nNAME\n  wc - count lines, words and bytes\n\nSYNOPSIS\n  wc [-l] [-w] [FILE]\n\nDESCRIPTION\n  With -l prints the number of lines. Put it at the END of a pipe to count whatever came before it.\n\nEXAMPLES\n  wc -l /var/log/auth.log\n  grep 03:12 /var/log/auth.log | wc -l',
+    sort: 'SORT(1)\n\n  sort [-r] [FILE]   sort lines alphabetically (-r reverses). Usually fed by a pipe and followed by uniq.\n\n  grep from /var/log/auth.log | sort | uniq -c',
+    uniq: 'UNIQ(1)\n\n  uniq [-c]   fold repeated neighbouring lines into one; -c prefixes each with how many times it appeared. Sort first, or repeats that are not adjacent survive.\n\n  cat FILE | sort | uniq -c',
+    cat: 'CAT(1)\n\n  cat FILE...   print one or more files. At the start of a pipe it feeds a file into the next command.\n\n  cat notes/building-h.md\n  cat /var/log/auth.log | grep ops',
+    head: 'HEAD(1) / TAIL(1)\n\n  head [-n N] FILE   first N lines (default 10)\n  tail [-n N] FILE   last N lines\n\n  tail -n 5 /var/log/auth.log',
+    pipes: 'PIPES\n\n  cmd1 | cmd2   the output of cmd1 becomes the input of cmd2. Chain as many as you like; read it left to right.\n\n  cat /var/log/auth.log | grep Accepted | wc -l\n  ps aux | grep styxd\n\n  The order matters: grep first, then count. wc -l | grep X counts nothing because wc has no input yet.',
+    dig: 'DIG(1)\n\n  dig NAME   ask the DNS server which address a name points to. The ANSWER SECTION is the line you want.\n\n  dig styx.local\n  dig caduceus.styx.local',
+    ping: 'PING(8)\n\n  ping [-c N] HOST   send N echo requests and report the round trip. A reply means the host is up and reachable.\n\n  ping -c 4 10.0.0.1',
+    nmap: 'NMAP(1)\n\n  nmap HOST   scan a host for open TCP ports and name the services behind them. Open ports are doors; the service column says what is behind each one.\n\n  nmap 10.0.0.1\n  nmap 10.0.0.254',
+    traceroute: 'TRACEROUTE(8)\n\n  traceroute HOST   list every router between here and HOST, one hop per line. If a hop sits on the path, it sees the traffic.\n\n  traceroute caduceus.styx.local',
+    curl: 'CURL(1)\n\n  curl URL   fetch a web page or API response and print it raw. Useful for seeing what a service says without a browser.\n\n  curl http://10.0.0.1/\n  curl http://10.0.0.200:31337/',
+    arp: 'ARP(8)\n\n  arp -a   print the hardware (MAC) addresses the switch has seen next to their IP addresses. A host with no DNS name still has one of these.\n\n  arp -a',
+    ssh: 'SSH(1)\n\n  ssh USER@HOST   open a shell on another machine. The prompt changes to the remote host; exit brings you back.\n\n  ssh ghost@10.0.0.254',
+    ps: 'PS(1)\n\n  ps aux   every process on the box: owner, PID, CPU, memory and the full command line. Pipe it into grep to find one.\n\n  ps aux\n  ps aux | grep styxd',
+    ss: 'SS(8) / NETSTAT(8)\n\n  ss -ltnp   listening TCP sockets: which port, which process. Anything on 0.0.0.0 is open to the network.\n\n  ss -ltnp\n  netstat -ltnp',
+    netstat: 'SS(8) / NETSTAT(8)\n\n  ss -ltnp   listening TCP sockets: which port, which process. Anything on 0.0.0.0 is open to the network.\n\n  ss -ltnp',
+    find: 'FIND(1)\n\n  find PATH -name NAME   walk every folder under PATH and print the files called NAME. Quotes let you use wildcards.\n\n  find / -name styxd\n  find / -name "*.sh"',
+    cron: 'CRON(8)\n\n  Scheduled jobs live in /etc/cron.d. Each line reads: minute hour day month weekday user command.\n  12 3 * * * ops /opt/styx/sync.sh   runs at 03:12 every day as ops.\n\n  ls /etc/cron.d\n  cat /etc/cron.d/styx-sync',
+    ls: 'LS(1)\n\n  ls [-a] [-l] [PATH]   list a directory. -a includes hidden files (names starting with a dot), -l shows sizes and dates.\n\n  ls -a ~\n  ls -l /etc/cron.d',
+    cd: 'CD(1) / PWD(1)\n\n  cd PATH   change directory. cd on its own goes home, cd .. goes up one level.\n  pwd       print where you are.\n\n  cd notes\n  cd ..',
+    pwd: 'PWD(1)\n\n  pwd   print the working directory, the folder your commands run in.',
+    history: 'HISTORY\n\n  history   print the commands typed on this box, including the ones in .bash_history from before you arrived. Other people’s history is evidence.'
+  };
+  MAN.pipe = MAN.pipes; MAN.tail = MAN.head;
 
   const EXAMINABLES = {
     sticky: { title: 'Sticky Note', style: 'sticky', text: 'Rosa - Building H - ground floor\nShe runs workshops. Start there.\n- D.', discovery: { id: 'STICKY-ROSA', title: 'Sticky note on the reading table', text: 'Rosa, Building H, ground floor. She runs workshops. Dara wanted whoever came next to start there.' } },
@@ -628,21 +724,39 @@ Welcome, investigator. The next build is yours.
     quickref: { title: 'Service console quick reference', style: 'plain', text: 'A laminated card zip-tied to the cart.\n\nps aux              what is running\nss -ltnp            what is listening (netstat works too)\nfind / -name NAME   where a file lives\ncat FILE            read it\n\nAnything in /opt/.styx is not ours. -- D.', discovery: { id: 'UTIL-QUICKREF', title: 'Utilities quick-reference card', text: 'ps aux for processes, ss -ltnp for listening ports, find / -name NAME to locate a file. Dara added: anything in /opt/.styx is not ours.' } },
     breaker: { title: 'Breaker panel', style: 'plain', text: 'Rows of breakers, all on. One is labelled in Dara’s handwriting: RACK 3, DO NOT TOUCH, SHE KNOWS. The hum is loudest here.', discovery: { id: 'UTIL-BREAKER', title: 'Breaker panel in Building D', text: 'Rack 3 in Meridian Utilities is labelled in Dara’s hand: do not touch, she knows.' } },
     mlog: { title: 'Maintenance clipboard', style: 'paper', text: 'Sep 12  generator 2 service\nSep 28  rack 3 fan swap\nOct 2   23:50  visitor D.OKAFOR, rack 3, 40 min, no ticket\nOct 3   03:12  db load spike (nightly, ignore)\n\nSomebody has underlined “nightly, ignore” three times, and written beside it: the console on the cart. ps aux. Then look for what listens.' },
+    // Byte Mart
+    gigboard: { title: 'Gig board', style: 'paper', text: 'CASH FOR COMMANDS. Pin a card, pay on proof.\n\nLOST SCRIPT, 40 cr: find knock.sh on dara-ws with find.\nDOTFILES, 60 cr: list Dara’s hidden files, read the token.\nBRUTE FORCE, 50 cr: count the failed root logins at Caduceus.\nHEADCOUNT, 50 cr: ps aux | wc -l on the Building D console.\n\nProof is automatic. The terminals talk to Nadia.', discovery: { id: 'MART-GIGS', title: 'Byte Mart gig board', text: 'Four paid gigs: find a script, read a dotfile, count failed logins, count processes. Each pays in credits the moment the command runs.' } },
+    fridge: { title: 'Drinks fridge', style: 'plain', text: 'OVERCLOCK in three flavours that all taste of battery. A hand-written card on the glass: ONE PER CUSTOMER PER HOUR, I AM NOT CLEANING THAT UP AGAIN. Behind the cans, a single bottle of water nobody has bought since the shop opened.' },
+    bargain: { title: 'Bargain bin', style: 'plain', text: 'Floppy disks labelled DOOM (shareware), a mouse with a ball in it, three serial cables, a copy of Hacking Exposed with the spine broken at chapter 4, and a pager identical to yours with a dead battery. A sticker on the bin: EVERYTHING 5 CR, NOTHING WORKS.' },
+    martposter: { title: 'Poster behind the counter', style: 'plain', text: 'A fake movie poster: NULL ROUTE, starring a person in a hoodie lit entirely by a terminal. Under it, in marker: THIS IS NOT WHAT IT LOOKS LIKE. IT LOOKS LIKE READING LOGS AT 3 AM. Nadia has drawn a small heart next to the 3.' },
     rack3: { title: 'Rack 3', style: 'plain', text: 'A full-height rack behind a mesh door. Two database servers, a switch, and a small grey box on the top shelf with no label and a blinking amber light. Its network cable goes nowhere you can see.' }
   };
 
   function makeStore(init) {
-    const s = { profile: '', credits: 0, quests: {}, done: {}, journal: [], notebook: [], flags: {}, listeners: {} };
-    QUESTS.forEach(q => { s.quests[q.id] = 'locked'; s.done[q.id] = []; });
+    const s = { profile: '', credits: 0, quests: {}, done: {}, journal: [], notebook: [], flags: {}, inv: {}, listeners: {} };
+    const ALL = QUESTS.concat(GIGS);
+    ALL.forEach(q => { s.quests[q.id] = q.gig ? 'available' : 'locked'; s.done[q.id] = []; });
     s.quests.quest_f1_cli = 'available';
     const emit = (ev, data) => (s.listeners[ev] || []).forEach(fn => fn(data));
     const api = {
       state: s,
       on(ev, fn) { (s.listeners[ev] = s.listeners[ev] || []).push(fn); },
-      quest(id) { return QUESTS.find(q => q.id === id); },
-      activeQuests() { return QUESTS.filter(q => s.quests[q.id] === 'active'); },
+      quest(id) { return ALL.find(q => q.id === id); },
+      activeQuests() { return ALL.filter(q => s.quests[q.id] === 'active'); },
       trackedQuest() { return QUESTS.find(q => s.quests[q.id] === 'active') || QUESTS.find(q => s.quests[q.id] === 'available') || QUESTS[QUESTS.length - 1]; },
-      nextQuest(id) { const i = QUESTS.findIndex(q => q.id === id); return QUESTS[i + 1] || null; },
+      nextQuest(id) { const i = QUESTS.findIndex(q => q.id === id); return i < 0 ? null : QUESTS[i + 1] || null; },
+      // the next command the Rubber Ducky would type: the first open objective of the main quest, then of any gig
+      duckCommand() { const qs = api.activeQuests().slice().sort((a, b) => (a.gig ? 1 : 0) - (b.gig ? 1 : 0)); for (const q of qs) { const o = q.objectives.find(x => !s.done[q.id].includes(x.id) && x.cmd); if (o) return { quest: q, objective: o, cmd: o.cmd }; } return null; },
+      // Byte Mart: inventory and purchases
+      has(id) { return (s.inv[id] || 0) > 0; },
+      count(id) { return s.inv[id] || 0; },
+      buy(id) {
+        const it = SHOP.find(x => x.id === id); if (!it) return 'unknown';
+        if (it.kind !== 'consumable' && api.has(id)) return 'owned'; if (s.credits < it.price) return 'broke';
+        s.credits -= it.price; s.inv[id] = (s.inv[id] || 0) + 1; emit('toast', { kind: 'buy', title: 'Bought', text: it.name + '  -' + it.price + ' credits' }); emit('change'); emit('bought', id); return 'ok';
+      },
+      consume(id) { if (!api.has(id)) return false; s.inv[id]--; emit('change'); return true; },
+      addCredits(n, title, text) { s.credits += n; if (title) emit('toast', { kind: 'cash', title, text }); emit('change'); },
       isDone(qid, oid) { return s.done[qid].includes(oid); },
       addJournal(title, text) { s.journal.push({ t: Date.now(), title, text }); emit('change'); },
       addDiscovery(d) { if (s.notebook.some(n => n.id === d.id)) return false; s.notebook.push({ t: Date.now(), ...d }); emit('toast', { kind: 'found', title: 'Discovery', text: d.title }); emit('change'); return true; },
@@ -660,7 +774,7 @@ Welcome, investigator. The next build is yours.
         const q = api.quest(qid); s.quests[qid] = 'completed'; s.credits += q.reward;
         api.addJournal(q.title + ' (complete)', q.journalDone);
         emit('toast', { kind: 'quest', title: 'Quest complete', text: q.title + '  +' + q.reward + ' credits' });
-        const next = api.nextQuest(qid);
+        const next = q.gig ? null : api.nextQuest(qid);
         if (next && s.quests[next.id] === 'locked') { s.quests[next.id] = 'available'; emit('toast', { kind: 'quest', title: 'New quest available', text: next.title + '. ' + next.start }); }
         emit('change'); emit('questComplete', qid);
       },
@@ -668,8 +782,8 @@ Welcome, investigator. The next build is yours.
       checkText(text, cmdLine) {
         api.activeQuests().forEach(q => q.objectives.forEach(o => { if (s.done[q.id].includes(o.id)) return; const sigs = o.sigs || [o.sig]; if (!sigs.some(sg => text.includes(sg))) return; if (o.needs && !o.needs.some(n => (cmdLine || '').includes(n))) return; api.completeObjective(q.id, o.id); }));
       },
-      serialize() { return { profile: s.profile, credits: s.credits, quests: s.quests, done: s.done, journal: s.journal, notebook: s.notebook, flags: s.flags }; },
-      restore(d) { if (!d) return; ['profile', 'credits', 'quests', 'done', 'journal', 'notebook', 'flags'].forEach(k => { if (d[k] !== undefined) s[k] = d[k]; }); QUESTS.forEach(q => { if (!s.done[q.id]) s.done[q.id] = []; if (!s.quests[q.id]) s.quests[q.id] = 'locked'; }); // a save from an older build may have finished the last quest it knew about: open the one after it
+      serialize() { return { profile: s.profile, credits: s.credits, quests: s.quests, done: s.done, journal: s.journal, notebook: s.notebook, flags: s.flags, inv: s.inv }; },
+      restore(d) { if (!d) return; ['profile', 'credits', 'quests', 'done', 'journal', 'notebook', 'flags', 'inv'].forEach(k => { if (d[k] !== undefined) s[k] = d[k]; }); ALL.forEach(q => { if (!s.done[q.id]) s.done[q.id] = []; if (!s.quests[q.id]) s.quests[q.id] = q.gig ? 'available' : 'locked'; }); // a save from an older build may have finished the last quest it knew about: open the one after it
         QUESTS.forEach((q, i) => { const n = QUESTS[i + 1]; if (s.quests[q.id] === 'completed' && n && s.quests[n.id] === 'locked') s.quests[n.id] = 'available'; }); emit('change'); }
     };
     if (init) api.restore(init);
@@ -709,7 +823,8 @@ Welcome, investigator. The next build is yours.
   ss -ltnp / netstat    listening sockets       mail           check the mailbox
   history  clear  whoami  hostname  id  uname  date  echo  exit
 Network kit (after Rosa): dig  ping  nmap  traceroute  curl  arp  ssh
-Pipes work: cmd | grep PAT | wc -l`;
+Pipes work: cmd | grep PAT | wc -l
+Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
 
     function readFile(a) { const n = node(norm(a)); if (!n) return { err: a + ': No such file or directory' }; if (n.type === 'dir') return { err: a + ': Is a directory' }; return { text: n.text.replace(/\n$/, '') }; }
     function runOne(raw, stdin) {
@@ -729,7 +844,24 @@ Pipes work: cmd | grep PAT | wc -l`;
         case 'echo': return { out: args.join(' ') };
         case 'history': { const hf = node(host.home + '/.bash_history'); return { out: (hf ? hf.text.trim().split('\n') : []).concat(history).map((h, i) => String(i + 1).padStart(5) + '  ' + h).join('\n') }; }
         case 'mail': { const mb = node('/var/mail/' + host.user); return { out: mb ? '"/var/mail/' + host.user + '": 1 message 1 unread\n>U  1  ' + (mb.text.split('\n')[0].replace(/^From /, '')) + '\nType: cat /var/mail/' + host.user : 'No mail for ' + host.user }; }
-        case 'man': return { out: args[0] ? 'No manual entry for ' + args[0] + '. Try: help' : 'What manual page do you want?' };
+        case 'man': {
+          const topic = (args[0] || '').toLowerCase(); if (!topic) return { out: 'What manual page do you want? Try: man grep' };
+          const bookId = Object.keys(BOOKS).find(b => BOOKS[b].includes(topic)); const book = bookId && SHOP.find(x => x.id === bookId);
+          if (!MAN[topic] || !book) return { out: 'No manual entry for ' + topic + '. Try: help', err: true };
+          if (!store.has(bookId)) return { out: 'No manual entry for ' + topic + ' on this box.\nByte Mart (the orange sign west of Building A) sells the book that adds it: ' + book.name + ', ' + book.price + ' cr.', err: true };
+          return { out: MAN[topic] };
+        }
+        case 'scan': {
+          if (!store.has('pineapple')) return { out: 'scan: no recon device attached. Byte Mart sells the Wi-Fi Pineapple.', err: true };
+          const rows = ['Wi-Fi Pineapple sweep of 10.0.0.0/23 from ' + host.hostname, '', pad('HOST', 14) + pad('NAME', 26) + 'OPEN PORTS'];
+          Object.keys(PORTS).forEach(ip => rows.push(pad(ip, 14) + pad(RDNS[ip] || (ip === '10.0.0.254' ? '(no name, banner: ghost)' : '(no name)'), 26) + PORTS[ip].map(p => p[0].replace('/tcp', '') + ' ' + p[2]).join(', ')));
+          rows.push('', ARP.length + ' hardware addresses seen by the switch (arp -a lists them).'); return { out: rows.join('\n') };
+        }
+        case 'duck': {
+          if (!store.has('ducky')) return { out: 'duck: no USB device. Byte Mart sells a Rubber Ducky.', err: true };
+          const d = store.duckCommand(); if (!d) return { out: 'ducky> nothing to type: no open objective with a command.' };
+          return { out: 'ducky> [' + d.quest.title + ': ' + d.objective.text + ']\nducky> typing: ' + d.cmd, duck: d.cmd };
+        }
         case 'sudo': return { out: host.user + ' is not in the sudoers file. This incident will be reported.', err: true };
         case 'rm': case 'touch': case 'mkdir': case 'mv': case 'cp': case 'vim': case 'vi': case 'nano': case 'chmod': case 'kill':
           return { out: cmd + ': read-only session. STYX keeps every box frozen for evidence.', err: true };
@@ -901,6 +1033,13 @@ Pipes work: cmd | grep PAT | wc -l`;
       if (q4 === 'active') return ['Utilities. The hum is a generator, and behind the generator is a rack. Everything on this street is a rack, in the end.'];
       return ['A database on a port nobody admits to, and a visitor that does not exist. Julien at Caduceus needs to hear it. He is outside Building F, and he is not opening the door for just anyone.'];
     },
+    nadia(st) {
+      const first = !st.flags.metNadia; const gigsDone = GIGS.filter(g => st.quests[g.id] === 'completed').length;
+      if (first) return ['Byte Mart. Hardware, software, caffeine, in that order of margin. I am Nadia.', 'Dara shopped here. Paid in credits like everyone else, and asked more questions than everyone else. You have the same look.', 'Everything on the shelves does something out there. The gig board by the door pays if you are short. Have a look.'];
+      if (gigsDone >= GIGS.length) return ['Every card on the board, paid. You are the first. Dara got three.', 'Browse. The coupe is still the best thing in here.'];
+      if (st.credits < 15) return ['Looking is free. The board by the door is how you stop looking.'];
+      return ['Back again. The energy drink is cold, the books are used, the Pineapple is new in box.', 'Take your time. Nobody counts in here. Except the till.'];
+    },
     julien(st) {
       const q1 = st.quests.quest_f1_cli, q2 = st.quests.quest_f2_networking, q3 = st.quests.quest_i1_logs, q4 = st.quests.quest_i2_utilities, q5 = st.quests.quest_i3_ghost;
       if (q1 !== 'completed') return ['You are not Dara. Dara would have knocked.', 'Julien Moreau, Caduceus ops. If you are in her place now, read what she left before you come asking me. I am not saying anything else out here.'];
@@ -919,7 +1058,7 @@ Pipes work: cmd | grep PAT | wc -l`;
     }
   };
 
-  return { HOSTS, QUESTS, EXAMINABLES, DIALOGUE, makeStore, makeShell };
+  return { HOSTS, QUESTS, GIGS, SHOP, EXAMINABLES, DIALOGUE, makeStore, makeShell };
 })();
 </script>
 
@@ -1086,12 +1225,17 @@ Pipes work: cmd | grep PAT | wc -l`;
     building({ name: 'A', label: 'BUILDING A', sign: 'OKAFOR', signColor: '#ffd23f', x: -8.5, z: -21, w: 12, d: 12, h: 9.6, wall: '#7d5a3e', frame: '#3a2a1e', lit: '#ffc67a', cols: 8, rows: 6, seed: 21, face: 1, roof: 'tank', roofCol: '#4a3a30' });
     building({ name: 'F', label: 'BUILDING F', sign: 'CADUCEUS ANALYTICS', signColor: '#3ee8f0', x: 12, z: -21, w: 15, d: 12, h: 15, wall: '#2b323d', frame: '#161a21', lit: '#9fd4ff', cols: 10, rows: 11, seed: 43, face: 1, roof: 'masts', roofCol: '#262a33' });
     building({ name: 'H', label: 'BUILDING H', sign: 'SOLARPUNK LAB', signColor: '#8cf28c', x: -9, z: 21, w: 15, d: 12, h: 7.2, wall: '#4a5f50', frame: '#1f2a22', lit: '#c7ffb0', cols: 9, rows: 5, seed: 77, face: -1, roof: 'solar', roofCol: '#2f3b33' });
+    building({ name: 'M', label: 'BYTE MART', sign: 'BYTE MART', signColor: '#ff6a3d', x: -22.5, z: -21, w: 10, d: 12, h: 6.4, wall: '#5a3a3a', frame: '#2a1a1a', lit: '#ffd0b0', cols: 6, rows: 4, seed: 55, face: 1, roof: 'units', roofCol: '#3e2a2a' });
+    // the mart's shopfront: a lit window either side of the door, a strip of neon under the sign, an OPEN sign
+    [-3.6, 3.6].forEach(dx => { box(mat('martGlass', '#ffe9c0', { emissive: '#ffb070', unlit: true }), 2.6, 1.6, 0.1, -22.5 + dx, 0.9, -15 + 0.05, { cast: false }); box(mat('martFrame', '#1d1f26'), 2.8, 1.8, 0.14, -22.5 + dx, 0.8, -15 + 0.02, { cast: false }); });
+    box(mat('martNeon', '#ff6a3d', { emissive: '#ff6a3d', unlit: true }), 9.6, 0.08, 0.08, -22.5, 2.9, -14.5, { cast: false });
+    plane(texMat('martOpen', textTex('OPEN 24/7 · GEAR · GIGS', { w: 512, h: 96, color: '#8cf28c', glow: true }), { unlit: true, alpha: true, emissive: '#ffffff' }), 3.6, 0.68, -22.5 + 3.6, 3.7, -15 + 0.12, { ry: PI }); // above the right window, clear of the lit glass
     building({ name: 'D', label: 'BUILDING D', sign: 'MERIDIAN UTILITIES', signColor: '#e9d8ff', x: 13, z: 21, w: 15, d: 12, h: 12, wall: '#3d3a46', frame: '#1c1a22', lit: '#e8dcff', cols: 9, rows: 8, seed: 99, face: -1, roof: 'masts', roofCol: '#2a2730' });
     // back alleys behind them: dumpsters, a fence, a few crates
     [[-20, -30.5], [-14, -30.5], [6, -30.5], [22, -30.5], [-20, 30.5], [-4, 30.5], [8, 30.5], [24, 30.5]].forEach(p => dumpster(p[0], p[1]));
     [[-28, -30], [-28, 30], [28, -30], [28, 30]].forEach(p => box(mat('fence', '#2a2e36'), 0.12, 2.2, 5, p[0], 0, p[1], { collide: true }));
-    [[-24.5, -21], [25, -21], [-25, 21], [26, 21]].forEach(p => { box(mat('crate', '#5f6672'), 1.4, 1.0, 1.0, p[0], 0, p[1], { collide: true }); box(mat('crateStripe', '#2a2f38', { emissive: '#1d6b75' }), 1.42, 0.08, 1.02, p[0], 0.55, p[1], { cast: false }); });
-    block(-25.2, -23.8, -21.7, -20.3); block(24.3, 25.7, -21.7, -20.3); block(-25.7, -24.3, 20.3, 21.7); block(25.3, 26.7, 20.3, 21.7);
+    [[25, -21], [-25, 21], [26, 21]].forEach(p => { box(mat('crate', '#5f6672'), 1.4, 1.0, 1.0, p[0], 0, p[1], { collide: true }); box(mat('crateStripe', '#2a2f38', { emissive: '#1d6b75' }), 1.42, 0.08, 1.02, p[0], 0.55, p[1], { cast: false }); });
+    block(24.3, 25.7, -21.7, -20.3); block(-25.7, -24.3, 20.3, 21.7); block(25.3, 26.7, 20.3, 21.7);
 
     // solarpunk planters in front of H, STYX node cabinet by F, a street sign
     [-14.5, -3.5].forEach(x => { box(mat('planter', '#2f3a33'), 2.2, 0.6, 0.9, x, 0, 13.4, { collide: true }); sphere(mat('leaf', '#2f7a4a'), 1.2, x - 0.5, 0.95, 13.4, { seg: 10 }); sphere(mat('leaf2', '#3f9a5a'), 1.0, x + 0.5, 0.9, 13.4, { seg: 10 }); block(x - 1.1, x + 1.1, 12.95, 13.85); });
@@ -1606,7 +1750,7 @@ Pipes work: cmd | grep PAT | wc -l`;
   }
 
   /* ---------- the other three interiors: Caduceus ops floor (F), the Solarpunk Lab workshop (H), the Utilities machine room (D) ---------- */
-  const IXF = 500, IXH = 750, IXD = 1000;
+  const IXF = 500, IXH = 750, IXD = 1000, IXM = 1250; // Byte Mart's interior sits at x+1250
   // a one-room shell: floor, four walls, an exit door on the front wall (z = Z0) with a label, a few windows; the zone root decides which way it faces
   function room(o) {
     const { X0, X1, Z0, Z1, H, wallM, floorM, door } = o; const T = 0.3;
@@ -1814,7 +1958,7 @@ Pipes work: cmd | grep PAT | wc -l`;
   function buildWorld() {
     // the prefiltered studio environment ships as base64 text so it can be served; it is decoded and handed to Babylon through a blob URL
     fetch('env/studio.env.txt').then(r => r.ok ? r.text() : Promise.reject(r.status)).then(b64 => { const bin = atob(b64.trim()); const bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); const url = URL.createObjectURL(new Blob([bytes])); scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(url, scene, '.env'); scene.environmentIntensity = 0.7; }).catch(() => { /* PBR falls back to lights only */ });
-    buildOutdoor(); buildInterior(); buildCaduceus(); buildLab(); buildUtilities();
+    buildOutdoor(); buildInterior(); buildCaduceus(); buildLab(); buildUtilities(); buildMart(); spawnChips();
     if (!NULL_ENGINE) { glow = new BABYLON.GlowLayer('glow', scene, { blurKernelSize: 32 }); glow.intensity = 0.5; noGlow.forEach(m => glow.addExcludedMesh(m)); }
     setZone('out', true);
   }
@@ -1832,9 +1976,9 @@ Pipes work: cmd | grep PAT | wc -l`;
   function addInter(o) { inter.push(o); return o; }
   // doors: A is open, H is open, F opens once Julien lets you in, D reads Dara's keycard
   addInter({ id: 'doorA', zone: 'out', pos: V3(-8.5, 0, -15), r: 2.2, label: 'Enter Building A', run() { transition(() => { setZone('in'); placePlayer(IX + 1.0, 0, 5.4, PI); store.state.flags.enteredA = true; }); } });
-  addInter({ id: 'doorF', zone: 'out', pos: V3(12, 0, -15), r: 2.2, label: 'Enter Building F', run() { const st = store.state.quests.quest_i1_logs; if (st === 'locked' || st === 'available') { ui.toast({ kind: 'warn', title: 'Caduceus Analytics', text: 'By appointment only. Julien is right here; he decides who gets in.' }); return; } transition(() => { setZone('cad'); placePlayer(IXF + 1.0, 0, 5.0, PI); }); } });
+  addInter({ id: 'doorF', zone: 'out', pos: V3(12, 0, -15), r: 2.2, label: 'Enter Building F', run() { const st = store.state.quests.quest_i1_logs; if (st === 'locked' || st === 'available') { if (!store.has('cloner')) { ui.toast({ kind: 'warn', title: 'Caduceus Analytics', text: 'By appointment only. Julien is right here; he decides who gets in.' }); return; } ui.toast({ kind: 'ok', title: 'Proxmark', text: 'Cloned visitor badge accepted. The reader never asked who you were.' }); } transition(() => { setZone('cad'); placePlayer(IXF + 1.0, 0, 5.0, PI); }); } });
   addInter({ id: 'doorH', zone: 'out', pos: V3(-9, 0, 15), r: 2.2, label: 'Enter Building H', run() { transition(() => { setZone('lab'); placePlayer(IXH - 1.0, 0, -4.8, 0); }); } });
-  addInter({ id: 'doorD', zone: 'out', pos: V3(13, 0, 15), r: 2.2, label: 'Enter Building D', run() { if (!store.state.flags.utilKey) { ui.toast({ kind: 'warn', title: 'Meridian Utilities', text: 'A card reader blinks red. A hum behind the door, nothing else.' }); return; } transition(() => { setZone('util'); placePlayer(IXD - 1.0, 0, -5.2, 0); if (store.state.quests.quest_i2_utilities === 'available') store.activateQuest('quest_i2_utilities'); }); } });
+  addInter({ id: 'doorD', zone: 'out', pos: V3(13, 0, 15), r: 2.2, label: 'Enter Building D', run() { if (!store.state.flags.utilKey) { if (!store.has('cloner')) { ui.toast({ kind: 'warn', title: 'Meridian Utilities', text: 'A card reader blinks red. A hum behind the door, nothing else.' }); return; } ui.toast({ kind: 'ok', title: 'Proxmark', text: 'Cloned contractor card accepted. The reader blinks green.' }); } transition(() => { setZone('util'); placePlayer(IXD - 1.0, 0, -5.2, 0); if (store.state.quests.quest_i2_utilities === 'available') store.activateQuest('quest_i2_utilities'); }); } });
   addInter({ id: 'exitA', zone: 'in', pos: V3(IX + 1, 0, 7.2), r: 1.5, label: 'Leave Building A', run() { transition(() => { setZone('out'); placePlayer(-8.5, 0, -12.4, 0); }); } });
   addInter({ id: 'exitF', zone: 'cad', pos: V3(IXF + 1, 0, 5.6), r: 1.5, label: 'Leave Building F', run() { transition(() => { setZone('out'); placePlayer(12, 0, -12.4, 0); }); } });
   addInter({ id: 'exitH', zone: 'lab', pos: V3(IXH - 1, 0, -5.0), r: 1.5, label: 'Leave Building H', run() { transition(() => { setZone('out'); placePlayer(-9, 0, 12.4, PI); }); } });
@@ -1867,6 +2011,7 @@ Pipes work: cmd | grep PAT | wc -l`;
   addInter({ id: 'breaker', zone: 'util', pos: V3(IXD - 6.3, 0, -4.2), r: 1.4, label: 'Look at breaker panel', run() { ui.examine('breaker'); } });
   addInter({ id: 'mlog', zone: 'util', pos: V3(IXD + 1.4, 0, -4.3), r: 1.3, label: 'Read maintenance clipboard', run() { ui.examine('mlog'); } });
   addInter({ id: 'rack3', zone: 'util', pos: V3(IXD + 5.0, 0, 0.0), r: 1.5, label: 'Look at rack 3', run() { ui.examine('rack3'); } });
+  martInteractables();
   // the two people on the street
   addInter({ id: 'rosa', zone: 'out', pos: V3(-7.2, 0, 13.6), r: 2.2, label: 'Talk to Rosa Tavares', run() { ui.dialogue('Rosa Tavares', ZD.DIALOGUE.rosa(store.state), () => { const st = store.state; if (st.quests.quest_f1_cli === 'completed' && st.quests.quest_f2_networking === 'available') { st.flags.rosaKit = true; store.activateQuest('quest_f2_networking'); } if (st.quests.quest_i2_utilities === 'completed' && st.quests.quest_i3_ghost === 'available') store.activateQuest('quest_i3_ghost'); }, 'rosa'); faceNPC('rosa'); } });
   addInter({ id: 'julien', zone: 'out', pos: V3(10.2, 0, -13.4), r: 2.2, label: 'Talk to Julien Moreau', run() { ui.dialogue('Julien Moreau', ZD.DIALOGUE.julien(store.state), () => { const st = store.state; if (st.quests.quest_f2_networking === 'completed' && st.quests.quest_i1_logs === 'available') { st.flags.cadAccess = true; store.activateQuest('quest_i1_logs'); } }, 'julien'); faceNPC('julien'); } });
@@ -1911,10 +2056,10 @@ Pipes work: cmd | grep PAT | wc -l`;
     const B = CITY.bounds; return x < B.x0 + 2 || x > B.x1 - 2 || z < B.z0 + 2 || z > B.z1 - 2;
   }
   function updateCar(dt, inp) {
-    const car = state.driving; if (!car) return; const T = car.type; const top = T.top / 3.6 * 0.45;
+    const car = state.driving; if (!car) return; const T = car.type; const bm = state.boost > 0 ? 1.25 : 1; const top = T.top / 3.6 * 0.45 * bm;
     const gas = inp.fwd; const brake = state.brake || keys[' '];
     // longitudinal: accelerate toward the throttle, coast with drag, reverse at half speed
-    if (gas > 0) car.speed += T.acc * dt * (car.speed < 0 ? 2 : 1); else if (gas < 0) car.speed -= (car.speed > 0 ? T.acc * 1.6 : T.acc * 0.6) * dt; else car.speed -= car.speed * Math.min(1, dt * 0.6);
+    if (gas > 0) car.speed += T.acc * bm * dt * (car.speed < 0 ? 2 : 1); else if (gas < 0) car.speed -= (car.speed > 0 ? T.acc * 1.6 : T.acc * 0.6) * dt; else car.speed -= car.speed * Math.min(1, dt * 0.6);
     if (brake) car.speed -= car.speed * Math.min(1, dt * 2.2);
     car.speed = Math.max(-top * 0.4, Math.min(top, car.speed));
     // steering tightens at low speed and loosens at the top end; the handbrake lets the back step out
@@ -1950,6 +2095,8 @@ Pipes work: cmd | grep PAT | wc -l`;
     keys[k] = true; if (k === 'e' || k === 'enter') interact(); if (k === 'j' || k === 'p') ui.openJournal(); if (k === 'l') ui.openSettings();
     if (k === 'h' && state.driving && !e.repeat) SFX.horn();
     if (k === 'c' && !e.repeat) toggleCamera();
+    if (k === 'b' && !e.repeat) drinkOverclock();
+    if (k === 'k' && !e.repeat) whistleCar();
     if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
   });
   window.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
@@ -1984,7 +2131,7 @@ Pipes work: cmd | grep PAT | wc -l`;
     if (state.driving) { updateCar(dt, inp); p.moving = false; return; }
     // tank controls, as in the street build: W and S run along the facing, A and D turn
     const k = Math.min(1, dt * MOVE.smooth);
-    const targetSpeed = inp.fwd * (state.zone !== 'out' ? (inp.walk ? MOVE.insideRun : MOVE.inside) : inp.walk ? MOVE.walk : MOVE.run); // indoors the default is a walk and Shift runs; outdoors it is the other way round
+    const targetSpeed = inp.fwd * (state.zone !== 'out' ? (inp.walk ? MOVE.insideRun : MOVE.inside) : inp.walk ? MOVE.walk : MOVE.run) * (state.boost > 0 ? 1.4 : 1); // indoors the default is a walk and Shift runs; outdoors it is the other way round
     p.speed = (p.speed || 0) + (targetSpeed - (p.speed || 0)) * k;
     const targetTurn = inp.turn * MOVE.turn; p.turnRate = (p.turnRate || 0) + (targetTurn - (p.turnRate || 0)) * k;
     p.yaw += p.turnRate * dt; p.pivot.rotation.y = p.yaw;
@@ -2009,7 +2156,7 @@ Pipes work: cmd | grep PAT | wc -l`;
   }
   function interact() { if (state.ui || !current) return; current.run(); }
   function updateNPCs(dt, t) {
-    ['rosa', 'julien'].forEach(n => { const ch = chars[n]; if (!ch) return; let d = ch.yaw - ch.pivot.rotation.y; while (d > PI) d -= 2 * PI; while (d < -PI) d += 2 * PI; ch.pivot.rotation.y += d * Math.min(1, dt * 4); ch.talking = state.ui === 'dlg' && ui.dlgWho === n; ch.moving = false; animateChar(ch, dt); });
+    ['rosa', 'julien', 'nadia'].forEach(n => { const ch = chars[n]; if (!ch) return; let d = ch.yaw - ch.pivot.rotation.y; while (d > PI) d -= 2 * PI; while (d < -PI) d += 2 * PI; ch.pivot.rotation.y += d * Math.min(1, dt * 4); ch.talking = state.ui === 'dlg' && ui.dlgWho === n; ch.moving = false; animateChar(ch, dt); });
     if (beacon.node && beacon.node.isEnabled()) { beacon.arrow.position.y = 4.0 + Math.sin(t * 2.2) * 0.4; beacon.arrow.rotation.y = t * 1.5; beacon.ring.scaling.setAll(1 + Math.sin(t * 2.2) * 0.06); } // the beacon is silent in this cut; the minimap carries the objective
   }
   function spatial(pos, range) { const p = chars.player.pivot.position; const dx = pos.x - p.x, dz = pos.z - p.z; const d = Math.hypot(dx, dz); const att = Math.pow(Math.max(0, 1 - d / range), 1.4); const pan = d > 0.01 ? dx / d * 0.8 : 0; return { att, pan }; }
@@ -2023,21 +2170,148 @@ Pipes work: cmd | grep PAT | wc -l`;
     c.strokeStyle = '#2a2d36'; c.lineWidth = CITY.roadW * sx; CITY.roadsZ.forEach(rz => { c.beginPath(); c.moveTo(0, Y(rz)); c.lineTo(W, Y(rz)); c.stroke(); }); c.lineWidth = CITY.roadW * sz; CITY.roadsX.forEach(rx => { c.beginPath(); c.moveTo(X(rx), 0); c.lineTo(X(rx), H); c.stroke(); });
     c.strokeStyle = '#5a4a1c'; c.lineWidth = 1; c.beginPath(); c.moveTo(0, Y(0)); c.lineTo(W, Y(0)); c.stroke(); // Meridian Row itself
     mapBlocks.forEach(b => { c.fillStyle = b[4]; c.fillRect(X(b[0]), Y(b[3]), (b[1] - b[0]) * sx, (b[3] - b[2]) * sz); });
-    c.fillStyle = '#f2ecdc'; c.font = '9px "Oswald", sans-serif'; c.textAlign = 'center'; [['A', -8.5, -21], ['F', 12, -21], ['H', -9, 21], ['D', 13, 21]].forEach(l => c.fillText(l[0], X(l[1]), Y(l[2]) + 3));
+    c.fillStyle = '#f2ecdc'; c.font = '9px "Oswald", sans-serif'; c.textAlign = 'center'; [['A', -8.5, -21], ['F', 12, -21], ['H', -9, 21], ['D', 13, 21], ['M', -22.5, -21]].forEach(l => c.fillText(l[0], X(l[1]), Y(l[2]) + 3));
+    if (store.has('scanner')) { c.fillStyle = '#ffd23f'; chips.forEach(ch => { if (!ch.alive) return; c.beginPath(); c.arc(X(ch.x), Y(ch.z), 1.6, 0, PI * 2); c.fill(); }); }
     const p = chars.player; if (!p) return;
-    const PINS = { in: ['A', -8.5, -21], cad: ['F', 12, -21], lab: ['H', -9, 21], util: ['D', 13, 21] }; const pin = PINS[state.zone]; const inside = !!pin; const px = inside ? pin[1] : p.pivot.position.x, pz = inside ? pin[2] : p.pivot.position.z;
+    const PINS = { in: ['A', -8.5, -21], cad: ['F', 12, -21], lab: ['H', -9, 21], util: ['D', 13, 21], mart: ['M', -22.5, -21] }; const pin = PINS[state.zone]; const inside = !!pin; const px = inside ? pin[1] : p.pivot.position.x, pz = inside ? pin[2] : p.pivot.position.z;
     if (beacon.node && beacon.node.isEnabled() && !inside) { const bp = beacon.node.position; const r = 3 + Math.sin(t * 5) * 1.5; c.fillStyle = '#3ee8f0'; c.beginPath(); c.arc(X(bp.x), Y(bp.z), r, 0, PI * 2); c.fill(); c.strokeStyle = 'rgba(62,232,240,.45)'; c.setLineDash([3, 3]); c.beginPath(); c.moveTo(X(px), Y(pz)); c.lineTo(X(bp.x), Y(bp.z)); c.stroke(); c.setLineDash([]); }
     c.save(); c.translate(X(px), Y(pz)); c.rotate(state.driving ? state.driving.heading : p.yaw); c.fillStyle = '#ffd23f'; c.beginPath(); c.moveTo(0, -6); c.lineTo(4.5, 5); c.lineTo(0, 2.5); c.lineTo(-4.5, 5); c.closePath(); c.fill(); c.restore();
-    if (inside) { c.fillStyle = '#ffd23f'; c.font = '10px "Oswald", sans-serif'; c.fillText('INSIDE BUILDING ' + pin[0], W / 2, H - 6); }
+    if (inside) { c.fillStyle = '#ffd23f'; c.font = '10px "Oswald", sans-serif'; c.fillText(pin[0] === 'M' ? 'INSIDE BYTE MART' : 'INSIDE BUILDING ' + pin[0], W / 2, H - 6); }
   }
 
   let t = 0; let blinkT = 0; let mapT = 0;
   scene.onBeforeRenderObservable.add(() => {
     const dt = Math.min(engine.getDeltaTime() / 1000, 0.05); t += dt;
-    if (state.playing) { updatePlayer(dt); updateCamera(dt); updateInteract(); updateNPCs(dt, t); if (state.zone === 'out') { updateTraffic(dt); updatePeds(dt); } mapT += dt; if (mapT > 0.08) { mapT = 0; drawMap(t); } }
+    if (state.playing) { updatePlayer(dt); updateCamera(dt); updateInteract(); updateNPCs(dt, t); updateMart(dt, t); if (state.zone === 'out') { updateTraffic(dt); updatePeds(dt); } mapT += dt; if (mapT > 0.08) { mapT = 0; drawMap(t); } }
     blinkT += dt; if (blinkT > 0.4) { blinkT = 0; const z = zones[state.zone]; if (z && z !== zones.out) z.meshes.forEach(m => { if (m.metadata && m.metadata.blink) m.setEnabled(!m.isEnabled()); }); }
   });
 
+
+  /* ---------- Byte Mart: the shop on the west end of the north block, its interior, the gear it sells, and the credit chips that pay for it ---------- */
+  var MART_SPOT = { x: -26, z: -3.6, heading: PI / 2 }, chips = []; // hoisted: the interactables below are registered before this file's statements run
+  function W(lx, lz) { return V3(IXM - lx, 0, -lz); } // the mart zone is turned around like Building F, so local x and z are both negated
+  function buildMart() {
+    Z = makeZone('mart', IXM); Z.root.rotation.y = PI;
+    addLights(Z, { hemi: 0.7, sky: '#ffe8d8', groundCol: '#2a2228', dir: V3(-0.3, -1, -0.4), dirI: 0.5, dirCol: '#ffd8b0', dirPos: V3(IXM + 3, 8, 4), shadowRes: 1536 });
+    const X0 = -6, X1 = 6, Z0 = -5, Z1 = 5, H = 3.4;
+    const wallM = pbr('martWallP', { color: '#efe6d6', roughness: 0.9, albedo: 'plaster.jpg', u: 4, v: 1.5 });
+    const floorM = texMat('martFloor', dtex('martF', 256, 256, (c, Wd, Hh) => { for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) { c.fillStyle = (i + j) % 2 ? '#8e8a92' : '#d8d2c4'; c.fillRect(i * 64, j * 64, 64, 64); } c.fillStyle = 'rgba(0,0,0,.08)'; for (let k = 0; k < 400; k++) c.fillRect(Math.random() * Wd, Math.random() * Hh, 2, 2); }, { u: 6, v: 5 }), { spec: 0.25 });
+    room({ name: 'M', X0, X1, Z0, Z1, H, wallM, floorM, door: -1.0, windows: [[2.8, 0.9, Z0 + 0.1, 2.4, 1.4, 0, 'front'], [-4.4, 0.9, Z0 + 0.1, 2.0, 1.4, 0, 'front']] });
+    const steel = pbr('steelP', { color: '#9a9ea6', metallic: 0.95, roughness: 0.32 }); const blackSteel = pbr('blackSteelP', { color: '#1f2126', metallic: 0.9, roughness: 0.4 });
+    const orange = mat('martOrange', '#ff6a3d', { spec: 0.3 }); const cream = mat('cream', '#e9e2d3'); const dark = mat('darkPlastic', '#17181c', { spec: 0.25 });
+    const lbl = (text, w, h, x, y, z, o) => plane(texMat('mlbl' + text.replace(/\W/g, '') + x + z, textTex(text, Object.assign({ w: 512, h: 128, color: '#f3e6bd', bg: '#1a1a22' }, (o && o.tex) || {})), { emissive: '#ffffff', spec: 0 }), w, h, x, y, z, o);
+    // ceiling tubes and a neon strip around the top of the walls
+    [[-3, -2.5], [2, -2.5], [-3, 1.5], [2, 1.5]].forEach(p => box(mat('tube', '#f6f8ff', { emissive: '#dfe8ff', unlit: true }), 1.4, 0.06, 0.12, p[0], H - 0.1, p[1], { cast: false }));
+    box(mat('martNeon'), X1 - X0 - 0.2, 0.06, 0.06, 0, H - 0.5, Z1 - 0.1, { cast: false }); box(mat('martNeon'), 0.06, 0.06, Z1 - Z0 - 0.2, X1 - 0.1, H - 0.5, 0, { cast: false }); box(mat('martNeon'), 0.06, 0.06, Z1 - Z0 - 0.2, X0 + 0.1, H - 0.5, 0, { cast: false });
+    // the counter along the back wall: till, card reader, a monitor showing the stock system, the poster behind it
+    box(mat('counterM', '#2b2430', { spec: 0.3 }), 4.6, 1.0, 0.7, 1.5, 0, 3.4, { collide: true }); box(mat('counterTopM', '#d9d2c4', { spec: 0.4 }), 4.7, 0.04, 0.8, 1.5, 1.0, 3.4, { cast: false });
+    box(orange, 4.7, 0.08, 0.04, 1.5, 0.5, 3.03, { cast: false });
+    box(dark, 0.42, 0.12, 0.34, 0.2, 1.04, 3.3, { cast: true }); box(mat('tillScreen', '#9fd9a8', { emissive: '#4ff08a', unlit: true }), 0.3, 0.14, 0.02, 0.2, 1.16, 3.14, { cast: false, rx: -0.5 }); // the till
+    box(dark, 0.12, 0.04, 0.18, 1.1, 1.04, 3.15, { cast: false }); box(mat('ledG', '#4ff08a', { emissive: '#4ff08a', unlit: true }), 0.03, 0.01, 0.03, 1.1, 1.085, 3.1, { cast: false }); // card reader
+    const mm = monitor(2.8, 1.04, 3.5, 0, ['BYTE MART  stock v2.3', 'OVERCLOCK      44 in', 'DUCKY           3 in', 'PINEAPPLE       1 in', 'coupe keys      1 set', 'nadia@mart:~$ _'], '#ffbe5c'); mm.rotation.y = 0;
+    lbl('NULL ROUTE', 1.2, 1.7, 3.6, 2.0, Z1 - 0.06, { ry: 0, name: 'martposter', tex: { w: 384, h: 544, color: '#ff6a3d', bg: '#0d0d14', font: '700 64px "Bebas Neue", sans-serif' } });
+    plane(texMat('martSignIn', textTex('BYTE MART', { w: 1024, h: 200, color: '#ff6a3d', glow: true }), { unlit: true, alpha: true, emissive: '#ffffff' }), 4.2, 0.82, -2.6, 2.5, Z1 - 0.08, { ry: 0 });
+    plane(texMat('martSub', textTex('hardware · software · caffeine', { w: 1024, h: 120, color: '#f3e6bd' }), { unlit: true, alpha: true, emissive: '#ffffff' }), 3.6, 0.42, -2.6, 1.9, Z1 - 0.08, { ry: 0 });
+    // two gondola shelves down the middle, stocked on both faces; the labels face the aisles
+    const gondola = (gx) => {
+      box(blackSteel, 0.9, 0.08, 4.2, gx, 0, -0.5, { collide: true, cast: false }); box(blackSteel, 0.06, 1.8, 4.2, gx, 0, -0.5, { collide: true, cast: true });
+      [0.55, 1.1, 1.65].forEach(y => box(steel, 0.9, 0.03, 4.2, gx, y, -0.5, { cast: true, recv: true }));
+      [-1, 1].forEach(side => {
+        const sx = gx + side * 0.3; const lx = gx + side * 0.47; const ry = side > 0 ? -PI / 2 : PI / 2;
+        // top shelf: energy drink cans in rows
+        for (let i = 0; i < 7; i++) for (let k = 0; k < 2; k++) cyl(mat(i % 3 === 0 ? 'canA' : i % 3 === 1 ? 'canB' : 'canC', ['#ff6a3d', '#3ee8f0', '#c77dff'][i % 3], { spec: 0.6, power: 64 }), 0.11, 0.16, sx + (k - 0.5) * side * 0.16, 1.68, -2.3 + i * 0.6, { cast: false, tess: 10 });
+        lbl('OVERCLOCK 15', 0.7, 0.14, lx, 1.62, -0.5, { ry, tex: { w: 512, h: 96, color: '#ff6a3d', bg: '#1a1a22' } });
+        // middle shelf: blister packs and boxes
+        box(mat('duckyPack', '#ffd23f', { spec: 0.3 }), 0.02, 0.22, 0.14, sx + side * 0.1, 1.2, -2.0, { cast: false }); box(mat('duckyPack'), 0.02, 0.22, 0.14, sx + side * 0.1, 1.2, -1.8, { cast: false });
+        lbl('DUCKY 110', 0.5, 0.12, lx, 1.07, -1.9, { ry, tex: { w: 512, h: 128, color: '#ffd23f', bg: '#1a1a22' } });
+        box(mat('pineBox', '#f2c21c', { spec: 0.2 }), 0.3, 0.26, 0.5, sx, 1.13, -0.6, { cast: true }); box(dark, 0.32, 0.04, 0.52, sx, 1.39, -0.6, { cast: false });
+        lbl('PINEAPPLE 90', 0.6, 0.12, lx, 1.07, -0.6, { ry, tex: { w: 512, h: 128, color: '#f2c21c', bg: '#1a1a22' } });
+        box(mat('proxBox', '#2b3340', { spec: 0.3 }), 0.3, 0.2, 0.44, sx, 1.13, 0.6, { cast: true }); box(mat('proxLid', '#3ee8f0', { emissive: '#1a6a70' }), 0.26, 0.02, 0.4, sx, 1.33, 0.6, { cast: false });
+        lbl('PROXMARK 120', 0.6, 0.12, lx, 1.07, 0.6, { ry, tex: { w: 512, h: 128, color: '#3ee8f0', bg: '#1a1a22' } });
+        // bottom shelf: the books, stacked and spined
+        [['#8a2a4a', -2.0], ['#1f3a2e', -1.6], ['#2a3a6a', -1.2], ['#5a3a3a', -0.2], ['#3a4a44', 0.2], ['#4a3a4e', 0.9], ['#1d2a45', 1.3]].forEach(b => box(mat('bk' + b[0], b[0], { spec: 0.15 }), 0.22, 0.3, 0.05, sx, 0.58, b[1], { cast: false }));
+        lbl('BOOKS 35+', 0.5, 0.12, lx, 0.52, -0.5, { ry, tex: { w: 512, h: 128, color: '#f3e6bd', bg: '#1a1a22' } });
+      });
+    };
+    gondola(-3.0); gondola(0.4);
+    // the fridge against the right wall, lit from inside, the glass front facing the aisle
+    const fb = mat('fridgeBody', '#d8d2c4', { spec: 0.3 }); // an open-fronted cabinet: back, two sides, top, a plinth, lit inside, glass across the front
+    box(fb, 0.08, 2.1, 1.6, X1 - 0.09, 0, 1.0, { cast: false, name: 'fridge' }); [0.2, 1.8].forEach(fz => box(fb, 0.8, 2.1, 0.06, X1 - 0.45, 0, fz, { cast: true })); box(fb, 0.8, 0.08, 1.6, X1 - 0.45, 2.02, 1.0, { cast: false }); box(fb, 0.8, 0.25, 1.6, X1 - 0.45, 0, 1.0, { collide: true, cast: false });
+    box(mat('fridgeLight', '#ffffff', { emissive: '#dfe8ff', unlit: true }), 0.03, 1.6, 1.4, X1 - 0.14, 0.3, 1.0, { cast: false }); box(mat('fridgeLight'), 0.6, 0.03, 1.4, X1 - 0.45, 1.96, 1.0, { cast: false });
+    [0.25, 0.8, 1.35].forEach(fy => box(steel, 0.66, 0.02, 1.46, X1 - 0.45, fy, 1.0, { cast: false }));
+    for (let r = 0; r < 3; r++) for (let i = 0; i < 5; i++) for (let k = 0; k < 2; k++) cyl(mat(['canA', 'canB', 'canC'][(r + i) % 3]), 0.11, 0.16, X1 - 0.3 - k * 0.22, 0.27 + r * 0.55, 0.45 + i * 0.27, { cast: false, tess: 10 });
+    plane(mat('fridgeGlass', '#9fd0e8', { alpha: 0.22, spec: 0.9, power: 96 }), 1.6, 1.78, X1 - 0.86, 1.14, 1.0, { ry: PI / 2 }); [0.2, 1.8].forEach(fz => box(blackSteel, 0.04, 1.78, 0.05, X1 - 0.86, 0.25, fz, { cast: false }));
+    lbl('COLD', 0.6, 0.18, X1 - 0.87, 2.0, 1.0, { ry: PI / 2, tex: { w: 512, h: 160, color: '#3ee8f0', bg: '#1a1a22' } });
+    // the gig board on the front wall by the door, cork with pinned cards; the bargain bin opposite
+    box(mat('cork', '#9a7a4a', { spec: 0.05 }), 1.6, 1.1, 0.05, 2.2, 1.3, Z0 + 0.04, { cast: false, name: 'gigboard' }); box(mat('corkFrame', '#3a2a1e'), 1.7, 1.2, 0.04, 2.2, 1.25, Z0 + 0.02, { cast: false });
+    [['LOST SCRIPT 40', -0.5, 0.25, 0.08], ['DOTFILES 60', 0.45, 0.3, -0.1], ['BRUTE FORCE 50', -0.4, -0.3, -0.06], ['HEADCOUNT 50', 0.5, -0.28, 0.12]].forEach(cd => { lbl(cd[0], 0.56, 0.3, 2.2 + cd[1], 1.85 + cd[2], Z0 + 0.075, { ry: PI, tex: { w: 512, h: 274, color: '#2a1f12', bg: '#f1e4b8', font: '500 70px "Caveat", cursive' } }).rotation.z = cd[3]; });
+    lbl('GIGS · CASH FOR COMMANDS', 1.2, 0.16, 2.2, 1.95, Z0 + 0.075, { ry: PI, tex: { w: 1024, h: 136, color: '#ffd23f', bg: '#1a1a22' } });
+    box(mat('binM', '#4a4e58', { spec: 0.2 }), 1.0, 0.6, 0.8, -4.6, 0, -3.8, { collide: true, name: 'bargain' }); box(mat('binStuff', '#8a8f99'), 0.9, 0.1, 0.7, -4.6, 0.6, -3.8, { cast: false }); lbl('5 CR · NOTHING WORKS', 0.9, 0.16, -4.6, 0.35, -3.39, { ry: PI, tex: { w: 1024, h: 180, color: '#f3e6bd', bg: '#1a1a22' } });
+    // a mat inside the door, a plant, the lights
+    decal(pbr('martRugP', { roughness: 0.9, albedo: null }), 1.6, 1.0, -1.0, 0.012, -4.2).material.albedoTexture = rugTex('#3a2a2a', '#ff6a3d');
+    cyl(pbr('concreteP', { color: '#6f7570', roughness: 0.95, albedo: 'pavers.jpg', u: 1.5, v: 0.5 }), 0.4, 0.4, -5.4, 0, 4.4, { collide: true, tess: 16 }); sphere(pbr('leafP', { color: '#5c9a55', roughness: 0.85, albedo: 'moss.jpg', u: 2, v: 2 }), 0.8, -5.4, 0.75, 4.4, { seg: 12 });
+    pointLight(-1.5, 3.0, -1.5, '#fff2d8', 0.9, 10); pointLight(2.5, 3.0, 2.0, '#fff2d8', 0.9, 10); pointLight(X1 - 0.8, 1.6, 1.0, '#cfe8ff', 0.5, 4); pointLight(1.5, 2.2, 3.0, '#ffb070', 0.5, 6);
+  }
+  function martInteractables() {
+    addInter({ id: 'doorM', zone: 'out', pos: V3(-22.5, 0, -15), r: 2.2, label: 'Enter Byte Mart', run() { transition(() => { setZone('mart'); placePlayer(IXM + 1.0, 0, 4.2, PI); }); } });
+    addInter({ id: 'exitM', zone: 'mart', pos: W(-1, -4.6), r: 1.5, label: 'Leave Byte Mart', run() { transition(() => { setZone('out'); placePlayer(-22.5, 0, -12.4, 0); }); } });
+    addInter({ id: 'nadia', zone: 'mart', pos: W(1.5, 2.6), r: 2.0, label: 'Talk to Nadia (Byte Mart)', run() { const st = store.state; const lines = ZD.DIALOGUE.nadia(st); ui.dialogue('Nadia Sow', lines, () => { st.flags.metNadia = true; ui.openShop(); }, 'nadia'); faceNadia(); } });
+    addInter({ id: 'shelves', zone: 'mart', pos: W(-1.3, -0.5), r: 2.2, label: 'Browse the shelves', run() { ui.openShop(); } });
+    addInter({ id: 'gigboard', zone: 'mart', pos: W(2.2, -4.2), r: 1.5, label: 'Read the gig board', run() { ui.examine('gigboard'); let n = 0; ZD.GIGS.forEach(g => { if (store.state.quests[g.id] === 'available') { store.activateQuest(g.id); n++; } }); if (n) ui.toast({ kind: '', title: 'Gigs', text: n + ' gigs added to your missions (P). Each pays when its command runs.' }); } });
+    addInter({ id: 'fridge', zone: 'mart', pos: W(5.0, 1.0), r: 1.5, label: 'Look in the fridge', run() { ui.examine('fridge'); } });
+    addInter({ id: 'bargain', zone: 'mart', pos: W(-4.6, -3.3), r: 1.3, label: 'Dig through the bargain bin', run() { ui.examine('bargain'); } });
+    addInter({ id: 'martposter', zone: 'mart', pos: W(3.6, 2.6), r: 1.3, label: 'Look at the poster', run() { ui.examine('martposter'); } });
+  }
+  function faceNadia() { const ch = chars.nadia; if (!ch) return; const p = chars.player.pivot.position; const lx = IXM - p.x, lz = -p.z; ch.yaw = Math.atan2(lx - ch.pivot.position.x, lz - ch.pivot.position.z); }
+  function placeNadia() {
+    if (chars.nadia) return; const prev = Z; Z = zones.mart;
+    const ch = newPed('nadia', ['#ff6a3d', '#1a1a22', '#8a5a3a', '#1a1a1a']); ch.pivot.position.set(1.5, 0, 4.3); ch.yaw = PI; ch.pivot.rotation.y = PI;
+    const c = BABYLON.MeshBuilder.CreateCylinder('npcCol', { height: 1.8, diameter: 0.7 }, scene); c.position.set(1.5, 0.9, 4.3); c.isVisible = false; c.isPickable = false; c.checkCollisions = true; c.parent = Z.root;
+    if (!NULL_ENGINE && Z.sg && ch.kind === 'avatar') charMeshes(ch).forEach(m => Z.sg.addShadowCaster(m));
+    Z = prev;
+  }
+
+  /* ---------- credit chips: GTA-style pickups on the sidewalks, respawning a few minutes after they are taken ---------- */
+  function spawnChips() {
+    const prev = Z; Z = zones.out; const chipM = mat('chipM', '#ffd23f', { emissive: '#b88a00', spec: 0.8, power: 64 }); const chipBig = mat('chipBig', '#3ee8f0', { emissive: '#1a8a90', spec: 0.8, power: 64 });
+    const spots = []; let k = 0;
+    CITY.roadsZ.forEach((rz, j) => { for (let x = -66; x <= 66; x += 11) { if (CITY.roadsX.some(rx => Math.abs(x - rx) < 7)) continue; k++; if (k % 3 !== 0) continue; spots.push([x + ((k * 7) % 5) - 2, rz + ((k % 2) ? 5.8 : -5.8)]); } });
+    CITY.roadsX.forEach((rx, j) => { for (let z = -74; z <= 74; z += 13) { if (CITY.roadsZ.some(rz => Math.abs(z - rz) < 7)) continue; k++; if (k % 3 !== 1) continue; spots.push([rx + ((k % 2) ? 5.8 : -5.8), z + ((k * 5) % 5) - 2]); } });
+    spots.forEach((sp, i) => {
+      const big = i % 5 === 4; const n = new BABYLON.TransformNode('chip', scene); n.parent = Z.root; n.position.set(sp[0], 0.75, sp[1]);
+      const coin = BABYLON.MeshBuilder.CreateCylinder('coin', { height: 0.08, diameter: big ? 0.7 : 0.55, tessellation: 6 }, scene); coin.rotation.x = PI / 2; coin.material = big ? chipBig : chipM; coin.parent = n; coin.isPickable = false;
+      const d = decal(glowDisc, 2.2, 2.2, sp[0], 0.17, sp[1]); d.parent = Z.root;
+      chips.push({ x: sp[0], z: sp[1], value: big ? 25 : 10, node: n, disc: d, alive: true, t: 0 });
+    });
+    Z = prev;
+  }
+  function updateMart(dt, t) {
+    // the boost clock
+    if (state.boost > 0) { state.boost -= dt; const b = $('boost'); if (state.boost <= 0) { state.boost = 0; b.hidden = true; ui.toast({ kind: '', title: 'Overclock', text: 'The clock multiplier wears off.' }); } else { const sN = Math.ceil(state.boost); b.hidden = false; b.textContent = 'OVERCLOCK ' + Math.floor(sN / 60) + ':' + String(sN % 60).padStart(2, '0'); } }
+    if (state.zone !== 'out') return;
+    const p = chars.player; const car = state.driving; const px = car ? car.x : p.pivot.position.x, pz = car ? car.z : p.pivot.position.z; const reach = car ? 2.4 : 1.3;
+    chips.forEach(ch => {
+      if (!ch.alive) { ch.t -= dt; if (ch.t <= 0) { ch.alive = true; ch.node.setEnabled(true); ch.disc.setEnabled(true); } return; }
+      ch.node.rotation.y = t * 2.4; ch.node.position.y = 0.75 + Math.sin(t * 3 + ch.x) * 0.06;
+      if (Math.abs(ch.x - px) < reach && Math.abs(ch.z - pz) < reach && Math.hypot(ch.x - px, ch.z - pz) < reach) { ch.alive = false; ch.t = 240; ch.node.setEnabled(false); ch.disc.setEnabled(false); SFX.coin(ch.value > 10); store.addCredits(ch.value, null); ui.cashPop('+' + ch.value); }
+    });
+  }
+  function drinkOverclock() {
+    if (state.ui || !state.playing) return;
+    if (!store.has('drink')) { ui.toast({ kind: 'warn', title: 'Overclock', text: 'No cans left. Byte Mart, west of Building A, 15 cr.' }); return; }
+    store.consume('drink'); state.boost = 90; SFX.fizz(); ui.toast({ kind: 'ok', title: 'Overclock', text: 'Clock multiplier engaged: 90 seconds of faster everything. ' + store.count('drink') + ' left.' });
+  }
+  function ensureOwnCar() {
+    if (!store.has('keys') || state.ownCar) return;
+    const car = spawnCar({ x: MART_SPOT.x, z: MART_SPOT.z, heading: MART_SPOT.heading, parked: true, type: CARS[4], color: '#ff6a3d' }); car.own = true; state.ownCar = car;
+  }
+  function whistleCar() {
+    if (state.ui || !state.playing) return;
+    if (!store.has('keys')) { ui.toast({ kind: 'warn', title: 'Car keys', text: 'Nothing on your key ring. Byte Mart sells a coupe, 220 cr.' }); return; }
+    ensureOwnCar(); const car = state.ownCar; if (state.driving === car) { ui.toast({ kind: '', title: 'Coupe', text: 'You are sitting in it.' }); return; }
+    car.x = MART_SPOT.x; car.z = MART_SPOT.z; car.heading = MART_SPOT.heading; car.speed = 0; car.vx = car.vz = 0; car.parked = true; car.root.position.set(car.x, car.y, car.z); car.root.rotation.y = car.heading;
+    SFX.hornAt(car.x, car.z); ui.toast({ kind: 'ok', title: 'Coupe', text: 'Parked on Meridian Row by Byte Mart (M on the map).' });
+  }
   /* ---------- sound: everything is synthesised with Web Audio, nothing is streamed ---------- */
   const SFX = (function () {
     let ctx = null, master = null, white = null, brown = null, bus = {}, humG = null, muted = false, musicOff = false, padTimers = [], mix = {}; const music = { out: null, in: null, zone: 'out', step: { out: 0, in: 0 }, next: 0 };
@@ -2187,6 +2461,9 @@ Pipes work: cmd | grep PAT | wc -l`;
       quest() { [523.3, 659.3, 784, 1046.5].forEach((fr, i) => tone(fr, 0.32, 'triangle', 0.2, { delay: i * 0.11 })); tone(1568, 0.7, 'sine', 0.1, { delay: 0.44 }); tone(2093, 0.9, 'sine', 0.06, { delay: 0.5 }); },
       discovery() { tone(1568, 0.5, 'sine', 0.16); tone(2349, 0.35, 'sine', 0.07, { delay: 0.02 }); tone(1046.5, 0.4, 'triangle', 0.08, { delay: 0.12 }); },
       warn() { tone(196, 0.2, 'triangle', 0.12, { to: 150 }); },
+      coin(big) { tone(big ? 1318.5 : 1046.5, 0.08, 'square', 0.06, { lp: 4000 }); tone(big ? 1976 : 1568, 0.22, 'square', 0.05, { delay: 0.07, lp: 4000 }); },
+      buy() { tone(660, 0.06, 'square', 0.05, { lp: 3000 }); tone(880, 0.06, 'square', 0.05, { delay: 0.07, lp: 3000 }); tone(1320, 0.3, 'triangle', 0.1, { delay: 0.14 }); noise(0.05, 0.1, 'highpass', 3000, 0.5, { delay: 0.14 }); },
+      fizz() { noise(0.6, 0.18, 'highpass', 2600, 0.6, { attack: 0.02 }); tone(520, 0.12, 'sine', 0.08, { delay: 0.1, to: 780 }); tone(1040, 0.3, 'sine', 0.05, { delay: 0.3 }); },
       key() { noise(0.02, 0.07, 'bandpass', 2600 + rnd() * 1800, 1.2); },
       enter() { noise(0.03, 0.09, 'bandpass', 2200, 1); tone(1760, 0.05, 'square', 0.025, { lp: 3000 }); },
       buzz() { tone(110, 0.16, 'square', 0.09, { to: 85, lp: 600 }); },
@@ -2231,7 +2508,7 @@ Pipes work: cmd | grep PAT | wc -l`;
       const next = $('qNext'); if (stt === 'completed') { const nq = store.nextQuest(q.id); next.hidden = false; next.textContent = nq ? 'Next: ' + nq.title + '. ' + nq.start : 'End of this build. Zero Day is open; thanks for playing.'; } else next.hidden = true;
       if (state.ui === 'journal') ui.renderJournal();
     },
-    closeAll() { const wasDlg = state.ui === 'dlg', done = ui.dlgDone; ui.dlgDone = null; if (state.ui === 'term') SFX.termOff(); else if (state.ui === 'journal' || state.ui === 'examine' || state.ui === 'settings') SFX.close(); ['term', 'examine', 'dlg', 'settings'].forEach(id => $(id).classList.add('off')); $('jr').classList.remove('on'); state.ui = null; if (state.touch) $('tE').hidden = !current; canvas.focus(); if (wasDlg && done) done(); },
+    closeAll() { const wasDlg = state.ui === 'dlg', done = ui.dlgDone; ui.dlgDone = null; if (state.ui === 'term') SFX.termOff(); else if (state.ui === 'journal' || state.ui === 'examine' || state.ui === 'settings' || state.ui === 'shop') SFX.close(); ['term', 'examine', 'dlg', 'settings', 'shop'].forEach(id => $(id).classList.add('off')); $('jr').classList.remove('on'); state.ui = null; if (state.touch) $('tE').hidden = !current; canvas.focus(); if (wasDlg && done) done(); },
     openTerminal(which) {
       state.ui = 'term'; SFX.termOn(); const host = ZD.HOSTS[which];
       if (!ui.shells) ui.shells = {}; const first = !ui.shells[which]; if (first) ui.shells[which] = ZD.makeShell(store, host); ui.shell = ui.shells[which];
@@ -2245,19 +2522,33 @@ Pipes work: cmd | grep PAT | wc -l`;
       store.checkText(line + '\n' + (r.out || ''), line);
       $('termPrompt').textContent = sh.promptText(); ui.termLogs[ui.termWhich] = $('termOut').innerHTML;
       if (r.close) ui.closeAll();
+      if (r.duck) setTimeout(() => { if (state.ui === 'term' && ui.shell === sh) { ui.hist.push(r.duck); ui.histI = ui.hist.length; ui.termRun(r.duck); } }, 650); // the Rubber Ducky types the command for you, after a beat
     },
     examine(id) { const e = ZD.EXAMINABLES[id]; state.ui = 'examine'; SFX.paper(); const box = $('exBox'); box.className = e.style; $('exTitle').textContent = e.title; $('exText').innerHTML = e.text.split('\n\n').map(p => '<p>' + esc(p) + '</p>').join(''); $('examine').classList.remove('off'); if (e.flag) store.state.flags[e.flag] = true; if (e.discovery) store.addDiscovery(e.discovery); if (state.touch) $('tE').hidden = false; },
     dialogue(name, lines, onDone, who) { state.ui = 'dlg'; ui.dlgLines = lines.slice(); ui.dlgDone = onDone; ui.dlgWho = who || null; $('dlgName').textContent = name; $('dlg').classList.remove('off'); ui.dlgAdvance(true); if (state.touch) $('tE').hidden = false; },
-    dlgAdvance(first) { if (!first && ui.dlgLines.length === 0) { ui.closeAll(); return; } const ln = ui.dlgLines.shift(); SFX.voice(ui.dlgWho === 'rosa' ? 'rosa' : 'julien'); $('dlgText').textContent = ln; $('dlgNext').textContent = ui.dlgLines.length ? 'Continue' : 'Done'; },
+    dlgAdvance(first) { if (!first && ui.dlgLines.length === 0) { ui.closeAll(); return; } const ln = ui.dlgLines.shift(); SFX.voice(ui.dlgWho === 'julien' ? 'julien' : 'rosa'); $('dlgText').textContent = ln; $('dlgNext').textContent = ui.dlgLines.length ? 'Continue' : 'Done'; },
     openJournal() { state.ui = 'journal'; SFX.swish(); $('jr').classList.add('on'); ui.renderJournal(); },
     openSettings() { state.ui = 'settings'; SFX.swish(); const v = SFX.volumes(); $('volMaster').value = v.master; $('volMusic').value = v.music; $('volSfx').value = v.sfx; $('volAmbient').value = v.ambient; $('credits').innerHTML = SFX.credits.map(c => '<p><b>' + esc(c[0]) + '</b> ' + esc(c[1]) + '</p>').join(''); $('settings').classList.remove('off'); },
     setSound(muted) { SFX.switch(); $('soundBtn').textContent = muted ? 'Sound off' : 'Sound on'; $('soundBtn').setAttribute('aria-pressed', muted ? 'false' : 'true'); },
     setMusic(off) { SFX.switch(); $('musicBtn').textContent = off ? 'Music off' : 'Music on'; $('musicBtn').setAttribute('aria-pressed', off ? 'false' : 'true'); $('musicOn').checked = !off; },
+    // Byte Mart
+    openShop() { state.ui = 'shop'; SFX.swish(); ui.renderShop(); $('shop').classList.remove('off'); if (state.touch) $('tE').hidden = true; },
+    renderShop() {
+      const st = store.state; $('shopCash').textContent = st.credits + ' cr'; const list = $('shopList'); list.innerHTML = '';
+      ZD.SHOP.forEach(it => {
+        const n = store.count(it.id); const owned = it.kind !== 'consumable' && n > 0; const afford = st.credits >= it.price;
+        const el = document.createElement('div'); el.className = 'item' + (owned ? ' owned' : '');
+        el.innerHTML = '<div class="tag">' + esc(it.tag) + '</div><div class="body"><h4>' + esc(it.name) + (n ? '<span class="own">' + (it.kind === 'consumable' ? 'x' + n + ' in bag' : 'owned') + '</span>' : '') + '</h4><p>' + esc(it.desc) + '</p></div><div class="buy"><div class="price">' + it.price + ' cr</div>' + (owned ? '<span class="have">yours</span>' : '<button class="btn small" type="button"' + (afford ? '' : ' disabled') + '>' + (it.kind === 'consumable' && n ? 'Buy another' : 'Buy') + '</button>') + '</div>';
+        const b = el.querySelector('button'); if (b) b.addEventListener('click', () => { const r = store.buy(it.id); if (r === 'broke') { SFX.buzz(); $('shopNote').textContent = 'Short by ' + (it.price - st.credits) + ' cr. The gig board pays, and so do the chips on the street.'; } else if (r === 'ok') { $('shopNote').textContent = it.kind === 'consumable' ? 'In the bag. Press B outside the menu to drink one.' : it.id === 'keys' ? 'Parked outside, on Meridian Row. K whistles it back to the mart if you lose it.' : it.kind === 'book' ? 'man ' + ZD.SHOP.find(x => x.id === it.id).desc.match(/man ([a-z]+)/)[1] + ' now works on every terminal.' : 'Equipped. ' + ({ ducky: 'Type duck on a terminal.', pineapple: 'Type scan on a terminal.', cloner: 'Walk up to any card reader.', scanner: 'Chips show on the minimap.' }[it.id] || ''); } ui.renderShop(); });
+        list.appendChild(el);
+      });
+    },
+    cashPop(text) { const el = $('cashPop'); el.textContent = text; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); $('hudCredits').textContent = String(store.state.credits).padStart(6, '0'); },
     jrTab: 'quests',
     renderJournal() {
       const st = store.state; const body = $('jrBody'); body.innerHTML = '';
       document.querySelectorAll('#jrHead .tab').forEach(b => b.classList.toggle('on', b.dataset.tab === ui.jrTab));
-      if (ui.jrTab === 'quests') ZD.QUESTS.forEach(q => { const s = st.quests[q.id]; const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<span class="state ' + s + '">' + s + '</span><h4>' + esc(q.title) + '</h4><div class="meta">' + esc(q.category + ' · ' + q.location + ' · ' + q.reward + ' credits') + '</div>' + (s === 'locked' ? '<p>Locked.</p>' : '<ul>' + q.objectives.map(o => '<li class="' + (store.isDone(q.id, o.id) ? 'done' : '') + '">' + esc(o.text) + (o.hint && !store.isDone(q.id, o.id) ? '<div class="hint">' + esc(o.hint) + '</div>' : '') + '</li>').join('') + '</ul>'); body.appendChild(el); });
+      if (ui.jrTab === 'quests') ZD.QUESTS.concat(ZD.GIGS.filter(g => st.quests[g.id] !== 'available')).forEach(q => { const s = st.quests[q.id]; const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<span class="state ' + s + '">' + s + '</span><h4>' + esc(q.title) + '</h4><div class="meta">' + esc(q.category + ' · ' + q.location + ' · ' + q.reward + ' credits') + '</div>' + (s === 'locked' ? '<p>Locked.</p>' : '<ul>' + q.objectives.map(o => '<li class="' + (store.isDone(q.id, o.id) ? 'done' : '') + '">' + esc(o.text) + (o.hint && !store.isDone(q.id, o.id) ? '<div class="hint">' + esc(o.hint) + '</div>' : '') + '</li>').join('') + '</ul>'); body.appendChild(el); });
       if (ui.jrTab === 'log') { if (!st.journal.length) body.innerHTML = '<div class="entry"><p>No entries yet.</p></div>'; st.journal.slice().reverse().forEach(j => { const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<div class="meta">' + new Date(j.t).toLocaleString() + '</div><h4>' + esc(j.title) + '</h4><p>' + esc(j.text) + '</p>'; body.appendChild(el); }); }
       if (ui.jrTab === 'notebook') { if (!st.notebook.length) body.innerHTML = '<div class="entry"><p>Nothing examined yet. Look closely at what Dara left on the reading table.</p></div>'; st.notebook.slice().reverse().forEach(n => { const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<div class="meta">' + esc(n.id) + '</div><h4>' + esc(n.title) + '</h4><p>' + esc(n.text) + '</p>'; body.appendChild(el); }); }
     }
@@ -2280,6 +2571,7 @@ Pipes work: cmd | grep PAT | wc -l`;
   $('dlgNext').addEventListener('click', () => ui.dlgAdvance());
   $('jrClose').addEventListener('click', () => ui.closeAll());
   $('setClose').addEventListener('click', () => ui.closeAll());
+  $('shopClose').addEventListener('click', () => ui.closeAll());
   [['volMaster', 'master'], ['volMusic', 'music'], ['volSfx', 'sfx'], ['volAmbient', 'ambient']].forEach(v => $(v[0]).addEventListener('input', (e) => SFX.setVolume(v[1], +e.target.value)));
   $('journalBtn').addEventListener('click', () => { if (state.ui === 'journal') ui.closeAll(); else if (!state.ui) ui.openJournal(); });
   document.querySelectorAll('#jrHead .tab').forEach(b => b.addEventListener('click', () => { ui.jrTab = b.dataset.tab; ui.renderJournal(); }));
@@ -2292,7 +2584,8 @@ Pipes work: cmd | grep PAT | wc -l`;
   canvas.addEventListener('wheel', (e) => { CAM.zoom = Math.max(0.55, Math.min(2.0, CAM.zoom + (e.deltaY > 0 ? 0.1 : -0.1))); e.preventDefault(); }, { passive: false });
 
   // the quest store drives the HUD: every notice goes to the pager, every change redraws the mission card and saves, a finished quest moves the beacon
-  store.on('toast', o => { ui.toast(o); if (o.kind === 'ok') SFX.objective(); else if (o.kind === 'quest') SFX.quest(); else if (o.kind === 'found') SFX.discovery(); else if (o.kind === 'warn') SFX.warn(); else SFX.tick(); });
+  store.on('toast', o => { ui.toast(o); if (o.kind === 'ok') SFX.objective(); else if (o.kind === 'quest') SFX.quest(); else if (o.kind === 'found') SFX.discovery(); else if (o.kind === 'warn') SFX.warn(); else if (o.kind === 'buy') SFX.buy(); else if (o.kind === 'cash') SFX.coin(); else SFX.tick(); });
+  store.on('bought', id => { if (id === 'keys') ensureOwnCar(); });
   store.on('change', () => { ui.refreshQuest(); updateBeacon(); save(); });
   store.on('questComplete', (qid) => { if (qid === 'quest_i3_ghost') setTimeout(() => ui.toast({ kind: 'quest', title: 'Zero Day', text: 'End of this build. Thanks for playing the overhead cut of Meridian Row.' }), 4200); });
 
@@ -2328,9 +2621,10 @@ Pipes work: cmd | grep PAT | wc -l`;
     rosa.pivot.position.set(-7.2, 0, 13.6); rosa.yaw = PI; rosa.pivot.rotation.y = PI;
     jul.pivot.position.set(10.2, 0, -13.4); jul.yaw = 0.2; jul.pivot.rotation.y = 0.2;
     [rosa, jul].forEach(ch => { const c = BABYLON.MeshBuilder.CreateCylinder('npcCol', { height: 1.8, diameter: 0.7 }, scene); c.position.set(ch.pivot.position.x, 0.9, ch.pivot.position.z); c.isVisible = false; c.isPickable = false; c.checkCollisions = true; c.parent = Z.root; });
+    placeNadia();
     spawnTraffic(22); spawnPeds(AV.ready ? 18 : 28);
     [[-20, -3.6, PI / 2], [26, 3.6, -PI / 2], [-30, 3.6, -PI / 2], [-40, -20, 0], [40, 22, PI], [-40, 60, 0], [40, -60, PI], [-76, 20, 0], [76, -20, PI]].forEach(p => spawnCar({ x: p[0], z: p[1], heading: p[2], parked: true }));
-    if (!NULL_ENGINE && AV.ready) { const sg = zones.out.sg; Object.values(chars).forEach(ch => { if (ch.kind === 'avatar') charMeshes(ch).forEach(m => sg.addShadowCaster(m)); }); }
+    if (!NULL_ENGINE && AV.ready) { const sg = zones.out.sg; Object.values(chars).forEach(ch => { if (ch.kind === 'avatar' && ch !== chars.nadia) charMeshes(ch).forEach(m => sg.addShadowCaster(m)); }); }
     // the clip rigs have done their job
     Object.values(AV.clips).forEach(clip => { clip.animationGroups.forEach(g => g.dispose()); clip.meshes.forEach(m => m.dispose(false, false)); clip.transformNodes.forEach(n => { if (!n.isDisposed()) n.dispose(); }); });
     loaded = true; $('loadline').textContent = 'READY.'; $('enterBtn').disabled = false;
@@ -2340,7 +2634,7 @@ Pipes work: cmd | grep PAT | wc -l`;
     const st = store.state; const sv = resume ? loadSave() : null;
     if (sv && sv.save) { store.restore(sv.save); if (sv.pos) { setZone(sv.zone || 'out', true); placePlayer(sv.pos[0], sv.pos[1], sv.pos[2], sv.pos[3]); } else placePlayer(-5, 0, 0, 0); }
     else { st.profile = ($('pname').value.trim() || 'Fresh Investigator').slice(0, 24); placePlayer(-5, 0, 0, 0); if (st.quests.quest_f1_cli === 'available') store.activateQuest('quest_f1_cli'); }
-    updateBeacon();
+    updateBeacon(); ensureOwnCar();
     $('start').classList.add('off'); state.playing = true; ui.refreshQuest(); save(); canvas.focus();
     setTimeout(() => $('fade').classList.add('clear'), 80);
     if (!resume) setTimeout(() => ui.toast({ kind: '', title: 'Building A', text: 'The cyan arrow marks the door. W runs, A and D turn, E at a car takes it.' }), 1200);
@@ -2358,7 +2652,7 @@ Pipes work: cmd | grep PAT | wc -l`;
     populate();
     if (hot && hot.save && hot.playing) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(hot)); } catch (e) { /* ignore */ } begin(true); }
   }
-  window.__zdDebug = { scene, store, chars, zones, state, cam, inter, cars, peds, ui, SFX };
+  window.__zdDebug = { scene, store, chars, zones, state, cam, inter, cars, peds, ui, SFX, chips, CAM };
   const hot = window.claude && window.claude.hot;
   if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
 })();
