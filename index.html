@@ -1446,6 +1446,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   const V4 = (a, b, c, d) => new BABYLON.Vector4(a, b, c, d);
   const PI = Math.PI;
   const IX = 250; // the apartment interior lives at x+250, far from the city
+  const IXP = 1750; // Meridian Police station interior
   const store = ZD.makeStore();
   const state = { zone: 'out', playing: false, ui: null, touch: false, run: false, seed: 7, driving: null, brake: false };
   const rnd = () => { state.seed = (state.seed * 9301 + 49297) % 233280; return state.seed / 233280; };
@@ -2304,6 +2305,31 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     decal(texMat('utilSign', textTex('MERIDIAN UTILITIES  ·  THE HUM IS NORMAL', { w: 1024, h: 96, color: '#ffb454' }), { unlit: true, alpha: true, emissive: '#ffffff' }), 4.0, 0.38, -1.0, 0.02, -4.4);
   }
 
+  function buildPolice() {
+    Z = makeZone('police', IXP);
+    addLights(Z, { hemi: 0.72, sky: '#dbe8ff', groundCol: '#252b3d', dir: V3(-0.25, -1, -0.4), dirI: 0.55, dirCol: '#bcd4ff', dirPos: V3(IXP + 5, 8, -4), shadowRes: 1536 });
+    const X0 = -9, X1 = 9, Z0 = -7, Z1 = 7, H = 4.6;
+    const wallM = mat('policeWall', '#b9c1cf', { spec: 0.12 }); const floorM = texMat('policeFloor', dtex('policeFloor', 256, 256, (c, W, Hh) => { c.fillStyle = '#394354'; c.fillRect(0, 0, W, Hh); c.strokeStyle = 'rgba(220,235,255,.16)'; c.lineWidth = 3; for (let i = 0; i <= W; i += 64) { c.beginPath(); c.moveTo(i, 0); c.lineTo(i, Hh); c.stroke(); c.beginPath(); c.moveTo(0, i); c.lineTo(W, i); c.stroke(); } }, { mips: true, u: 7, v: 5 }), { spec: 0.2 });
+    room({ name: 'P', X0, X1, Z0, Z1, H, wallM, floorM, door: 0, windows: [[-6, 1.0, Z0 + 0.1, 2.7, 1.5, 0, 'front'], [X1 - 0.1, 1.0, 2, 2.2, 1.5, PI / 2, 'side']] });
+    const navy = mat('policeNavy', '#202c4a', { spec: 0.3 }); const steel = mat('policeSteel', '#8d98a8', { spec: 0.45 }); const glass = mat('policeGlass', '#9ec9ed', { alpha: 0.28, spec: 0.8 });
+    // front desk and visitor seating
+    box(navy, 4.8, 1.0, 0.7, 0, 0, -5.2, { collide: true }); box(mat('policeTop', '#e4e9f0', { spec: 0.35 }), 4.9, 0.05, 0.78, 0, 1.0, -5.2, { cast: false });
+    desk(-5.8, -2.0, 0, ['MERIDIAN PD', 'front desk', 'bell: ring once'], '#8fc5ff', { noChair: true });
+    box(mat('bell', '#e8bd63', { emissive: '#6a4d1d' }), 0.12, 0.08, 0.12, -2.2, 1.08, -5.2, { cast: false, name: 'frontBell' });
+    [[-5.5, -4.0], [-3.8, -4.0]].forEach(p => { box(mat('bench', '#34415b'), 1.4, 0.08, 0.5, p[0], 0.46, p[1], { collide: true }); box(steel, 0.05, 0.46, 0.05, p[0] - 0.55, 0, p[1], { cast: false }); box(steel, 0.05, 0.46, 0.05, p[0] + 0.55, 0, p[1], { cast: false }); });
+    // cybercrime desk and an evidence-review wall
+    desk(-5.8, 3.8, PI, ['cybercrime desk', 'MP-2610-044', 'case: OKAFOR'], '#61a5ff');
+    decal(texMat('policeBoard', textTex('CYBERCRIME INTAKE\nPRESERVE LOGS  ·  NOTE TIME\nDO NOT ALTER ORIGINALS', { w: 768, h: 256, color: '#cfe0ff', bg: '#1b2440', font: '600 38px "JetBrains Mono", monospace', lineH: 58 }), { unlit: true, emissive: '#ffffff' }), 4.2, 1.4, 1.5, 2.4, Z1 - 0.12, { ry: 0 });
+    // evidence shelves behind a mesh partition
+    box(glass, 0.06, 2.7, 5.8, 3.7, 0, 3.3, { collide: true, cast: false });
+    for (let i = 0; i < 3; i++) { box(steel, 0.8, 0.06, 0.7, 5.8, 0.7 + i * 0.8, 4.8, { cast: false }); box(mat('evidenceBox' + i, i === 1 ? '#d4a64b' : '#566985'), 0.55, 0.35, 0.5, 5.8, 0.9 + i * 0.8, 4.8, { cast: false }); }
+    // two holding cells with barred fronts and a narrow interview room
+    for (let i = 0; i < 2; i++) { const x = -3.2 + i * 3.0; box(navy, 2.5, 2.8, 1.8, x, 0, 5.7, { collide: true }); for (let j = 0; j < 7; j++) cyl(steel, 0.07, 2.5, x - 1.0 + j * 0.34, 0, 4.75, { cast: false, tess: 8 }); box(mat('cellBench', '#68758b'), 1.5, 0.18, 0.45, x, 0.45, 6.0, { collide: true }); }
+    box(glass, 0.06, 2.4, 2.4, 5.8, 0, -1.0, { collide: true, cast: false }); box(steel, 0.08, 2.4, 0.08, 5.8, 0, -2.2, { cast: false }); box(steel, 0.08, 2.4, 0.08, 5.8, 0, 0.2, { cast: false });
+    [[-6.5, -5.8], [2.8, -5.8], [-6.5, 2.0], [2.8, 2.0]].forEach(p => box(mat('ceilingLight', '#e8f2ff', { emissive: '#b9d8ff', unlit: true }), 2.3, 0.04, 0.16, p[0], H - 0.2, p[1], { cast: false }));
+    pointLight(-2, 3.5, -3, '#d4e7ff', 0.8, 10); pointLight(4, 3.2, 3, '#9fc5ff', 0.55, 8); pointLight(-5, 2.2, 4, '#6a9cff', 0.35, 5);
+  }
+
   /* ---------- camera: a free camera held high over the player, looking almost straight down, north up the screen ---------- */
   const CAM = { lean: 0.16, foot: 26, inside: 13, drive: 34, zoom: 1, h: 26, mode: 'top', yaw: 0 };
   try { if (localStorage.getItem('nz-cam') === 'third') CAM.mode = 'third'; } catch (e) { /* no storage */ }
@@ -2361,7 +2387,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   function buildWorld() {
     // the prefiltered studio environment ships as base64 text so it can be served; it is decoded and handed to Babylon through a blob URL
     fetch('env/studio.env.txt').then(r => r.ok ? r.text() : Promise.reject(r.status)).then(b64 => { const bin = atob(b64.trim()); const bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); const url = URL.createObjectURL(new Blob([bytes])); scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(url, scene, '.env'); scene.environmentIntensity = 0.7; }).catch(() => { /* PBR falls back to lights only */ });
-    buildOutdoor(); buildInterior(); buildCaduceus(); buildLab(); buildUtilities(); buildMart(); buildExchange(); spawnChips();
+    buildOutdoor(); buildInterior(); buildCaduceus(); buildLab(); buildUtilities(); buildPolice(); buildMart(); buildExchange(); spawnChips();
     if (!NULL_ENGINE) { glow = new BABYLON.GlowLayer('glow', scene, { blurKernelSize: 32 }); glow.intensity = 0.5; noGlow.forEach(m => glow.addExcludedMesh(m)); }
     setZone('out', true);
   }
@@ -2382,10 +2408,12 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   addInter({ id: 'doorF', zone: 'out', pos: V3(12, 0, -15), r: 2.2, label: 'Enter Building F', run() { const st = store.state.quests.quest_i1_logs; if (st === 'locked' || st === 'available') { if (!store.has('cloner')) { ui.toast({ kind: 'warn', title: 'Caduceus Analytics', text: 'By appointment only. Julien is right here; he decides who gets in.' }); return; } ui.toast({ kind: 'ok', title: 'Proxmark', text: 'Cloned visitor badge accepted. The reader never asked who you were.' }); } transition(() => { setZone('cad'); placePlayer(IXF + 1.0, 0, 5.0, PI); }); } });
   addInter({ id: 'doorH', zone: 'out', pos: V3(-9, 0, 15), r: 2.2, label: 'Enter Building H', run() { transition(() => { setZone('lab'); placePlayer(IXH - 1.0, 0, -4.8, 0); }); } });
   addInter({ id: 'doorD', zone: 'out', pos: V3(13, 0, 15), r: 2.2, label: 'Enter Building D', run() { if (!store.state.flags.utilKey) { if (!store.has('cloner')) { ui.toast({ kind: 'warn', title: 'Meridian Utilities', text: 'A card reader blinks red. A hum behind the door, nothing else.' }); return; } ui.toast({ kind: 'ok', title: 'Proxmark', text: 'Cloned contractor card accepted. The reader blinks green.' }); } transition(() => { setZone('util'); placePlayer(IXD - 1.0, 0, -5.2, 0); if (store.state.quests.quest_i2_utilities === 'available') store.activateQuest('quest_i2_utilities'); }); } });
+  addInter({ id: 'doorP', zone: 'out', pos: V3(54, 0, 10.2), r: 2.5, label: 'Enter Meridian Police', run() { transition(() => { setZone('police'); placePlayer(IXP, 0, -5.2, PI); }); } });
   addInter({ id: 'exitA', zone: 'in', pos: V3(IX + 1, 0, 7.2), r: 1.5, label: 'Leave Building A', run() { transition(() => { setZone('out'); placePlayer(-8.5, 0, -12.4, 0); }); } });
   addInter({ id: 'exitF', zone: 'cad', pos: V3(IXF + 1, 0, 5.6), r: 1.5, label: 'Leave Building F', run() { transition(() => { setZone('out'); placePlayer(12, 0, -12.4, 0); }); } });
   addInter({ id: 'exitH', zone: 'lab', pos: V3(IXH - 1, 0, -5.0), r: 1.5, label: 'Leave Building H', run() { transition(() => { setZone('out'); placePlayer(-9, 0, 12.4, PI); }); } });
   addInter({ id: 'exitD', zone: 'util', pos: V3(IXD - 1, 0, -5.5), r: 1.5, label: 'Leave Building D', run() { transition(() => { setZone('out'); placePlayer(13, 0, 12.4, PI); }); } });
+  addInter({ id: 'exitP', zone: 'police', pos: V3(IXP, 0, -5.5), r: 1.5, label: 'Leave Meridian Police', run() { transition(() => { setZone('out'); placePlayer(54, 0, 12.4, PI); }); } });
   // Building A
   addInter({ id: 'comp-a-01', zone: 'in', pos: V3(IX - 7.6, 0, 3.5), r: 1.8, label: 'Use workstation (dara-ws)', run() { ui.openTerminal('ws'); } });
   addInter({ id: 'comp-a-02', zone: 'in', pos: V3(IX + 2, 3.1, -6.1), r: 1.8, label: 'Use terminal (dara-mezz)', run() { ui.openTerminal('mezz'); } });
@@ -2414,6 +2442,11 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   addInter({ id: 'breaker', zone: 'util', pos: V3(IXD - 6.3, 0, -4.2), r: 1.4, label: 'Look at breaker panel', run() { ui.examine('breaker'); } });
   addInter({ id: 'mlog', zone: 'util', pos: V3(IXD + 1.4, 0, -4.3), r: 1.3, label: 'Read maintenance clipboard', run() { ui.examine('mlog'); } });
   addInter({ id: 'rack3', zone: 'util', pos: V3(IXD + 5.0, 0, 0.0), r: 1.5, label: 'Look at rack 3', run() { ui.examine('rack3'); } });
+  // Meridian Police interior
+  addInter({ id: 'policeDesk', zone: 'police', pos: V3(IXP, 0, -4.2), r: 2.0, label: 'Ring the front-desk bell', run() { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The bell rings once. A tired voice calls from the back: “Cybercrime is closed until Monday. Leave the logs.”' }); } });
+  addInter({ id: 'policeCyber', zone: 'police', pos: V3(IXP - 5.8, 0, 3.0), r: 1.6, label: 'Review the cybercrime workstation', run() { ui.toast({ kind: 'ok', title: 'Cybercrime desk', text: 'Case MP-2610-044: Dara Okafor. Preserve original logs, write down the time, and record the host or address.' }); } });
+  addInter({ id: 'policeEvidence', zone: 'police', pos: V3(IXP + 5.8, 0, 4.0), r: 1.5, label: 'Inspect evidence storage', run() { ui.toast({ kind: 'ok', title: 'Evidence storage', text: 'Three sealed bags: a cloned badge, a damaged phone, and a STYX gateway log. Chain of custody intact.' }); } });
+  addInter({ id: 'policeCells', zone: 'police', pos: V3(IXP, 0, 4.3), r: 1.5, label: 'Look into the holding cells', run() { ui.toast({ kind: '', title: 'Holding cells', text: 'Empty tonight. The lock display blinks 03:12, then resets.' }); } });
   martInteractables(); exchangeInteractables();
   // the two people on the street
   addInter({ id: 'rosa', zone: 'out', pos: V3(-7.2, 0, 13.6), r: 2.2, label: 'Talk to Rosa Tavares', run() { ui.dialogue('Rosa Tavares', ZD.DIALOGUE.rosa(store.state), () => { const st = store.state; if (st.quests.quest_f1_cli === 'completed' && st.quests.quest_f2_networking === 'available') { st.flags.rosaKit = true; store.activateQuest('quest_f2_networking'); } if (st.quests.quest_i2_utilities === 'completed' && st.quests.quest_i3_ghost === 'available') store.activateQuest('quest_i3_ghost'); }, 'rosa'); faceNPC('rosa'); } });
