@@ -106,6 +106,15 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 #startBox h1{font-family:var(--font-display);font-size:clamp(56px,11vw,110px);line-height:.86;margin:0;letter-spacing:.02em;color:var(--cash);text-shadow:5px 5px 0 #000,8px 8px 0 var(--hot);text-wrap:balance}
 #startBox h1 span{display:block;color:var(--cyan);font-size:.36em;letter-spacing:.22em;margin-top:10px;text-shadow:3px 3px 0 #000}
 #startBox p{margin:0;max-width:62ch;color:#d9d2c5}
+#assessmentBox{width:min(760px,100%);display:flex;flex-direction:column;gap:14px}
+#assessmentBox h2{font:32px var(--font-display);margin:0;color:var(--cash);letter-spacing:.05em}
+#assessmentProgress{font:600 11px var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--cyan)}
+#assessmentQuestion{font:22px var(--font-display);line-height:1.15;color:var(--fg);margin:4px 0}
+#assessmentOptions{display:grid;gap:8px}
+.assessmentOption{display:flex;gap:10px;align-items:flex-start;text-align:left;padding:12px;border:1px solid var(--line);background:#11141c;color:var(--fg);font:500 15px var(--font-ui);cursor:pointer}
+.assessmentOption:hover,.assessmentOption:focus{border-color:var(--cyan);background:#18232b;outline:none}
+.assessmentOption input{accent-color:var(--cyan);margin-top:3px}
+#assessmentNote{min-height:1.3em;color:var(--mute);font-size:13px}
 /* character creator (from PR #1 by hugoClews, adapted): a 3D preview of the runner and six looks */
 #customizeBox{width:min(760px,100%);display:grid;grid-template-columns:minmax(220px,.8fr) minmax(280px,1.2fr);gap:22px;align-items:stretch}
 #customizePreview{min-height:280px;display:grid;place-items:center;background:linear-gradient(145deg,rgba(62,232,240,.12),rgba(255,61,127,.12)),#11141c;border:2px solid var(--line);box-shadow:4px 4px 0 #000;position:relative;overflow:hidden}
@@ -254,6 +263,19 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
     </div>
   </div>
 
+  <div id="assessment" class="screen off" aria-label="Cybersecurity skill assessment">
+    <div id="assessmentBox" class="card">
+      <div class="eyebrow">CYBERSECURITY INTAKE · 10 QUESTIONS</div>
+      <h2>Calibrate your briefing</h2>
+      <p id="assessmentIntro">Answer these multiple-choice questions so Meridian Row can tune hints and technical detail to your level. This is not a pass/fail test.</p>
+      <div id="assessmentProgress"></div>
+      <div id="assessmentQuestion"></div>
+      <div id="assessmentOptions" role="radiogroup"></div>
+      <div id="assessmentNote" aria-live="polite"></div>
+      <div class="row"><button id="assessmentNext" class="btn" type="button" disabled>Next question</button></div>
+    </div>
+  </div>
+
   <div id="customize" class="screen off" aria-label="Character styling">
     <div id="customizeBox">
       <div id="customizePreview" aria-label="Rotatable 3D character preview">
@@ -265,7 +287,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
       <div id="customizePanel" class="card">
         <div class="eyebrow">Before drop-in</div>
         <h2 style="font:32px var(--font-display);margin:0;color:var(--cash);letter-spacing:.05em">Style your runner</h2>
-        <p style="margin:0;color:#d9d2c5">Face, hair, facial hair, colours. Saved with your profile; change it whenever you continue.</p>
+        <p id="customizeBrief" style="margin:0;color:#d9d2c5">Face, hair, facial hair, colours. Saved with your profile; change it whenever you continue.</p>
         <div id="styleChoices" class="lookRows" aria-label="Character options"></div>
         <div class="row"><button id="customizeBack" class="btn ghost" type="button">Back</button><button id="customizeRandom" class="btn ghost" type="button">Random</button><button id="customizeStart" class="btn" type="button">Jump in</button></div>
       </div>
@@ -940,8 +962,36 @@ Lineman's notebook, Meridian Exchange.
     rack3: { title: 'Rack 3', style: 'plain', text: 'A full-height rack behind a mesh door. Two database servers, a switch, and a small grey box on the top shelf with no label and a blinking amber light. Its network cable goes nowhere you can see.' }
   };
 
+  const CYBER_ASSESSMENT = [
+    { q: 'What does multi-factor authentication add to a password?', a: ['A second independent proof of identity', 'A faster login route', 'A public username', 'A way to encrypt every file'], c: 0 },
+    { q: 'What does an IP address identify on a network?', a: ['A password strength score', 'A file type', 'A host or network interface location', 'A browser extension'], c: 2 },
+    { q: 'Which command lists files in a Unix-like directory?', a: ['ls', 'cd', 'pwd', 'grep'], c: 0 },
+    { q: 'What is the main security risk of reusing one password?', a: ['It makes downloads slower', 'One breach can expose multiple accounts', 'It disables MFA', 'It changes your IP address'], c: 1 },
+    { q: 'What does a firewall primarily control?', a: ['The colour of a terminal', 'CPU temperature', 'Password spelling', 'Network traffic based on rules'], c: 3 },
+    { q: 'What does HTTPS protect between a browser and website?', a: ['The connection in transit with encryption and authentication', 'The website from all bugs', 'The user from every phishing message', 'The server from power loss'], c: 0 },
+    { q: 'What does `grep` commonly do?', a: ['Create a network route', 'Change a file owner', 'Start a graphical desktop', 'Search text for a pattern'], c: 3 },
+    { q: 'What is least privilege?', a: ['Giving every user administrator rights', 'Giving an account only the access it needs', 'Deleting all audit logs', 'Using the longest username'], c: 1 },
+    { q: 'What does a port scan help identify?', a: ['The exact password of a user', 'The physical colour of a cable', 'Services listening on reachable ports', 'Whether a file is encrypted at rest'], c: 2 },
+    { q: 'Which is the strongest first response to a suspected phishing link?', a: ['Forward it to colleagues', 'Enter a fake password to test it', 'Disable all firewalls', 'Do not open it; report it through the trusted channel'], c: 3 }
+  ];
+  const CYBER_LEVELS = [
+    { name: 'Beginner', min: 0, label: 'Plain-language guidance and one safe next step.' },
+    { name: 'Foundation', min: 4, label: 'Core terms plus the command or concept to try.' },
+    { name: 'Intermediate', min: 7, label: 'Technical commands, expected evidence, and why it matters.' },
+    { name: 'Advanced', min: 9, label: 'Concise prompts with implementation detail and investigation context.' }
+  ];
+  function cyberLevel(score) { return CYBER_LEVELS.slice().reverse().find(x => score >= x.min) || CYBER_LEVELS[0]; }
+  function cyberHint(objective, level) {
+    const l = level || CYBER_LEVELS[0]; const base = objective.hint || 'Inspect the nearby terminal and follow the objective.';
+    if (l.name === 'Beginner') return 'Look around: ' + base;
+    if (l.name === 'Foundation') return base + (objective.cmd ? ' Start with: ' + objective.cmd + '.' : '');
+    if (l.name === 'Intermediate') return (objective.cmd ? 'Try `' + objective.cmd + '`.' : base) + (objective.sig ? ' Look for evidence like `' + objective.sig + '`.' : '');
+    return (objective.cmd ? 'Run `' + objective.cmd + '` and compare the output.' : base) + (objective.sig ? ' Expected evidence: `' + objective.sig + '`.' : '') + (objective.needs ? ' Required tool family: ' + objective.needs.join(', ') + '.' : '');
+  }
+  function assessmentResult(answers) { const score = answers.reduce((n, a, i) => n + (a === CYBER_ASSESSMENT[i].c ? 1 : 0), 0); const level = cyberLevel(score); return { score, level: level.name }; }
+
   function makeStore(init) {
-    const s = { profile: '', credits: 0, quests: {}, done: {}, journal: [], notebook: [], flags: {}, inv: {}, listeners: {} };
+    const s = { profile: '', credits: 0, quests: {}, done: {}, journal: [], notebook: [], flags: {}, inv: {}, cyberScore: null, cyberLevel: null, listeners: {} };
     const ALL = QUESTS.concat(GIGS);
     ALL.forEach(q => { s.quests[q.id] = q.gig ? 'available' : 'locked'; s.done[q.id] = []; });
     s.quests.quest_f1_cli = 'available';
@@ -990,8 +1040,8 @@ Lineman's notebook, Meridian Exchange.
       checkText(text, cmdLine) {
         api.activeQuests().forEach(q => q.objectives.forEach(o => { if (s.done[q.id].includes(o.id)) return; const sigs = o.sigs || [o.sig]; if (!sigs.some(sg => text.includes(sg))) return; if (o.needs && !o.needs.some(n => (cmdLine || '').includes(n))) return; api.completeObjective(q.id, o.id); }));
       },
-      serialize() { return { profile: s.profile, credits: s.credits, quests: s.quests, done: s.done, journal: s.journal, notebook: s.notebook, flags: s.flags, inv: s.inv }; },
-      restore(d) { if (!d) return; ['profile', 'credits', 'quests', 'done', 'journal', 'notebook', 'flags', 'inv'].forEach(k => { if (d[k] !== undefined) s[k] = d[k]; }); ALL.forEach(q => { if (!s.done[q.id]) s.done[q.id] = []; if (!s.quests[q.id]) s.quests[q.id] = q.gig ? 'available' : 'locked'; }); // a save from an older build may have finished the last quest it knew about: open the one after it
+      serialize() { return { profile: s.profile, credits: s.credits, quests: s.quests, done: s.done, journal: s.journal, notebook: s.notebook, flags: s.flags, inv: s.inv, cyberScore: s.cyberScore, cyberLevel: s.cyberLevel }; },
+      restore(d) { if (!d) return; ['profile', 'credits', 'quests', 'done', 'journal', 'notebook', 'flags', 'inv', 'cyberScore', 'cyberLevel'].forEach(k => { if (d[k] !== undefined) s[k] = d[k]; }); ALL.forEach(q => { if (!s.done[q.id]) s.done[q.id] = []; if (!s.quests[q.id]) s.quests[q.id] = q.gig ? 'available' : 'locked'; }); // a save from an older build may have finished the last quest it knew about: open the one after it
         QUESTS.forEach((q, i) => { const n = QUESTS[i + 1]; if (s.quests[q.id] === 'completed' && n && s.quests[n.id] === 'locked') s.quests[n.id] = 'available'; }); emit('change'); }
     };
     if (init) api.restore(init);
@@ -1331,7 +1381,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   };
 
   const PED_NAMES = { female: ['Marisol', 'Hanne', 'Ingrid', 'Priya', 'Amara', 'Noor', 'Esme', 'Wren', 'Leila', 'Sigrid', 'Chiara', 'Farah'], male: ['Teo', 'Yusuf', 'Kwame', 'Bao', 'Lucas', 'Sven', 'Dmitri', 'Tariq', 'Jonas', 'Mateo', 'Ravi', 'Ola'] };
-  return { HOSTS, QUESTS, GIGS, SHOP, EXAMINABLES, DIALOGUE, PED_NAMES, makeStore, makeShell };
+  return { HOSTS, QUESTS, GIGS, SHOP, EXAMINABLES, DIALOGUE, PED_NAMES, makeStore, makeShell, CYBER_ASSESSMENT, CYBER_LEVELS, cyberLevel, cyberHint, assessmentResult };
 })();
 </script>
 
@@ -1340,6 +1390,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
+  const CYBER_ASSESSMENT = ZD.CYBER_ASSESSMENT; const CYBER_LEVELS = ZD.CYBER_LEVELS; const cyberLevel = ZD.cyberLevel; const cyberHint = ZD.cyberHint; const assessmentResult = ZD.assessmentResult;
   const NULL_ENGINE = !!window.__BABYLON_NULL__;
   const canvas = $('gl');
   const engine = NULL_ENGINE ? new BABYLON.NullEngine() : new BABYLON.Engine(canvas, true, { stencil: false, preserveDrawingBuffer: false, powerPreference: 'high-performance' }, false);
@@ -2924,7 +2975,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       $('qTitle').textContent = q.title;
       const ul = $('qList'); ul.innerHTML = '';
       if (stt === 'available') { const li = document.createElement('li'); li.innerHTML = '<span class="mark"></span><span>' + esc(q.start) + '</span>'; ul.appendChild(li); }
-      else { let hinted = false; q.objectives.forEach(o => { const li = document.createElement('li'); const done = store.isDone(q.id, o.id); if (done) li.className = 'done'; li.innerHTML = '<span class="mark"></span><span>' + esc(o.text) + '</span>'; ul.appendChild(li); if (!done && !hinted && o.hint) { hinted = true; const h = document.createElement('li'); h.className = 'hint'; h.innerHTML = '<span></span><span>Look around: ' + esc(o.hint) + '</span>'; ul.appendChild(h); } }); }
+      else { let hinted = false; q.objectives.forEach(o => { const li = document.createElement('li'); const done = store.isDone(q.id, o.id); if (done) li.className = 'done'; li.innerHTML = '<span class="mark"></span><span>' + esc(o.text) + '</span>'; ul.appendChild(li); if (!done && !hinted && o.hint) { hinted = true; const h = document.createElement('li'); h.className = 'hint'; h.innerHTML = '<span></span><span>' + esc(cyberHint(o, cyberLevel(st.cyberScore || 0))) + '</span>'; ul.appendChild(h); } }); }
       const next = $('qNext'); if (stt === 'completed') { const nq = store.nextQuest(q.id); next.hidden = false; next.textContent = nq ? 'Next: ' + nq.title + '. ' + nq.start : 'End of Act 2. The vault at 10.0.3.1 is the next build.'; } else next.hidden = true;
       if (state.ui === 'journal') ui.renderJournal();
     },
@@ -2975,7 +3026,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     renderJournal() {
       const st = store.state; const body = $('jrBody'); body.innerHTML = '';
       document.querySelectorAll('#jrHead .tab').forEach(b => b.classList.toggle('on', b.dataset.tab === ui.jrTab));
-      if (ui.jrTab === 'quests') ZD.QUESTS.concat(ZD.GIGS.filter(g => st.quests[g.id] !== 'available')).forEach(q => { const s = st.quests[q.id]; const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<span class="state ' + s + '">' + s + '</span><h4>' + esc(q.title) + '</h4><div class="meta">' + esc(q.category + ' · ' + q.location + ' · ' + q.reward + ' credits') + '</div>' + (s === 'locked' ? '<p>Locked.</p>' : '<ul>' + q.objectives.map(o => '<li class="' + (store.isDone(q.id, o.id) ? 'done' : '') + '">' + esc(o.text) + (o.hint && !store.isDone(q.id, o.id) ? '<div class="hint">' + esc(o.hint) + '</div>' : '') + '</li>').join('') + '</ul>'); body.appendChild(el); });
+      if (ui.jrTab === 'quests') ZD.QUESTS.concat(ZD.GIGS.filter(g => st.quests[g.id] !== 'available')).forEach(q => { const s = st.quests[q.id]; const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<span class="state ' + s + '">' + s + '</span><h4>' + esc(q.title) + '</h4><div class="meta">' + esc(q.category + ' · ' + q.location + ' · ' + q.reward + ' credits') + '</div>' + (s === 'locked' ? '<p>Locked.</p>' : '<ul>' + q.objectives.map(o => '<li class="' + (store.isDone(q.id, o.id) ? 'done' : '') + '">' + esc(o.text) + (o.hint && !store.isDone(q.id, o.id) ? '<div class="hint">' + esc(cyberHint(o, cyberLevel(st.cyberScore || 0))) + '</div>' : '') + '</li>').join('') + '</ul>'); body.appendChild(el); });
       if (ui.jrTab === 'log') { if (!st.journal.length) body.innerHTML = '<div class="entry"><p>No entries yet.</p></div>'; st.journal.slice().reverse().forEach(j => { const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<div class="meta">' + new Date(j.t).toLocaleString() + '</div><h4>' + esc(j.title) + '</h4><p>' + esc(j.text) + '</p>'; body.appendChild(el); }); }
       if (ui.jrTab === 'notebook') { if (!st.notebook.length) body.innerHTML = '<div class="entry"><p>Nothing examined yet. Look closely at what Dara left on the reading table.</p></div>'; st.notebook.slice().reverse().forEach(n => { const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<div class="meta">' + esc(n.id) + '</div><h4>' + esc(n.title) + '</h4><p>' + esc(n.text) + '</p>'; body.appendChild(el); }); }
     }
@@ -3120,10 +3171,23 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   }
   function openCustomizer(resume) {
     creator.pendingResume = resume; if (resume) { const sv = loadSave(); if (sv && sv.appearance) LOOK.current = normalizeLook(sv.appearance); }
+    const saved = resume ? loadSave() : null; const score = store.state.cyberScore != null ? store.state.cyberScore : saved && saved.save ? saved.save.cyberScore : null; const level = score != null ? cyberLevel(score) : null; $('customizeBrief').textContent = level ? 'Briefing level: ' + level.name + '. ' + level.label + ' Appearance is saved with your profile.' : 'Face, hair, facial hair, colours. Saved with your profile; change it whenever you continue.';
     $('start').classList.add('off'); $('customize').classList.remove('off'); renderLookRows(); initCreator().then(() => { creator.engine.resize(); dressPreview(); });
   }
   function closeCustomizer() { $('customize').classList.add('off'); $('start').classList.remove('off'); }
   $('customizeRandom').addEventListener('click', randomLook);
+
+  /* ---------- cybersecurity onboarding ---------- */
+  const assessment = { index: 0, answers: [], resume: false };
+  let pendingCyberResult = null;
+  function renderAssessment() {
+    const item = CYBER_ASSESSMENT[assessment.index]; $('assessmentProgress').textContent = 'Question ' + (assessment.index + 1) + ' of ' + CYBER_ASSESSMENT.length; $('assessmentQuestion').textContent = item.q; $('assessmentOptions').innerHTML = ''; $('assessmentNote').textContent = '';
+    item.a.forEach((text, i) => { const label = document.createElement('label'); label.className = 'assessmentOption'; label.innerHTML = '<input type="radio" name="cyberAnswer" value="' + i + '"><span>' + esc(text) + '</span>'; label.querySelector('input').addEventListener('change', () => { assessment.answers[assessment.index] = i; $('assessmentNext').disabled = false; }); $('assessmentOptions').appendChild(label); });
+    $('assessmentNext').disabled = assessment.answers[assessment.index] == null; $('assessmentNext').textContent = assessment.index === CYBER_ASSESSMENT.length - 1 ? 'Finish assessment' : 'Next question';
+  }
+  function openAssessment(resume) { assessment.index = 0; assessment.answers = []; assessment.resume = resume; $('start').classList.add('off'); $('customize').classList.add('off'); $('assessment').classList.remove('off'); renderAssessment(); }
+  function finishAssessment() { const result = assessmentResult(assessment.answers); if (assessment.resume) pendingCyberResult = result; else { store.state.cyberScore = result.score; store.state.cyberLevel = result.level; } $('assessment').classList.add('off'); $('assessmentNote').textContent = result.level + ' briefing selected.'; openCustomizer(assessment.resume); }
+  $('assessmentNext').addEventListener('click', () => { if (assessment.answers[assessment.index] == null) return; if (assessment.index === CYBER_ASSESSMENT.length - 1) finishAssessment(); else { assessment.index++; renderAssessment(); } });
 
   /* ---------- persistence ---------- */
   const SAVE_KEY = 'netrunner-zero-day-overhead-save';
@@ -3178,15 +3242,15 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   function begin(resume) {
     SFX.init(); SFX.zone(state.zone === 'out' ? 'out' : 'in'); ui.setSound(SFX.muted); ui.setMusic(SFX.musicOff); ui.setVoices(SFX.voicesOff);
     const st = store.state; const sv = resume ? loadSave() : null;
-    if (sv && sv.save) { store.restore(sv.save); if (sv.pos) { setZone(sv.zone || 'out', true); placePlayer(sv.pos[0], sv.pos[1], sv.pos[2], sv.pos[3]); } else placePlayer(-5, 0, 0, 0); }
+    if (sv && sv.save) { store.restore(sv.save); if (pendingCyberResult) { store.state.cyberScore = pendingCyberResult.score; store.state.cyberLevel = pendingCyberResult.level; pendingCyberResult = null; } if (sv.pos) { setZone(sv.zone || 'out', true); placePlayer(sv.pos[0], sv.pos[1], sv.pos[2], sv.pos[3]); } else placePlayer(-5, 0, 0, 0); }
     else { st.profile = ($('pname').value.trim() || 'Fresh Investigator').slice(0, 24); placePlayer(-5, 0, 0, 0); if (st.quests.quest_f1_cli === 'available') store.activateQuest('quest_f1_cli'); }
     applyLook(LOOK.current); updateBeacon(); ensureOwnCar(); if (st.flags.hasPhone && !st.flags.called) state.ringAt = t + 14;
     $('start').classList.add('off'); state.playing = true; ui.refreshQuest(); save(); canvas.focus();
     setTimeout(() => $('fade').classList.add('clear'), 80);
     if (!resume) setTimeout(() => ui.toast({ kind: '', title: 'Building A', text: 'The cyan arrow marks the door. W runs, A and D turn, E at a car takes it.' }), 1200);
   }
-  $('enterBtn').addEventListener('click', () => { if (loaded) openCustomizer(false); });
-  $('continueBtn').addEventListener('click', () => { if (loaded) openCustomizer(true); });
+  $('enterBtn').addEventListener('click', () => { if (loaded) openAssessment(false); });
+  $('continueBtn').addEventListener('click', () => { if (!loaded) return; const existing = loadSave(); if (existing && existing.save && existing.save.cyberLevel) openCustomizer(true); else openAssessment(true); });
   $('customizeBack').addEventListener('click', closeCustomizer);
   $('customizeStart').addEventListener('click', () => { $('customize').classList.add('off'); begin(creator.pendingResume); });
   const existing = loadSave(); if (existing && existing.save && existing.save.profile) { $('continueBtn').hidden = false; $('continueBtn').textContent = 'Continue as ' + existing.save.profile; }
