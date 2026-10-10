@@ -47,6 +47,10 @@ Act 2 opens once the ghost host is done:
 
 Every objective shows a "look around" hint, and each room holds its own cheat sheet or handout.
 
+## Cybersecurity intake
+
+A new profile starts with a ten-question multiple-choice intake (contributed by hugoClews in PR #2). The score sets a briefing level, Beginner, Foundation, Intermediate or Advanced, which shapes the hints on the mission card and in the journal. It is saved with the profile; older saves take the intake once when continued.
+
 ## Character creator
 
 Before dropping in (and whenever you continue) the runner is styled Morrowind-style with arrows. A new profile first picks a body, man or woman; that choice is fixed for the profile. Then: five hair styles, four facial-hair options, ten hair colours, seven skin tones, ten jacket and eight trouser colours, plus Random. The woman has no facial-hair row; hair and beards borrowed from the other rigs are carried by the head bone, so they follow every animation. The look is saved with the profile.
