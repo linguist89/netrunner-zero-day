@@ -47,6 +47,10 @@ Act 2 opens once the ghost host is done:
 
 Every objective shows a "look around" hint, and each room holds its own cheat sheet or handout.
 
+## Character creator
+
+Before dropping in (and whenever you continue) the runner is styled Morrowind-style with arrows: three faces, five hair styles, four facial-hair options, ten hair colours, seven skin tones, ten jacket and eight trouser colours, plus Random. Hair and beards can be borrowed across the three rigs (the bone indices are remapped by name). The look is saved with the profile.
+
 ## People
 
 Rosa, Julien and Nadia speak their lines through the browser's own speech voices (a Voices switch in settings turns this off; without voices the old radio blips play). Every passer-by has a name and a mood: the kind ones give directions and gossip about Dara, the rude ones tell you to keep walking, the busy ones are late for Caduceus. Anyone you nearly ran over will mention it.

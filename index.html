@@ -117,10 +117,17 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 .previewRotateControls button:hover{background:var(--cyan);color:#061018}
 .previewHint{position:absolute;right:14px;bottom:12px;font:600 10px var(--font-ui);letter-spacing:.14em;color:var(--cyan);pointer-events:none}
 #customizePanel{padding:20px;display:flex;flex-direction:column;gap:14px}
-#styleChoices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.styleChoice{border:2px solid var(--line);background:#11141c;color:var(--fg);padding:10px;text-align:left;display:flex;gap:9px;align-items:center;border-radius:2px}
-.styleChoice.selected{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan) inset;background:#17232b}
-.styleDot{width:24px;height:24px;border-radius:50%;border:2px solid #06070c;flex:none;background:linear-gradient(135deg,var(--dot-top) 0 50%,var(--dot-bottom) 50%)}
+.lookRows{display:flex;flex-direction:column;gap:6px}
+.lookRow{display:grid;grid-template-columns:92px 34px 1fr 34px;align-items:center;gap:6px;border:1px solid var(--line);background:#11141c;border-radius:2px;padding:4px 6px}
+.lookRow .lbl{font:600 11px var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.lookRow .arrow{height:30px;border:1px solid var(--line);background:#0b0c12;color:var(--cyan);font:28px/1 var(--font-display);border-radius:2px}
+.lookRow .arrow:hover{background:var(--cyan);color:#061018}
+.lookRow .val{display:flex;align-items:center;justify-content:center;gap:8px;font:18px var(--font-display);letter-spacing:.05em;color:var(--fg);white-space:nowrap}
+.lookRow .val small{font:600 10px var(--font-ui);letter-spacing:.1em;color:var(--mute)}
+.lookRow .sw{width:14px;height:14px;border-radius:50%;border:2px solid #06070c;display:inline-block}
+.previewZoom{position:absolute;right:14px;top:10px;display:flex;gap:6px;z-index:2}
+.previewZoom button{height:26px;padding:0 8px;border:1px solid var(--line);background:rgba(5,10,18,.88);color:var(--mute);font:600 10px var(--font-ui);letter-spacing:.14em;cursor:pointer}
+.previewZoom button:hover{color:var(--cyan);border-color:var(--cyan)}
 @media (max-width:650px){#customizeBox{grid-template-columns:1fr}#customizePreview{min-height:180px}}
 .field{display:flex;flex-direction:column;gap:6px}
 .field input{font:500 16px var(--font-ui);letter-spacing:.04em;background:#11141c;border:2px solid var(--line);color:var(--fg);padding:9px 12px;border-radius:2px;width:min(320px,100%)}
@@ -253,13 +260,14 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
         <canvas id="characterPreviewCanvas" aria-label="Drag to rotate your 3D runner"></canvas>
         <div class="previewRotateControls"><button type="button" id="previewRotateLeft" aria-label="Rotate character left">&lt;</button><button type="button" id="previewRotateRight" aria-label="Rotate character right">&gt;</button></div>
         <div class="previewHint">DRAG TO ROTATE</div>
+        <div class="previewZoom"><button type="button" id="zoomFace">FACE</button><button type="button" id="zoomBody">BODY</button></div>
       </div>
       <div id="customizePanel" class="card">
         <div class="eyebrow">Before drop-in</div>
         <h2 style="font:32px var(--font-display);margin:0;color:var(--cash);letter-spacing:.05em">Style your runner</h2>
-        <p style="margin:0;color:#d9d2c5">Pick a look for Meridian Row. It is saved with your profile; you can change it whenever you continue.</p>
-        <div id="styleChoices" role="radiogroup" aria-label="Character styles"></div>
-        <div class="row"><button id="customizeBack" class="btn ghost" type="button">Back</button><button id="customizeStart" class="btn" type="button">Jump in</button></div>
+        <p style="margin:0;color:#d9d2c5">Face, hair, facial hair, colours. Saved with your profile; change it whenever you continue.</p>
+        <div id="styleChoices" class="lookRows" aria-label="Character options"></div>
+        <div class="row"><button id="customizeBack" class="btn ghost" type="button">Back</button><button id="customizeRandom" class="btn ghost" type="button">Random</button><button id="customizeStart" class="btn" type="button">Jump in</button></div>
       </div>
     </div>
   </div>
@@ -1771,7 +1779,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     chars[name] = ch; return ch;
   }
   /* ---------- Ready Player Me avatars: the same rigs and clips as the street build, instanced from asset containers ---------- */
-  const AV = { ready: false, rigs: {}, clips: {}, cars: null };
+  const AV = { ready: false, rigs: {}, clips: {}, cars: null, files: {} };
   async function loadGLB(file, onProgress, asContainer) {
     const res = await fetch('./models/' + file + '.txt'); if (!res.ok) throw new Error(file + ': HTTP ' + res.status);
     let b64 = '';
@@ -1779,7 +1787,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     else b64 = await res.text();
     const bin = atob(b64.trim()); const bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     if (onProgress) onProgress(1);
-    const f = new File([bytes], file);
+    const f = new File([bytes], file); AV.files[file] = f; // kept so the character creator can load the same rig into its own preview scene
     return asContainer ? BABYLON.SceneLoader.LoadAssetContainerAsync('', f, scene) : BABYLON.SceneLoader.ImportMeshAsync('', '', f, scene);
   }
   function makeAvatar(name, rig, o) {
@@ -3011,53 +3019,115 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   store.on('change', () => { ui.refreshQuest(); updateBeacon(); save(); });
   store.on('questComplete', (qid) => { if (qid === 'quest_i3_ghost') setTimeout(() => ui.toast({ kind: 'quest', title: 'Zero Day', text: 'Rosa has one more thing to say. Someone is waiting in the park.' }), 4200); if (qid === 'quest_z3_exchange') setTimeout(() => { store.state.flags.call2Due = true; save(); }, 6000); });
 
-  /* ---------- persistence ---------- */
-  const SAVE_KEY = 'netrunner-zero-day-overhead-save';
-  /* ---------- character creator (PR #1 by hugoClews, adapted: outfits are tinted over their textures like the pedestrians, the face keeps its skin) ---------- */
-  const STYLE_PRESETS = [
-    { id: 'cyan', name: 'Signal Ghost', top: '#3ee8f0', bottom: '#1a1d26', hair: '#161b2a' },
-    { id: 'amber', name: 'Street Heat', top: '#ff9f43', bottom: '#332018', hair: '#4a211c' },
-    { id: 'violet', name: 'Night Bloom', top: '#a78bfa', bottom: '#20203b', hair: '#261637' },
-    { id: 'mint', name: 'Soft Intrusion', top: '#8cf28c', bottom: '#1d332d', hair: '#132d2a' },
-    { id: 'mono', name: 'Black ICE', top: '#d9d2c5', bottom: '#15161b', hair: '#050509' },
-    { id: 'red', name: 'Zero Day', top: '#ff477e', bottom: '#291522', hair: '#180b17' },
-    { id: 'orange', name: 'Factory Orange', top: null, bottom: null, hair: null }
-  ];
-  let chosenStyle = STYLE_PRESETS[0], pendingResume = false;
-  function tintMeshes(meshes, style, tag) {
-    // outfit pieces get a flat colour (the normal and roughness maps keep the folds), hair is tinted over its texture, the face is never touched; the factory look restores the originals
+  /* ---------- character creator: face, hair, facial hair, colours, cycled Morrowind-style with arrows; the same look is assembled in the preview and in the game ---------- */
+  const LOOK = { current: null };
+  const LOOK_OPTS = {
+    face: [['player', 'Face I'], ['julien', 'Face II'], ['rosa', 'Face III']],
+    hair: [['own', 'Natural cut'], ['player', 'Cropped'], ['julien', 'Swept back'], ['rosa', 'Long'], ['none', 'Shaved']],
+    beard: [['own', 'Natural'], ['none', 'Clean shaven'], ['player', 'Short beard'], ['julien', 'Full beard']],
+    hairCol: [[null, 'Natural'], ['#14100e', 'Black'], ['#4a2e1c', 'Brown'], ['#8a5a2a', 'Chestnut'], ['#d6b36a', 'Blond'], ['#a8381a', 'Red'], ['#c9c9d2', 'Silver'], ['#3ee8f0', 'Cyan'], ['#ff3d7f', 'Pink'], ['#8cf28c', 'Mint']],
+    skin: [[null, 'Natural'], ['#f2dcc0', 'Pale'], ['#e8c99a', 'Golden'], ['#c9aa7a', 'Olive'], ['#a8744a', 'Bronze'], ['#7a4a2a', 'Deep'], ['#4e2d1a', 'Ebony']],
+    top: [[null, 'Factory orange'], ['#3ee8f0', 'Cyan'], ['#ff9f43', 'Amber'], ['#a78bfa', 'Violet'], ['#8cf28c', 'Mint'], ['#d9d2c5', 'Bone'], ['#ff477e', 'Red'], ['#15161b', 'Black'], ['#2f5d8c', 'Navy'], ['#7a5a3a', 'Leather']],
+    bottom: [[null, 'Factory'], ['#1a1d26', 'Charcoal'], ['#332018', 'Brown'], ['#20203b', 'Ink'], ['#1d332d', 'Forest'], ['#d9d2c5', 'Bone'], ['#8a2a4a', 'Wine'], ['#2b6cb0', 'Denim']]
+  };
+  const LOOK_ROWS = [['face', 'Face'], ['hair', 'Hair'], ['hairCol', 'Hair colour'], ['beard', 'Facial hair'], ['skin', 'Skin'], ['top', 'Jacket'], ['bottom', 'Trousers']];
+  function defaultLook() { return { face: 0, hair: 0, hairCol: 0, beard: 0, skin: 0, top: 0, bottom: 0 }; }
+  function normalizeLook(l) { const d = defaultLook(); if (!l || typeof l !== 'object') return d; Object.keys(d).forEach(k => { const n = LOOK_OPTS[k].length; d[k] = typeof l[k] === 'number' && l[k] >= 0 && l[k] < n ? l[k] : 0; }); return d; }
+  LOOK.current = defaultLook();
+  const opt = (k, look) => LOOK_OPTS[k][look[k]][0];
+
+  // a hair or beard mesh from another rig, skinned onto this body: the bone indices are remapped by name because the rigs do not share a bone order
+  function borrowPart(targetMeshes, container, meshName, tag) {
+    const src = container.meshes.find(m => m.name === meshName); const ref = targetMeshes.find(m => m.name === 'Wolf3D_Head'); if (!src || !ref || !ref.skeleton || !src.skeleton) return null;
+    const clone = src.clone(meshName + '_' + tag, null, true); clone.makeGeometryUnique(); clone.parent = ref.parent; clone.position.copyFrom(ref.position); clone.rotationQuaternion = ref.rotationQuaternion ? ref.rotationQuaternion.clone() : null; clone.rotation.copyFrom(ref.rotation); clone.scaling.copyFrom(ref.scaling);
+    const skA = ref.skeleton, skB = src.skeleton; const byName = {}; skA.bones.forEach((b, i) => { byName[b.name] = i; }); const map = skB.bones.map(b => byName[b.name] == null ? 0 : byName[b.name]);
+    ['matricesIndices', 'matricesIndicesExtra'].forEach(kind => { const idx = clone.getVerticesData(kind); if (!idx) return; const out = new Float32Array(idx.length); for (let i = 0; i < idx.length; i++) out[i] = map[idx[i]] == null ? 0 : map[idx[i]]; clone.setVerticesData(kind, out, false); });
+    clone.skeleton = skA; clone.isPickable = false; clone.material = src.material.clone(src.material.name + '_' + tag); clone.material.maxSimultaneousLights = 8; clone.setEnabled(true); return clone;
+  }
+  function tintLook(meshes, look) {
     meshes.forEach(m => {
-      const n = m.material ? m.material.name : ''; const kind = /Outfit_Top/i.test(n) ? 'top' : /Outfit_Bottom|Outfit_Footwear/i.test(n) ? 'bottom' : /Hair|Beard/i.test(n) ? 'hair' : null; if (!kind || !m.material.albedoColor) return;
-      const md = m.metadata = m.metadata || {}; if (!md[tag]) md[tag] = { orig: m.material, clone: m.material.clone(m.material.name + '-' + tag) };
-      const colour = style[kind]; if (!colour) { m.material = md[tag].orig; return; }
-      const matl = md[tag].clone; m.material = matl; matl.albedoColor = C3(colour); if (kind !== 'hair') matl.albedoTexture = null; else matl.albedoTexture = md[tag].orig.albedoTexture;
+      const n = m.material ? m.material.name : ''; const kind = /Outfit_Top/i.test(n) ? 'top' : /Outfit_Bottom|Outfit_Footwear/i.test(n) ? 'bottom' : /Hair|Beard/i.test(n) ? 'hairCol' : /Skin|Body/i.test(n) ? 'skin' : null; if (!kind || !m.material || !m.material.albedoColor) return;
+      const md = m.metadata = m.metadata || {}; if (!md.look) md.look = { orig: m.material, clone: m.material.clone(m.material.name + '-look') };
+      const colour = opt(kind, look); if (!colour) { m.material = md.look.orig; return; }
+      const matl = md.look.clone; m.material = matl; matl.albedoColor = C3(colour);
+      matl.albedoTexture = kind === 'skin' ? md.look.orig.albedoTexture : null; // skin keeps its texture and is tinted; cloth and hair take a flat colour over their normal maps
     });
   }
-  function applyPlayerStyle() {
-    const ch = chars.player; if (!ch) return;
-    if (ch.kind === 'avatar') tintMeshes(ch.meshes, chosenStyle, 'runnerStyle');
-    else { const part = ch.parts; [part.torso, part.armL, part.armR].forEach(m => { if (m && m.material) m.material.diffuseColor = C3(chosenStyle.top || '#3ee8f0'); }); [part.legL, part.legR].forEach(m => { if (m && m.material) m.material.diffuseColor = C3(chosenStyle.bottom || '#1a1d26'); }); }
+  // assemble a look on a set of avatar meshes: hide the rig's own hair or beard when another is chosen, borrow the chosen one, then tint
+  function dressLook(ch, look, containers) {
+    const own = { hair: ch.meshes.find(m => m.name === 'Wolf3D_Hair'), beard: ch.meshes.find(m => m.name === 'Wolf3D_Beard') }; const faceRig = opt('face', look);
+    (ch.parts || []).forEach(p => p.dispose()); ch.parts = [];
+    ['hair', 'beard'].forEach(k => {
+      const choice = opt(k, look); const useOwn = choice === 'own' || choice === faceRig; if (own[k]) own[k].setEnabled(useOwn);
+      if (!useOwn && choice !== 'none' && containers[choice]) { const part = borrowPart(ch.meshes, containers[choice], k === 'hair' ? 'Wolf3D_Hair' : 'Wolf3D_Beard', ch.name); if (part) ch.parts.push(part); }
+    });
+    tintLook(ch.meshes.concat(ch.parts), look);
+    if (ch === chars.player && zones[state.zone] && zones[state.zone].sg && !NULL_ENGINE) ch.parts.forEach(p => zones[state.zone].sg.addShadowCaster(p));
   }
-  function renderStyleChoices() {
-    const box = $('styleChoices'); box.innerHTML = '';
-    STYLE_PRESETS.forEach(style => { const b = document.createElement('button'); b.type = 'button'; b.className = 'styleChoice' + (style.id === chosenStyle.id ? ' selected' : ''); b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', style.id === chosenStyle.id ? 'true' : 'false'); b.innerHTML = '<span class="styleDot" style="--dot-top:' + (style.top || '#ff6a3d') + ';--dot-bottom:' + (style.bottom || '#1a1a22') + '"></span><span><b>' + esc(style.name) + '</b><br><small>' + style.id.toUpperCase() + '</small></span>'; b.addEventListener('click', () => { chosenStyle = style; paintPreview(); renderStyleChoices(); SFX.tick(); }); box.appendChild(b); });
+  // the player in the game is rebuilt when the face changes; otherwise the look is dressed onto the existing body
+  function applyLook(look) {
+    look = normalizeLook(look); LOOK.current = look; const ch = chars.player; if (!ch) return;
+    if (ch.kind !== 'avatar') { const part = ch.parts; const top = opt('top', look) || '#3ee8f0', bottom = opt('bottom', look) || '#1a1d26'; [part.torso, part.armL, part.armR].forEach(m => { if (m && m.material) m.material.diffuseColor = C3(top); }); [part.legL, part.legR].forEach(m => { if (m && m.material) m.material.diffuseColor = C3(bottom); }); return; }
+    const rig = opt('face', look);
+    if (ch.rig !== rig) {
+      const pos = ch.pivot.position.clone(), yaw = ch.yaw, baseY = ch.baseY || 0, zoneName = state.zone; const sgs = Object.values(zones).map(z => z.sg).filter(Boolean);
+      sgs.forEach(sg => charMeshes(ch).forEach(m => sg.removeShadowCaster(m))); Object.values(ch.anims).forEach(a => a.dispose()); ch.pivot.dispose(false, false); (ch.parts || []).forEach(p => p.dispose());
+      const pl = makeAvatar('player', rig, { parent: null }); pl.rig = rig; giveAnims(pl, [['idle', 'anim-m-idle'], ['walk', 'anim-m-walk'], ['jog', 'anim-m-jog'], ['walkback', 'anim-m-walkback'], ['jogback', 'anim-m-jogback']]);
+      pl.vx = 0; pl.vz = 0; pl.speed = 0; pl.turnRate = 0; pl.pivot.position.copyFrom(pos); pl.yaw = yaw; pl.pivot.rotation.y = yaw; pl.baseY = baseY;
+      const sg = zones[zoneName] && zones[zoneName].sg; if (sg && !NULL_ENGINE) charMeshes(pl).forEach(m => sg.addShadowCaster(m));
+    }
+    dressLook(chars.player, look, AV.rigs);
   }
-  const preview3d = { engine: null, scene: null, root: null, meshes: [], ready: false, dragging: false, lastX: 0 };
-  function paintPreview() { if (preview3d.ready) tintMeshes(preview3d.meshes, chosenStyle, 'previewStyle'); }
-  async function init3DPreview() {
-    if (preview3d.engine) return;
-    const pc = $('characterPreviewCanvas'); preview3d.engine = new BABYLON.Engine(pc, true, { preserveDrawingBuffer: true, stencil: true }); preview3d.scene = new BABYLON.Scene(preview3d.engine); preview3d.scene.clearColor = new BABYLON.Color4(.025, .035, .055, 1);
-    const camera = new BABYLON.ArcRotateCamera('characterPreviewCamera', -Math.PI / 2, Math.PI / 2.15, 2.8, new BABYLON.Vector3(0, .9, 0), preview3d.scene); camera.detachControl();
-    const key = new BABYLON.HemisphericLight('previewKey', new BABYLON.Vector3(-.4, 1, -.6), preview3d.scene); key.intensity = 1.2; const rim = new BABYLON.PointLight('previewRim', new BABYLON.Vector3(1, 1.8, 1.5), preview3d.scene); rim.diffuse = new BABYLON.Color3(.25, .9, 1); rim.intensity = 12;
-    preview3d.root = new BABYLON.TransformNode('characterPreviewRoot', preview3d.scene); preview3d.root.rotation.y = Math.PI;
-    const rotate = amount => { preview3d.root.rotation.y += amount; }; $('previewRotateLeft').addEventListener('click', () => rotate(-Math.PI / 8)); $('previewRotateRight').addEventListener('click', () => rotate(Math.PI / 8));
-    pc.addEventListener('pointerdown', e => { preview3d.dragging = true; preview3d.lastX = e.clientX; pc.setPointerCapture(e.pointerId); }); pc.addEventListener('pointermove', e => { if (!preview3d.dragging) return; preview3d.root.rotation.y += (e.clientX - preview3d.lastX) * .012; preview3d.lastX = e.clientX; }); pc.addEventListener('pointerup', e => { preview3d.dragging = false; pc.releasePointerCapture(e.pointerId); });
-    try { const res = await fetch('./models/avatar-player.glb.txt'); const b64 = (await res.text()).trim(); const bin = atob(b64); const bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); const file = new File([bytes], 'player.glb'); const container = await BABYLON.SceneLoader.LoadAssetContainerAsync('', file, preview3d.scene); container.addAllToScene(); container.rootNodes.forEach(n => { n.parent = preview3d.root; }); preview3d.meshes = preview3d.scene.meshes.filter(m => m.getTotalVertices && m.getTotalVertices() > 0); preview3d.meshes.forEach(m => { m.isPickable = false; }); preview3d.ready = true; paintPreview(); } catch (e) { /* the preview is optional; the choice still applies in game */ }
-    preview3d.engine.runRenderLoop(() => { if (!$('customize').classList.contains('off')) preview3d.scene.render(); }); window.addEventListener('resize', () => preview3d.engine.resize());
+  /* ---------- the creator screen ---------- */
+  const creator = { engine: null, scene: null, root: null, rigs: {}, ch: null, dragging: false, lastX: 0, ready: false, pendingResume: false };
+  function renderLookRows() {
+    const box = $('styleChoices'); box.innerHTML = ''; box.className = 'lookRows';
+    LOOK_ROWS.forEach(r => {
+      const k = r[0]; const opts = LOOK_OPTS[k]; const i = LOOK.current[k]; const sw = opts[i][0];
+      const row = document.createElement('div'); row.className = 'lookRow';
+      row.innerHTML = '<span class="lbl">' + r[1] + '</span><button type="button" class="arrow" data-k="' + k + '" data-d="-1" aria-label="Previous ' + r[1] + '">&lsaquo;</button><span class="val">' + (sw && /^#/.test(sw) ? '<i class="sw" style="background:' + sw + '"></i>' : '') + esc(opts[i][1]) + '<small>' + (i + 1) + '/' + opts.length + '</small></span><button type="button" class="arrow" data-k="' + k + '" data-d="1" aria-label="Next ' + r[1] + '">&rsaquo;</button>';
+      box.appendChild(row);
+    });
+    box.querySelectorAll('.arrow').forEach(b => b.addEventListener('click', () => { const k = b.dataset.k, n = LOOK_OPTS[k].length; LOOK.current[k] = (LOOK.current[k] + (+b.dataset.d) + n) % n; SFX.tick(); renderLookRows(); dressPreview(); }));
   }
-  function openCustomizer(resume) { pendingResume = resume; if (resume) { const sv = loadSave(); if (sv && sv.appearance) chosenStyle = STYLE_PRESETS.find(x => x.id === sv.appearance.id) || chosenStyle; } $('start').classList.add('off'); $('customize').classList.remove('off'); renderStyleChoices(); init3DPreview().then(() => { preview3d.engine.resize(); paintPreview(); }); }
+  function randomLook() { const l = {}; Object.keys(LOOK_OPTS).forEach(k => { l[k] = Math.floor(Math.random() * LOOK_OPTS[k].length); }); LOOK.current = l; SFX.swish(); renderLookRows(); dressPreview(); }
+  async function initCreator() {
+    if (creator.engine) return creator.readyP;
+    const pc = $('characterPreviewCanvas'); creator.engine = new BABYLON.Engine(pc, true, { preserveDrawingBuffer: true, stencil: true }); const ps = creator.scene = new BABYLON.Scene(creator.engine); ps.clearColor = new BABYLON.Color4(.025, .035, .055, 1);
+    const camera = new BABYLON.ArcRotateCamera('creatorCam', -Math.PI / 2, Math.PI / 2.15, 2.6, new BABYLON.Vector3(0, .95, 0), ps); camera.detachControl(); camera.minZ = 0.05; creator.cam = camera;
+    const key = new BABYLON.HemisphericLight('creatorKey', new BABYLON.Vector3(-.4, 1, -.6), ps); key.intensity = 1.1; const rim = new BABYLON.PointLight('creatorRim', new BABYLON.Vector3(1, 1.8, 1.5), ps); rim.diffuse = new BABYLON.Color3(.25, .9, 1); rim.intensity = 10; const fill = new BABYLON.PointLight('creatorFill', new BABYLON.Vector3(-1.2, 1.6, 1.6), ps); fill.diffuse = new BABYLON.Color3(1, .85, .7); fill.intensity = 6;
+    creator.root = new BABYLON.TransformNode('creatorRoot', ps); creator.root.rotation.y = Math.PI;
+    const rotate = amount => { creator.root.rotation.y += amount; }; $('previewRotateLeft').addEventListener('click', () => rotate(-Math.PI / 8)); $('previewRotateRight').addEventListener('click', () => rotate(Math.PI / 8));
+    pc.addEventListener('pointerdown', e => { creator.dragging = true; creator.lastX = e.clientX; pc.setPointerCapture(e.pointerId); }); pc.addEventListener('pointermove', e => { if (!creator.dragging) return; creator.root.rotation.y += (e.clientX - creator.lastX) * .012; creator.lastX = e.clientX; }); pc.addEventListener('pointerup', e => { creator.dragging = false; pc.releasePointerCapture(e.pointerId); });
+    $('zoomFace').addEventListener('click', () => { creator.cam.target.set(0, 1.58, 0); creator.cam.radius = 0.85; }); $('zoomBody').addEventListener('click', () => { creator.cam.target.set(0, .95, 0); creator.cam.radius = 2.6; });
+    creator.readyP = (async () => {
+      try { for (const rig of ['player', 'julien', 'rosa']) { const f = AV.files['avatar-' + rig + '.glb']; if (!f) continue; creator.rigs[rig] = await BABYLON.SceneLoader.LoadAssetContainerAsync('', f, ps); } creator.ready = Object.keys(creator.rigs).length > 0; } catch (e) { creator.ready = false; }
+      dressPreview();
+    })();
+    creator.engine.runRenderLoop(() => { if (!$('customize').classList.contains('off')) ps.render(); }); window.addEventListener('resize', () => creator.engine.resize());
+    return creator.readyP;
+  }
+  // the preview body is rebuilt for a face change, redressed otherwise
+  function dressPreview() {
+    if (!creator.ready) return; const look = LOOK.current; const rig = creator.rigs[opt('face', look)] ? opt('face', look) : Object.keys(creator.rigs)[0];
+    if (!creator.ch || creator.ch.rig !== rig) {
+      if (creator.ch) { (creator.ch.parts || []).forEach(p => p.dispose()); creator.ch.root.dispose(false, false); creator.ch.anims.forEach(g => g.dispose()); }
+      const inst = creator.rigs[rig].instantiateModelsToScene(n => n, false); const root = inst.rootNodes[0]; root.parent = creator.root; inst.animationGroups.forEach(g => { g.stop(); });
+      const meshes = root.getChildMeshes(); meshes.forEach(m => { m.isPickable = false; });
+      creator.ch = { name: 'preview', rig, root, meshes, parts: [], anims: inst.animationGroups };
+    }
+    dressLook(creator.ch, look, creator.rigs);
+  }
+  function openCustomizer(resume) {
+    creator.pendingResume = resume; if (resume) { const sv = loadSave(); if (sv && sv.appearance) LOOK.current = normalizeLook(sv.appearance); }
+    $('start').classList.add('off'); $('customize').classList.remove('off'); renderLookRows(); initCreator().then(() => { creator.engine.resize(); dressPreview(); });
+  }
   function closeCustomizer() { $('customize').classList.add('off'); $('start').classList.remove('off'); }
-  function snapshot() { const p = chars.player; const car = state.driving; return { save: store.serialize(), appearance: { id: chosenStyle.id }, pos: p ? [car ? car.x : p.pivot.position.x, car ? 0 : p.pivot.position.y, car ? car.z : p.pivot.position.z, p.yaw] : null, zone: state.zone, playing: state.playing }; }
+  $('customizeRandom').addEventListener('click', randomLook);
+
+  /* ---------- persistence ---------- */
+  const SAVE_KEY = 'netrunner-zero-day-overhead-save';
+  function snapshot() { const p = chars.player; const car = state.driving; return { save: store.serialize(), appearance: LOOK.current, pos: p ? [car ? car.x : p.pivot.position.x, car ? 0 : p.pivot.position.y, car ? car.z : p.pivot.position.z, p.yaw] : null, zone: state.zone, playing: state.playing }; }
   function save() { try { if (state.playing) localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot())); } catch (e) { /* storage unavailable */ } }
   function loadSave() { try { const s = localStorage.getItem(SAVE_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
   try { if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(snapshot); } catch (e) { /* no hot support */ }
@@ -3085,7 +3155,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     Z = zones.out;
     let pl, rosa, jul;
     if (AV.ready) {
-      pl = makeAvatar('player', 'player', { parent: null }); giveAnims(pl, [['idle', 'anim-m-idle'], ['walk', 'anim-m-walk'], ['jog', 'anim-m-jog'], ['walkback', 'anim-m-walkback'], ['jogback', 'anim-m-jogback']]);
+      pl = makeAvatar('player', 'player', { parent: null }); pl.rig = 'player'; giveAnims(pl, [['idle', 'anim-m-idle'], ['walk', 'anim-m-walk'], ['jog', 'anim-m-jog'], ['walkback', 'anim-m-walkback'], ['jogback', 'anim-m-jogback']]);
       rosa = makeAvatar('rosa', 'rosa', {}); giveAnims(rosa, [['idle', 'anim-f-idle'], ['talk', 'anim-f-talk']]);
       jul = makeAvatar('julien', 'julien', {}); giveAnims(jul, [['idle', 'anim-m-idle2'], ['talk', 'anim-m-talk']]);
     } else {
@@ -3110,7 +3180,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const st = store.state; const sv = resume ? loadSave() : null;
     if (sv && sv.save) { store.restore(sv.save); if (sv.pos) { setZone(sv.zone || 'out', true); placePlayer(sv.pos[0], sv.pos[1], sv.pos[2], sv.pos[3]); } else placePlayer(-5, 0, 0, 0); }
     else { st.profile = ($('pname').value.trim() || 'Fresh Investigator').slice(0, 24); placePlayer(-5, 0, 0, 0); if (st.quests.quest_f1_cli === 'available') store.activateQuest('quest_f1_cli'); }
-    applyPlayerStyle(); updateBeacon(); ensureOwnCar(); if (st.flags.hasPhone && !st.flags.called) state.ringAt = t + 14;
+    applyLook(LOOK.current); updateBeacon(); ensureOwnCar(); if (st.flags.hasPhone && !st.flags.called) state.ringAt = t + 14;
     $('start').classList.add('off'); state.playing = true; ui.refreshQuest(); save(); canvas.focus();
     setTimeout(() => $('fade').classList.add('clear'), 80);
     if (!resume) setTimeout(() => ui.toast({ kind: '', title: 'Building A', text: 'The cyan arrow marks the door. W runs, A and D turn, E at a car takes it.' }), 1200);
@@ -3118,7 +3188,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   $('enterBtn').addEventListener('click', () => { if (loaded) openCustomizer(false); });
   $('continueBtn').addEventListener('click', () => { if (loaded) openCustomizer(true); });
   $('customizeBack').addEventListener('click', closeCustomizer);
-  $('customizeStart').addEventListener('click', () => { $('customize').classList.add('off'); begin(pendingResume); });
+  $('customizeStart').addEventListener('click', () => { $('customize').classList.add('off'); begin(creator.pendingResume); });
   const existing = loadSave(); if (existing && existing.save && existing.save.profile) { $('continueBtn').hidden = false; $('continueBtn').textContent = 'Continue as ' + existing.save.profile; }
 
   async function start(hot) {
@@ -3129,10 +3199,10 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     $('fade').classList.add('clear');
     try { await loadAvatars(); } catch (err) { $('loadline').textContent = 'CHARACTER RIGS UNAVAILABLE (' + err.message + '), USING STAND-INS'; }
     populate();
-    if (hot && hot.appearance) chosenStyle = STYLE_PRESETS.find(x => x.id === hot.appearance.id) || chosenStyle;
+    if (hot && hot.appearance) LOOK.current = normalizeLook(hot.appearance);
     if (hot && hot.save && hot.playing) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(hot)); } catch (e) { /* ignore */ } begin(true); }
   }
-  window.__zdDebug = { scene, store, chars, zones, state, cam, inter, cars, peds, ui, SFX, chips, CAM };
+  window.__zdDebug = { scene, store, chars, zones, state, cam, inter, cars, peds, ui, SFX, chips, CAM, LOOK };
   const hot = window.claude && window.claude.hot;
   if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
 })();
