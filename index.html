@@ -209,7 +209,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
       <p><b>Follow the arrow to Building A. Steal a car if you like, nobody here is counting. Except the gateway.</b></p>
       <div class="field"><label class="eyebrow" for="pname">Profile name</label><input id="pname" value="Fresh Investigator" maxlength="24" autocomplete="off"></div>
       <div class="row"><button id="enterBtn" class="btn" type="button" disabled>Drop into Meridian Row</button><button id="continueBtn" class="btn ghost" type="button" hidden>Continue saved profile</button><span id="loadline">LOADING ENGINE...</span></div>
-      <div id="controls"><span><b>W / S</b> run forward, back</span><span><b>A / D</b> turn</span><span><b>Shift</b> stroll outside, run inside</span><span><b>E</b> interact, enter or leave a car</span><span><b>W / S</b> gas and brake in a car</span><span><b>A / D</b> steer</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> switch between overhead and chase camera</span><span><b>B</b> drink an OVERCLOCK from Byte Mart</span><span><b>K</b> whistle your own car back to the mart</span><span><b>Wheel</b> zoom the camera</span><span><b>P</b> missions and journal</span><span><b>L</b> settings</span><span><b>N</b> music on or off</span><span><b>Esc</b> close window</span><span>On a phone: stick to move, tap E, tap BRAKE in a car.</span></div>
+      <div id="controls"><span><b>W / S</b> run forward, back</span><span><b>A / D</b> turn</span><span><b>Shift</b> stroll outside, run inside</span><span><b>E</b> interact, talk to people, enter or leave a car</span><span><b>W / S</b> gas and brake in a car</span><span><b>A / D</b> steer</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> switch between overhead and chase camera</span><span><b>B</b> drink an OVERCLOCK from Byte Mart</span><span><b>K</b> whistle your own car back to the mart</span><span><b>Wheel</b> zoom the camera</span><span><b>P</b> missions and journal</span><span><b>L</b> settings</span><span><b>N</b> music on or off</span><span><b>Esc</b> close window</span><span>On a phone: stick to move, tap E, tap BRAKE in a car.</span></div>
     </div>
   </div>
 
@@ -229,6 +229,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
   <div id="settings" class="overlay off" role="dialog" aria-label="Settings"><div id="setBox" class="card"><div class="eyebrow">Settings</div><h3>Audio</h3>
     <label><span>Master</span><input type="range" id="volMaster" min="0" max="100" value="100"></label>
     <label class="check"><span>Music</span><input type="checkbox" id="musicOn" checked> <span>play the street and studio tracks (N toggles)</span></label>
+    <label class="check"><span>Voices</span><input type="checkbox" id="voicesOn" checked> <span>speak dialogue with the browser's voices (Rosa, Julien, Nadia and passers-by)</span></label>
     <label><span>Music vol</span><input type="range" id="volMusic" min="0" max="100" value="70"></label>
     <label><span>SFX</span><input type="range" id="volSfx" min="0" max="100" value="100"></label>
     <label><span>Ambient</span><input type="range" id="volAmbient" min="0" max="100" value="80"></label>
@@ -1033,6 +1034,40 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       if (q4 === 'active') return ['Utilities. The hum is a generator, and behind the generator is a rack. Everything on this street is a rack, in the end.'];
       return ['A database on a port nobody admits to, and a visitor that does not exist. Julien at Caduceus needs to hear it. He is outside Building F, and he is not opening the door for just anyone.'];
     },
+    // passers-by: a mood each, a few lines per mood, and a line for anyone you nearly ran over
+    ped(mood, st, scared) {
+      const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      if (scared) return [pick(['You nearly ran me over! Is that Dara’s car? It drives like Dara’s car.', 'Watch it! The sidewalk is for people, the road is for the cabs that hate people.', 'Hey! I have a pager too, you know. I could page someone about you.'])];
+      const q1 = st.quests.quest_f1_cli === 'completed', q5 = st.quests.quest_i3_ghost === 'completed';
+      if (mood === 'kind') return [pick([
+        'Evening. You are the new one in Dara’s place? She was good people. Watch the gateway, it counts everything.',
+        'Byte Mart is open all night if you need caffeine. Tell Nadia that Teo sent you. She will charge you the same, but she will smile.',
+        'Lost? Building A is the one with the yellow sign across from the lab. Everything on this street starts there.',
+        'Rosa runs a workshop in Building H most nights. Free, if you bring coffee. Bring coffee.',
+        'If you find Dara, tell her the chili seeds came up. All of them. Far too much mint as well.',
+        'There was a credit chip under the bench on the corner this morning. There might still be. People here walk past money.',
+        q1 ? 'So you read her notes. Then you know more than Julien lets on. He is scared, not rude. Mostly.' : 'Mind the cabs. They do not stop for anyone, and the drivers have somewhere to be at three in the morning.',
+        q5 ? 'Word is the ghost host was Dara’s all along. This street. Nothing is what the sign says.' : 'The hum from Building D keeps me up. Dara said it was normal. Dara said that about everything.'
+      ])];
+      if (mood === 'rude') return [pick([
+        'Do I look like a tourist information desk? Keep walking.',
+        'Not interested. Whatever you are selling, whatever you are asking, not interested.',
+        'You are standing in my way. On purpose, I think.',
+        'Another one of Dara’s friends. She owes me forty credits. Do you?',
+        'Talk to the gateway. It listens more than I do.',
+        'Get a car like everyone else and stop breathing on me.',
+        'Nice jacket. Did it come with the questions, or do you buy those separately?',
+        'Byte Mart. Go. Spend money. Leave me out of it.'
+      ])];
+      return [pick([
+        'Sorry, late. Caduceus does not pay for standing around.',
+        'Cannot stop. The 03:12 shift waits for nobody, and I do not even know what it is.',
+        'Ask at Byte Mart. Nadia knows everything and charges for half of it.',
+        'Meridian Row? You are on it. Nine blocks, one gateway, no exit. Welcome.',
+        'If you are looking for Rosa, she is outside Building H. If you are looking for Julien, so is everyone.',
+        'I just walk. It is a whole thing. Try it.'
+      ])];
+    },
     nadia(st) {
       const first = !st.flags.metNadia; const gigsDone = GIGS.filter(g => st.quests[g.id] === 'completed').length;
       if (first) return ['Byte Mart. Hardware, software, caffeine, in that order of margin. I am Nadia.', 'Dara shopped here. Paid in credits like everyone else, and asked more questions than everyone else. You have the same look.', 'Everything on the shelves does something out there. The gig board by the door pays if you are short. Have a look.'];
@@ -1058,7 +1093,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     }
   };
 
-  return { HOSTS, QUESTS, GIGS, SHOP, EXAMINABLES, DIALOGUE, makeStore, makeShell };
+  const PED_NAMES = ['Teo', 'Marisol', 'Yusuf', 'Hanne', 'Kwame', 'Ingrid', 'Bao', 'Priya', 'Lucas', 'Amara', 'Sven', 'Noor', 'Dmitri', 'Esme', 'Tariq', 'Wren', 'Jonas', 'Leila', 'Mateo', 'Sigrid', 'Ravi', 'Chiara', 'Ola', 'Farah'];
+  return { HOSTS, QUESTS, GIGS, SHOP, EXAMINABLES, DIALOGUE, PED_NAMES, makeStore, makeShell };
 })();
 </script>
 
@@ -1569,7 +1605,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       const road = alongX ? CITY.roadsZ[Math.floor(rnd() * CITY.roadsZ.length)] : CITY.roadsX[Math.floor(rnd() * CITY.roadsX.length)];
       const along = (alongX ? CITY.bounds.x0 : CITY.bounds.z0) + 10 + rnd() * ((alongX ? CITY.bounds.x1 - CITY.bounds.x0 : CITY.bounds.z1 - CITY.bounds.z0) - 20);
       const d = DIRS[dir]; const rx = d[1], rz = -d[0];
-      const w = { ch, x: alongX ? along : road + rx * CITY.walk * side, z: alongX ? road + rz * CITY.walk * side : along, dir, speed: 1.2 + rnd() * 0.8, pause: 0, side };
+      const r = rnd(); const w = { ch, x: alongX ? along : road + rx * CITY.walk * side, z: alongX ? road + rz * CITY.walk * side : along, dir, speed: 1.2 + rnd() * 0.8, pause: 0, side, name: ZD.PED_NAMES[i % ZD.PED_NAMES.length], mood: r < 0.42 ? 'kind' : r < 0.72 ? 'rude' : 'busy', female: rnd() < 0.5, seed: i, talk: 0, scared: 0 };
       peds.push(w);
     }
   }
@@ -1579,12 +1615,13 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       let speed = w.speed; w.ch.moving = true;
       // a car bearing down on them: run away sideways, fast
       if (pcar && Math.hypot(pcar.x - w.x, pcar.z - w.z) < 5 && Math.abs(pcar.speed) > 3) { if (!w.flee) { w.flee = 1.2; SFX.yelp(w.x, w.z); } }
-      if (w.flee > 0) { w.flee -= dt; speed = 5.5; }
+      if (w.flee > 0) { w.flee -= dt; speed = 5.5; w.scared = 12; } else if (w.scared > 0) w.scared -= dt;
+      if (w.talk > 0) { w.talk -= dt; w.pause = Math.max(w.pause, 0.2); }
       if (w.pause > 0) { w.pause -= dt; w.ch.moving = false; speed = 0; } else if (rnd() < 0.0015) w.pause = 1.5 + rnd() * 3;
       const d = DIRS[w.dir];
       // walkers keep to their own side: the offset alternates sign with w.side, and crossings happen in a straight line across the road
       laneWalker(w, dt, CITY.walk * w.side, speed);
-      const goal = dirHeading(w.dir); let dh = goal - w.ch.yaw; while (dh > PI) dh -= 2 * PI; while (dh < -PI) dh += 2 * PI; w.ch.yaw += dh * Math.min(1, dt * 8);
+      const goal = w.talk > 0 && pp ? Math.atan2(pp.x - w.x, pp.z - w.z) : dirHeading(w.dir); let dh = goal - w.ch.yaw; while (dh > PI) dh -= 2 * PI; while (dh < -PI) dh += 2 * PI; w.ch.yaw += dh * Math.min(1, dt * 8);
       w.ch.pivot.position.x = w.x; w.ch.pivot.position.z = w.z; w.ch.pivot.rotation.y = w.ch.yaw; w.ch.speedVis = speed; animateChar(w.ch, dt);
     });
   }
@@ -2058,6 +2095,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (!pos) { beacon.node.setEnabled(false); return; } beacon.node.position.set(pos[0], 0, pos[1]); beacon.node.setEnabled(true);
   }
   const carInter = { id: 'car', zone: 'out', label: 'Enter car', car: null, run() { enterCar(carInter.car); } };
+  const pedInter = { id: 'ped', zone: 'out', label: 'Talk', ped: null, run() { const w = pedInter.ped; if (!w) return; w.talk = 7; w.pause = 7; SFX.setVoice('ped', SFX.pedVoice(w.seed, w.female)); ui.dialogue(w.name, ZD.DIALOGUE.ped(w.mood, store.state, w.scared > 0), () => { w.talk = 0; w.pause = 0.5; }, 'ped'); } };
+  function nearestPed(x, z, r) { let best = null, bd = r; peds.forEach(w => { if (w.flee > 0) return; const d = Math.hypot(w.x - x, w.z - z); if (d < bd) { bd = d; best = w; } }); return best; }
   const leaveInter = { id: 'leave', zone: 'out', label: 'Leave car', run() { leaveCar(); } };
 
   function faceNPC(name) { const ch = chars[name]; if (!ch) return; const p = chars.player.pivot.position; ch.yaw = Math.atan2(p.x - ch.pivot.position.x, p.z - ch.pivot.position.z); }
@@ -2152,7 +2191,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   })();
 
   /* ---------- player update: screen-relative walking, north up ---------- */
-  let current = null;
+  let current = null, currentLabel = null;
   const tmpRay = new BABYLON.Ray(V3(0, 0, 0), V3(0, -1, 0), 3.5);
   function groundUnder(x, y, z) { tmpRay.origin.set(x, y + 0.6, z); tmpRay.length = 3.5; const pick = scene.pickWithRay(tmpRay, m => m.isWalkable && m.isEnabled()); return pick && pick.hit ? pick.pickedPoint.y : null; }
   function updatePlayer(dt) {
@@ -2181,8 +2220,9 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     else {
       inter.forEach(o => { if (o.zone !== state.zone) return; const d = Math.hypot(o.pos.x - pos.x, o.pos.z - pos.z); const dy = Math.abs(o.pos.y - pos.y); if (d < o.r && dy < 1.6 && d < bd) { bd = d; best = o; } });
       if (!best && state.zone === 'out') { const c = nearestCar(pos.x, pos.z, 3.0); if (c) { carInter.car = c; carInter.label = (c.driver ? 'Jack the ' : 'Enter the ') + c.type.name.toLowerCase(); best = carInter; } }
+      if (!best && state.zone === 'out') { const w = nearestPed(pos.x, pos.z, 2.3); if (w) { pedInter.ped = w; pedInter.label = 'Talk to ' + w.name; best = pedInter; } }
     }
-    if (best !== current) { current = best; ui.prompt(best ? best.label : null); if (best) SFX.tick(); }
+    if (best !== current || (best && best.label !== currentLabel)) { const same = best === current; current = best; currentLabel = best ? best.label : null; ui.prompt(currentLabel); if (best && !same) SFX.tick(); }
   }
   function interact() { if (state.ui || !current) return; current.run(); }
   function updateNPCs(dt, t) {
@@ -2344,9 +2384,11 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   }
   /* ---------- sound: everything is synthesised with Web Audio, nothing is streamed ---------- */
   const SFX = (function () {
-    let ctx = null, master = null, white = null, brown = null, bus = {}, humG = null, muted = false, musicOff = false, padTimers = [], mix = {}; const music = { out: null, in: null, zone: 'out', step: { out: 0, in: 0 }, next: 0 };
+    let ctx = null, master = null, white = null, brown = null, bus = {}, humG = null, muted = false, musicOff = false, voicesOff = false, padTimers = [], mix = {}; const music = { out: null, in: null, zone: 'out', step: { out: 0, in: 0 }, next: 0 };
     const vol = { master: 100, music: 70, sfx: 100, ambient: 80 };
-    try { muted = localStorage.getItem('nz-sound') === 'off'; musicOff = localStorage.getItem('nz-music') === 'off'; const v = JSON.parse(localStorage.getItem('nz-vol') || 'null'); if (v) Object.keys(vol).forEach(k => { if (typeof v[k] === 'number') vol[k] = v[k]; }); } catch (e) { /* no storage */ }
+    const VOICES = { rosa: { female: true, pitch: 1.0, rate: 1.0, pick: 0 }, julien: { female: false, pitch: 0.85, rate: 0.95, pick: 0 }, nadia: { female: true, pitch: 1.12, rate: 1.08, pick: 1 }, ped: { female: false, pitch: 1.0, rate: 1.0, pick: 0 } };
+    if (window.speechSynthesis) { try { window.speechSynthesis.getVoices(); window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices(); } catch (e) { /* no speech */ } }
+    try { muted = localStorage.getItem('nz-sound') === 'off'; musicOff = localStorage.getItem('nz-music') === 'off'; voicesOff = localStorage.getItem('nz-voices') === 'off'; const v = JSON.parse(localStorage.getItem('nz-vol') || 'null'); if (v) Object.keys(vol).forEach(k => { if (typeof v[k] === 'number') vol[k] = v[k]; }); } catch (e) { /* no storage */ }
     const rnd = Math.random;
     function g(v) { const n = ctx.createGain(); n.gain.value = v; return n; }
     function f(type, freq, q) { const n = ctx.createBiquadFilter(); n.type = type; n.frequency.value = freq; if (q != null) n.Q.value = q; return n; }
@@ -2505,6 +2547,23 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       close() { noise(0.12, 0.1, 'highpass', 1800, 0.6, { attack: 0.03 }); },
       switch() { noise(0.03, 0.08, 'highpass', 2500, 0.7); },
       voice(kind) { const n = 5 + Math.floor(rnd() * 3); for (let i = 0; i < n; i++) { if (kind === 'rosa') tone(360 + rnd() * 260, 0.045, 'triangle', 0.07, { delay: i * 0.055 }); else tone(190 + rnd() * 150, 0.05, 'triangle', 0.07, { delay: i * 0.06, lp: 1800 }); } },
+      // spoken lines: the browser's own speech voices, one per character (pitch and rate keep them apart even when only one voice is installed)
+      get voicesOff() { return voicesOff; },
+      toggleVoices() { voicesOff = !voicesOff; try { localStorage.setItem('nz-voices', voicesOff ? 'off' : 'on'); } catch (e) { /* ignore */ } if (voicesOff) api.hush(); return voicesOff; },
+      canSpeak() { return !!(window.speechSynthesis && window.SpeechSynthesisUtterance); },
+      say(text, who) {
+        if (voicesOff || muted || !api.canSpeak()) return false;
+        const synth = window.speechSynthesis; const voices = synth.getVoices(); if (!voices.length) return false;
+        const en = voices.filter(v => /^en/i.test(v.lang)); const pool = en.length ? en : voices;
+        const fem = /female|woman|samantha|victoria|zira|karen|moira|tessa|fiona|serena|allison|ava|susan|kate|hazel|aria|jenny|libby|sonia|natasha|emma|olivia|amy|joanna|salli|kendra|kimberly|ivy/i; const mal = /male|man\b|daniel|alex|david|fred|james|george|ryan|thomas|guy|mark|matthew|brian|arthur|oliver|liam|william|aaron|rishi|bruce|lee/i;
+        const female = pool.filter(v => fem.test(v.name) && !/male|man\b/i.test(v.name.replace(/female|woman/i, ''))); const male = pool.filter(v => mal.test(v.name) && !fem.test(v.name)); const google = pool.filter(v => /google/i.test(v.name));
+        const V = VOICES[who] || VOICES.ped; let list = V.female ? (female.length ? female : pool) : (male.length ? male : pool); if (V.female && google.some(v => /female/i.test(v.name))) list = google.filter(v => /female/i.test(v.name)); if (!V.female && google.some(v => /male/i.test(v.name) && !/female/i.test(v.name))) list = google.filter(v => /male/i.test(v.name) && !/female/i.test(v.name));
+        const u = new SpeechSynthesisUtterance(text); u.voice = list[V.pick % list.length]; u.pitch = V.pitch; u.rate = V.rate; u.volume = Math.min(1, vol.master / 100 * vol.sfx / 100); u.lang = u.voice ? u.voice.lang : 'en-US';
+        synth.cancel(); synth.speak(u); return true;
+      },
+      hush() { if (api.canSpeak()) window.speechSynthesis.cancel(); },
+      pedVoice(seed, female) { return { female, pitch: 0.75 + (seed % 7) * 0.08, rate: 0.9 + (seed % 5) * 0.06, pick: seed }; },
+      setVoice(who, v) { VOICES[who] = v; },
       engine(level, on) { if (!ctx || !eng.g) return; const t = ctx.currentTime; const want = on ? 0.09 + level * 0.09 : 0; eng.g.gain.setTargetAtTime(muted ? 0 : want, t, 0.08); const fr = 38 + level * 120; eng.o1.frequency.setTargetAtTime(fr, t, 0.05); eng.o2.frequency.setTargetAtTime(fr * 1.01 + 0.4, t, 0.05); eng.f.frequency.setTargetAtTime(500 + level * 2200, t, 0.05); },
       skid(level) { if (!ctx || !eng.skidG) return; eng.skidG.gain.setTargetAtTime(muted ? 0 : level * 0.12, ctx.currentTime, 0.05); },
       horn() { if (play('horn1', { vol: 0.6 })) return; [392, 329.6].forEach(fr => tone(fr, 0.45, 'square', 0.05, { lp: 1600, attack: 0.01 })); },
@@ -2538,7 +2597,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       const next = $('qNext'); if (stt === 'completed') { const nq = store.nextQuest(q.id); next.hidden = false; next.textContent = nq ? 'Next: ' + nq.title + '. ' + nq.start : 'End of this build. Zero Day is open; thanks for playing.'; } else next.hidden = true;
       if (state.ui === 'journal') ui.renderJournal();
     },
-    closeAll() { const wasDlg = state.ui === 'dlg', done = ui.dlgDone; ui.dlgDone = null; if (state.ui === 'term') SFX.termOff(); else if (state.ui === 'journal' || state.ui === 'examine' || state.ui === 'settings' || state.ui === 'shop') SFX.close(); ['term', 'examine', 'dlg', 'settings', 'shop'].forEach(id => $(id).classList.add('off')); $('jr').classList.remove('on'); state.ui = null; if (state.touch) $('tE').hidden = !current; canvas.focus(); if (wasDlg && done) done(); },
+    closeAll() { const wasDlg = state.ui === 'dlg', done = ui.dlgDone; ui.dlgDone = null; if (wasDlg) SFX.hush(); if (state.ui === 'term') SFX.termOff(); else if (state.ui === 'journal' || state.ui === 'examine' || state.ui === 'settings' || state.ui === 'shop') SFX.close(); ['term', 'examine', 'dlg', 'settings', 'shop'].forEach(id => $(id).classList.add('off')); $('jr').classList.remove('on'); state.ui = null; if (state.touch) $('tE').hidden = !current; canvas.focus(); if (wasDlg && done) done(); },
     openTerminal(which) {
       state.ui = 'term'; SFX.termOn(); const host = ZD.HOSTS[which];
       if (!ui.shells) ui.shells = {}; const first = !ui.shells[which]; if (first) ui.shells[which] = ZD.makeShell(store, host); ui.shell = ui.shells[which];
@@ -2556,10 +2615,11 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     },
     examine(id) { const e = ZD.EXAMINABLES[id]; state.ui = 'examine'; SFX.paper(); const box = $('exBox'); box.className = e.style; $('exTitle').textContent = e.title; $('exText').innerHTML = e.text.split('\n\n').map(p => '<p>' + esc(p) + '</p>').join(''); $('examine').classList.remove('off'); if (e.flag) store.state.flags[e.flag] = true; if (e.discovery) store.addDiscovery(e.discovery); if (state.touch) $('tE').hidden = false; },
     dialogue(name, lines, onDone, who) { state.ui = 'dlg'; ui.dlgLines = lines.slice(); ui.dlgDone = onDone; ui.dlgWho = who || null; $('dlgName').textContent = name; $('dlg').classList.remove('off'); ui.dlgAdvance(true); if (state.touch) $('tE').hidden = false; },
-    dlgAdvance(first) { if (!first && ui.dlgLines.length === 0) { ui.closeAll(); return; } const ln = ui.dlgLines.shift(); SFX.voice(ui.dlgWho === 'julien' ? 'julien' : 'rosa'); $('dlgText').textContent = ln; $('dlgNext').textContent = ui.dlgLines.length ? 'Continue' : 'Done'; },
+    dlgAdvance(first) { if (!first && ui.dlgLines.length === 0) { ui.closeAll(); return; } const ln = ui.dlgLines.shift(); if (!SFX.say(ln, ui.dlgWho)) SFX.voice(ui.dlgWho === 'julien' || ui.dlgWho === 'ped' ? 'julien' : 'rosa'); $('dlgText').textContent = ln; $('dlgNext').textContent = ui.dlgLines.length ? 'Continue' : 'Done'; },
     openJournal() { state.ui = 'journal'; SFX.swish(); $('jr').classList.add('on'); ui.renderJournal(); },
     openSettings() { state.ui = 'settings'; SFX.swish(); const v = SFX.volumes(); $('volMaster').value = v.master; $('volMusic').value = v.music; $('volSfx').value = v.sfx; $('volAmbient').value = v.ambient; $('credits').innerHTML = SFX.credits.map(c => '<p><b>' + esc(c[0]) + '</b> ' + esc(c[1]) + '</p>').join(''); $('settings').classList.remove('off'); },
     setSound(muted) { SFX.switch(); $('soundBtn').textContent = muted ? 'Sound off' : 'Sound on'; $('soundBtn').setAttribute('aria-pressed', muted ? 'false' : 'true'); },
+    setVoices(off) { $('voicesOn').checked = !off; },
     setMusic(off) { SFX.switch(); $('musicBtn').textContent = off ? 'Music off' : 'Music on'; $('musicBtn').setAttribute('aria-pressed', off ? 'false' : 'true'); $('musicOn').checked = !off; },
     // Byte Mart
     openShop() { state.ui = 'shop'; SFX.swish(); ui.renderShop(); $('shop').classList.remove('off'); if (state.touch) $('tE').hidden = true; },
@@ -2611,6 +2671,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   $('soundBtn').addEventListener('click', () => ui.setSound(SFX.toggle()));
   $('musicBtn').addEventListener('click', () => ui.setMusic(SFX.toggleMusic()));
   $('musicOn').addEventListener('change', (e) => { if (e.target.checked === SFX.musicOff) ui.setMusic(SFX.toggleMusic()); });
+  $('voicesOn').addEventListener('change', (e) => { if (e.target.checked === SFX.voicesOff) ui.setVoices(SFX.toggleVoices()); });
   canvas.addEventListener('wheel', (e) => { CAM.zoom = Math.max(0.55, Math.min(2.0, CAM.zoom + (e.deltaY > 0 ? 0.1 : -0.1))); e.preventDefault(); }, { passive: false });
 
   // the quest store drives the HUD: every notice goes to the pager, every change redraws the mission card and saves, a finished quest moves the beacon
@@ -2670,7 +2731,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     loaded = true; $('loadline').textContent = 'READY.'; $('enterBtn').disabled = false;
   }
   function begin(resume) {
-    SFX.init(); SFX.zone(state.zone === 'out' ? 'out' : 'in'); ui.setSound(SFX.muted); ui.setMusic(SFX.musicOff);
+    SFX.init(); SFX.zone(state.zone === 'out' ? 'out' : 'in'); ui.setSound(SFX.muted); ui.setMusic(SFX.musicOff); ui.setVoices(SFX.voicesOff);
     const st = store.state; const sv = resume ? loadSave() : null;
     if (sv && sv.save) { store.restore(sv.save); if (sv.pos) { setZone(sv.zone || 'out', true); placePlayer(sv.pos[0], sv.pos[1], sv.pos[2], sv.pos[3]); } else placePlayer(-5, 0, 0, 0); }
     else { st.profile = ($('pname').value.trim() || 'Fresh Investigator').slice(0, 24); placePlayer(-5, 0, 0, 0); if (st.quests.quest_f1_cli === 'available') store.activateQuest('quest_f1_cli'); }

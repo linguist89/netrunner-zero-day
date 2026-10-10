@@ -19,7 +19,7 @@ then visit http://localhost:8000/. Babylon.js itself loads from jsDelivr.
 | W / S | run forward and back (walk indoors) |
 | A / D | turn |
 | Shift | stroll outdoors, run indoors |
-| E or Enter | interact, enter or leave a car |
+| E or Enter | interact, talk to people, enter or leave a car |
 | W / S, A / D, Space | gas and brake, steer, handbrake (in a car) |
 | H | horn |
 | C | overhead or chase camera |
@@ -39,6 +39,10 @@ then visit http://localhost:8000/. Babylon.js itself loads from jsDelivr.
 5. Ghost Host: the host with no name (arp, nmap, ssh)
 
 Every objective shows a "look around" hint, and each room holds its own cheat sheet or handout.
+
+## People
+
+Rosa, Julien and Nadia speak their lines through the browser's own speech voices (a Voices switch in settings turns this off; without voices the old radio blips play). Every passer-by has a name and a mood: the kind ones give directions and gossip about Dara, the rude ones tell you to keep walking, the busy ones are late for Caduceus. Anyone you nearly ran over will mention it.
 
 ## Byte Mart
 
