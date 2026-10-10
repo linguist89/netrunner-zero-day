@@ -173,6 +173,24 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 #setBox .credits p{margin:0 0 4px;font-size:12px;color:var(--mute);line-height:1.4}
 #setBox .credits b{color:var(--fg);font-weight:600}
 #setBox .btn{align-self:flex-end;padding:6px 14px 4px;font-size:16px}
+/* the burner phone and the exchange keypad */
+#phoneBox{width:min(340px,100%);background:#0b0c12;border:3px solid #2a2d38;border-radius:28px;padding:22px 18px 18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 24px 60px rgba(0,0,0,.7),inset 0 0 0 2px #000}
+#phoneBox .notch{width:90px;height:8px;border-radius:4px;background:#1a1c24;margin:0 auto 6px}
+#phoneState{font:600 11px var(--font-ui);letter-spacing:.2em;color:var(--mute);text-align:center}
+#phoneCaller{font:30px var(--font-display);letter-spacing:.06em;color:var(--fg);text-align:center;text-shadow:0 0 14px rgba(62,232,240,.25)}
+#phoneBox.ringing #phoneCaller{color:var(--ok);animation:ringshake .5s ease-in-out infinite}
+@keyframes ringshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
+#phoneMsgs{display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow:auto}
+#phoneMsgs .msg{background:#161822;border-radius:12px;padding:10px 12px;font-size:13.5px;line-height:1.45;color:#e8e2d5}
+#phoneMsgs .from{font:600 10px var(--font-ui);letter-spacing:.16em;color:var(--hot);margin-bottom:4px}
+#phoneMsgs p{margin:0}
+#phoneMsgs .photo{margin-top:8px;padding:8px;border:1px dashed #3a3d4a;border-radius:8px;font-family:var(--font-mono);font-size:12px;color:var(--cyan)}
+#phoneBox .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+#phoneAnswer{background:var(--ok);color:#06140a}
+#kpBox{width:min(320px,100%);display:flex;flex-direction:column;gap:10px;padding:18px 20px;align-items:center}
+#kpBox h3{margin:0;font:26px var(--font-display);letter-spacing:.08em;color:#c77dff}
+#kpIn{width:160px;text-align:center;font:34px var(--font-mono);letter-spacing:.3em;background:#0b0c12;border:2px solid var(--line);color:var(--ok);border-radius:4px;padding:6px 0 4px}
+#kpNote{font-size:12px;color:var(--mute);text-align:center;min-height:16px}
 #fade{position:absolute;inset:0;background:#000;opacity:1;pointer-events:none;transition:opacity .4s ease}
 #fade.clear{opacity:0}
 @media (max-width:640px){#hints{display:none}#map{left:16px;bottom:auto;top:calc(16px + 150px + env(safe-area-inset-top,0px));width:104px;height:114px}#quest{width:min(230px,50vw);padding:8px 10px 10px}#quest .title{font-size:19px}#quest ul{font-size:12px}#cash .num{font-size:34px}#carName{top:92px;font-size:20px}#pager{bottom:calc(34px + env(safe-area-inset-bottom,0px));width:min(320px,calc(100vw - 180px));left:auto;right:16px;transform:none}#pager.on{transform:none}#journalBtn,#soundBtn{bottom:calc(16px + env(safe-area-inset-bottom,0px))}}
@@ -186,7 +204,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
     <div id="cash"><div id="cashPop"></div><div class="num" id="hudCredits">000000</div><div class="name" id="hudName">...</div><div id="boost" hidden></div></div>
     <div id="carName"></div>
     <div id="prompt" class="card" hidden><kbd>E</kbd><span id="promptText"></span></div>
-    <div id="hints"><span><b>W S</b> run</span><span><b>A D</b> turn</span><span><b>Shift</b> stroll / run inside</span><span><b>E</b> interact / car</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> camera</span><span><b>B</b> drink</span><span><b>K</b> whistle car</span><span><b>P</b> missions</span><span><b>L</b> settings</span><span><b>M</b> sound</span><span><b>N</b> music</span><span><b>wheel</b> zoom</span></div>
+    <div id="hints"><span><b>W S</b> run</span><span><b>A D</b> turn</span><span><b>Shift</b> stroll / run inside</span><span><b>E</b> interact / car</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> camera</span><span><b>B</b> drink</span><span><b>K</b> whistle car</span><span><b>F</b> phone</span><span><b>P</b> missions</span><span><b>L</b> settings</span><span><b>M</b> sound</span><span><b>N</b> music</span><span><b>wheel</b> zoom</span></div>
     <canvas id="map" width="170" height="186" aria-label="Minimap"></canvas>
     <div id="pager"><div class="lbl"><span>STYX PAGER</span><span id="pagerTime">--:--</span></div><div class="lcd" id="pagerText"></div></div>
     <button id="musicBtn" class="btn ghost" type="button" aria-pressed="true">Music on</button>
@@ -237,6 +255,8 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
     <p class="note">On foot: W and S run along the facing at 8.5 m/s, A and D turn, Shift strolls at 3.8 m/s. Indoors the default is a walk at 2.5 m/s and Shift runs at 5 m/s. In a car: W and S are gas and brake, A and D steer, Space is the handbrake. The camera rides overhead and climbs with speed.</p>
     <button class="btn" type="button" id="setClose">Done</button></div></div>
   <div id="shop" class="overlay off" role="dialog" aria-label="Byte Mart"><div id="shopBox" class="card"><div id="shopHead"><div><div class="eyebrow">Byte Mart · hardware, software, caffeine</div><h3>What do you need?</h3></div><div id="shopCash">0 cr</div></div><div id="shopList"></div><p class="note" id="shopNote">Everything here changes how the street or the terminals behave. Credits: quests, the gig board by the door, and the chips on the sidewalks.</p><button class="btn" type="button" id="shopClose">Done</button></div></div>
+  <div id="phone" class="overlay off" role="dialog" aria-label="Phone"><div id="phoneBox"><div class="notch"></div><div id="phoneState">BURNER</div><div id="phoneCaller">...</div><div id="phoneMsgs" hidden></div><div class="row"><button class="btn" type="button" id="phoneAnswer">Answer (E)</button><button class="btn ghost" type="button" id="phoneShell">Open shell</button><button class="btn ghost" type="button" id="phoneClose">Close</button></div></div></div>
+  <div id="keypad" class="overlay off" role="dialog" aria-label="Keypad"><div id="kpBox" class="card"><div class="eyebrow">Building X · street door</div><h3>Keypad</h3><input id="kpIn" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Code"><div id="kpNote"></div><div class="row" style="display:flex;gap:8px"><button class="btn" type="button" id="kpGo">Enter</button><button class="btn ghost" type="button" id="kpClose">Step back</button></div></div></div>
   <div id="jr" role="dialog" aria-label="Journal"><div id="jrHead"><button class="tab on" data-tab="quests" type="button">Missions</button><button class="tab" data-tab="log" type="button">Log</button><button class="tab" data-tab="notebook" type="button">Notebook</button><button class="x" type="button" id="jrClose">Close</button></div><div id="jrBody"></div></div>
 
   <div id="fade"></div>
@@ -540,7 +560,111 @@ Welcome, investigator. The next build is yours.
     tmp: D({})
   });
 
+  /* ---- Act 2: the burner phone the courier hands over, and the console inside the Meridian Exchange ---- */
+  const FS_PHONE = D({
+    etc: D({ hostname: F('burner\n') }),
+    home: D({ burner: D({
+      README: F(`
+Burner. No name on the account, no name on the SIM. Dara paid cash.
+Messages land in messages/. The call log is calls.log.
+The pager keeps ringing you; this thing is for the people who do not use pagers.
+`),
+      messages: D({ '1.txt': F(`
+FROM: unknown number (via 10.0.2.1)
+AT:   03:12
+
+You hold Dara's map. Now you hold her phone. The third token is mine,
+and this street runs on it.
+
+Stop pulling at STYX, or the lights on Meridian Row go out one building
+at a time, starting with the lab. You have until 03:12.
+
+[attachment: a photo. A steel door with a keypad. A sign above it:
+ MERIDIAN EXCHANGE. The photo was taken from across the road.]
+`) }),
+      'calls.log': F('03:12  IN   unknown   via 10.0.2.1 (sip)   0:41\n03:14  MISSED unknown via 10.0.2.1\n'),
+      tools: D({ 'trace.txt': F('A VoIP number is still a network address. The gateway it came through sits on the route.\ntraceroute 10.0.2.1\nnmap 10.0.2.1\nThen read whatever the open ports will tell you.\n') })
+    }) }),
+    tmp: D({})
+  });
+  const FS_XCH = D({
+    etc: D({ hostname: F('exchange\n'),
+      asterisk: D({
+        'sip.conf': F(`
+[general]
+context=meridian
+bindport=5060
+
+[1001]  ; Rosa Tavares, lab-h
+secret=workshop
+callerid="Rosa" <1001>
+
+[1002]  ; Julien Moreau, caduceus ops
+secret=threetwelve
+callerid="Julien" <1002>
+
+[1003]  ; Nadia Sow, Byte Mart
+secret=overclock
+callerid="Byte Mart" <1003>
+
+[1337]  ; added on install day, never on the books
+secret=STYX-ROOT-00000000
+callerid="PROVISIONING" <1337>
+host=10.0.3.1
+`),
+        'extensions.conf': F(`
+[meridian]
+exten => 1001,1,Dial(SIP/1001)
+exten => 1002,1,Dial(SIP/1002)
+exten => 1003,1,Dial(SIP/1003)
+exten => 1337,1,Dial(SIP/1337)   ; A. Reyes, STYX provisioning. The third token. He set this up, not me. -- lineman
+exten => 0312,1,Playback(the-door-was-never-locked)
+`)
+      }) }),
+    var: D({
+      log: D({ asterisk: D({ 'cdr.csv': F(`
+"date","time","from","to","duration","disposition"
+"Oct  9","03:12","1337","burner","41","ANSWERED"
+"Oct  9","03:14","1337","burner","0","NO ANSWER"
+"Oct  9","03:15","1337","1002","12","ANSWERED"
+"Oct  9","22:40","1001","1003","201","ANSWERED"
+"Oct 10","03:12","1337","burner","0","NO ANSWER"
+`) }) }),
+      mail: D({ lineman: F(`
+From reyes@styx.local  Thu Oct  8 03:12:00 2026
+From: A. Reyes <reyes@styx.local>
+To: lineman@exchange
+Subject: 1337
+
+Leave the extension alone. It is not yours and it is not Okafor's.
+The vault at 10.0.3.1 holds what she was looking for, and the key to
+the vault is the one thing on this street that was never on the network.
+
+When the lights go out, remember I warned the new one first.
+-- R.
+`) })
+    }),
+    home: D({ lineman: D({
+      'notebook.txt': F(`
+Lineman's notebook, Meridian Exchange.
+
+- 1001 Rosa, 1002 Julien, 1003 the mart. Those are mine.
+- 1337 is NOT mine. Reyes from STYX provisioning put it in on install
+  day and kept the master key. Registers from 10.0.3.1. I cannot see
+  that subnet from here. Nobody can.
+- Every night at 03:12 the 1337 line dials out. Last week it started
+  dialling a burner. Dara's, I think. Then she stopped coming in.
+- The keypad code on the front door is the one thing he did not pick.
+  I picked it. Her time.
+`),
+      'cheat.txt': F('cat /etc/asterisk/sip.conf          who has an account\ngrep 1337 /var/log/asterisk/cdr.csv   what 1337 did\ngrep 1337 /etc/asterisk/extensions.conf   who 1337 is\ncat ~/notebook.txt\ncat /var/mail/lineman\n')
+    }) }),
+    tmp: D({})
+  });
+
   const HOSTS = {
+    phone: { id: 'phone', fs: FS_PHONE, user: 'burner', hostname: 'burner', ip: '10.0.9.9', home: '/home/burner', banner: 'burner (prepaid, no name)\n1 new message. Type: cat messages/1.txt\n' },
+    xch: { id: 'xch', fs: FS_XCH, user: 'lineman', hostname: 'exchange', ip: '10.0.2.1', home: '/home/lineman', banner: 'exchange (10.0.2.1) Asterisk 20 / Linux 6.1.0-styx\nMeridian Exchange lineman console. Four extensions, one of them not mine.\nYou have 1 unread message. Type: cat /var/mail/lineman\nStart with: cat /etc/asterisk/sip.conf\n' },
     ws: { id: 'ws', fs: FS_DARA, user: 'dara', hostname: 'dara-ws', ip: '10.0.1.10', home: '/home/dara', banner: 'dara-ws (10.0.1.10) Linux 6.1.0-styx\nLast login: Fri Oct  2 02:44:13 from 10.0.1.11\n\nWelcome to STYX.\nYou have 1 unread message.\nType: cat /var/mail/dara\n' },
     mezz: { id: 'mezz', fs: FS_DARA, user: 'dara', hostname: 'dara-mezz', ip: '10.0.1.11', home: '/home/dara', banner: 'dara-mezz (10.0.1.11) Linux 6.1.0-styx\nHome directory synced from dara-ws.\n0 unread messages.\n' },
     cad: { id: 'cad', fs: FS_CAD, user: 'julien', hostname: 'caduceus', ip: '10.0.0.60', home: '/home/julien', banner: 'caduceus (10.0.0.60) Linux 6.1.0-styx\nCaduceus Analytics ops. Activity is logged.\nYou have 1 unread message. Type: cat /var/mail/julien\nStart with: cat notes.txt. The cheat sheet is on the desk.\n' },
@@ -552,7 +676,7 @@ Welcome, investigator. The next build is yours.
   const DNS = {
     'styx.local': '10.0.0.1', 'gateway.styx.local': '10.0.0.1', 'dns.styx.local': '10.0.0.1',
     'caduceus.styx.local': '10.0.0.60', 'lab-h.styx.local': '10.0.0.80', 'db.styx.local': '10.0.0.200',
-    'dara-ws.styx.local': '10.0.1.10', 'dara-mezz.styx.local': '10.0.1.11'
+    'dara-ws.styx.local': '10.0.1.10', 'dara-mezz.styx.local': '10.0.1.11', 'exchange.styx.local': '10.0.2.1'
   };
   const RDNS = {}; Object.keys(DNS).forEach(k => { if (!RDNS[DNS[k]]) RDNS[DNS[k]] = k; });
   const ARP = [['10.0.0.1', '02:42:0a:00:00:01', 'gateway.styx.local'], ['10.0.0.60', '02:42:0a:00:00:3c', 'caduceus.styx.local'], ['10.0.0.80', '02:42:0a:00:00:50', 'lab-h.styx.local'], ['10.0.0.200', '02:42:0a:00:00:c8', 'db.styx.local'], ['10.0.0.254', 'de:ad:0a:00:00:fe', '? (no name)'], ['10.0.1.10', '02:42:0a:00:01:0a', 'dara-ws.styx.local'], ['10.0.1.11', '02:42:0a:00:01:0b', 'dara-mezz.styx.local']];
@@ -562,7 +686,8 @@ Welcome, investigator. The next build is yours.
     '10.0.0.80': [['22/tcp', 'open', 'ssh'], ['80/tcp', 'open', 'http'], ['3000/tcp', 'open', 'ppp']],
     '10.0.0.200': [['5432/tcp', 'open', 'postgresql'], ['31337/tcp', 'open', 'unknown']],
     '10.0.0.254': [['22/tcp', 'open', 'ssh'], ['80/tcp', 'open', 'http']],
-    '10.0.1.10': [['22/tcp', 'open', 'ssh']], '10.0.1.11': [['22/tcp', 'open', 'ssh']]
+    '10.0.1.10': [['22/tcp', 'open', 'ssh']], '10.0.1.11': [['22/tcp', 'open', 'ssh']],
+    '10.0.2.1': [['22/tcp', 'open', 'ssh'], ['5060/tcp', 'open', 'sip'], ['8080/tcp', 'open', 'http-alt']]
   };
 
   const QUESTS = [
@@ -627,6 +752,41 @@ Welcome, investigator. The next build is yours.
         { id: 'o3', text: 'Log in to the ghost host', cmd: 'ssh ghost@10.0.0.254', sig: 'You found the door. It was never locked.', hint: 'The nmap note shows the banner. ssh ghost@10.0.0.254.' },
         { id: 'o4', text: 'Read Dara’s message on the ghost host', cmd: 'cat READ_ME', sig: 'Welcome, investigator. The next build is yours.', hint: 'Once inside: cat READ_ME.' },
         { id: 'o5', text: 'Read the latest report', cmd: 'cat reports/latest.json', sig: 'not me, not Julien, not Rosa', hint: 'ls reports, then cat reports/latest.json. exit brings you back.' }
+      ]
+    },
+    {
+      id: 'quest_z1_burner', title: 'Burner', category: 'Zero Day', location: 'The fountain in the park, west of Meridian Row', reward: 50,
+      start: 'Someone has been waiting by the fountain in the park, two blocks west of Building H. Rosa says they asked for you by Dara’s name.',
+      journalStart: 'A stranger at the park fountain asked for whoever finished Dara’s map. The map is finished. Go and see what they want.',
+      journalDone: 'The courier, Ines, handed over a prepaid phone that Dara paid cash for. No name on the account. Her instructions: keep it charged, answer anything that is a number. Then she left.',
+      objectives: [
+        { id: 'o1', text: 'Meet the courier at the park fountain', hint: 'The park is the green block west of Building H. The fountain is in the middle; she is standing by it.' },
+        { id: 'o2', text: 'Take the phone', hint: 'Talk to her until she hands it over. F opens the phone once you have it.' }
+      ]
+    },
+    {
+      id: 'quest_z2_dialtone', title: 'Dial Tone', category: 'Zero Day', location: 'The burner phone (F), then any STYX terminal', reward: 100,
+      start: 'Keep the phone on. Someone will call.',
+      journalStart: 'The call came at 03:12 from no number at all: stop pulling at STYX or the lights go out, one building at a time. The message carries a photo of a door with a keypad under a sign: MERIDIAN EXCHANGE. A VoIP number is still a network address. Trace it.',
+      journalDone: 'The threat came through 10.0.2.1, the Meridian Exchange, Building X on the south side of the Row. Its door controller answers on 8080 and says the code is the time everything on this street happens: 03:12.',
+      objectives: [
+        { id: 'o1', text: 'Read the message on the burner', cmd: 'cat messages/1.txt', sig: 'You have until 03:12', hint: 'F opens the phone. Its shell works like any other: cat messages/1.txt.' },
+        { id: 'o2', text: 'Trace the route to the caller’s gateway', cmd: 'traceroute 10.0.2.1', sig: 'exchange.styx.local (10.0.2.1)', hint: 'The message came via 10.0.2.1. From any terminal: traceroute 10.0.2.1. The last hop has a name.' },
+        { id: 'o3', text: 'Scan the exchange', cmd: 'nmap 10.0.2.1', sig: '5060/tcp   open     sip', hint: 'nmap 10.0.2.1. Port 5060 is SIP, a telephone exchange. Read the note under the scan.' },
+        { id: 'o4', text: 'Read the door controller page', cmd: 'curl http://10.0.2.1:8080/', sig: 'door-controller v2', hint: 'The scan shows 8080 open: curl http://10.0.2.1:8080/. The page tells you how the code is chosen.' }
+      ]
+    },
+    {
+      id: 'quest_z3_exchange', title: 'The Exchange', category: 'Zero Day', location: 'Building X, the Meridian Exchange, lineman console', reward: 200,
+      start: 'Building X is the grey building east of Building D on the south side of the Row. The keypad wants four digits: the time everything on this street happens.',
+      journalStart: 'Inside the exchange: relay racks, patch panels and a lineman console running the phone system. Four extensions. One of them is not the lineman’s. Find who called the burner, and who they are.',
+      journalDone: 'Extension 1337 belongs to A. Reyes of STYX provisioning, the one who installed the cron job, the catalogue and the ghost’s third token. He registers from 10.0.3.1, a subnet nobody on the Row can see, and his mail to the lineman names a vault whose key was never on the network. The lights are still on. For now. End of Act 2.',
+      objectives: [
+        { id: 'o1', text: 'List the SIP accounts on the exchange', cmd: 'cat /etc/asterisk/sip.conf', sig: '[1337]', hint: 'On the lineman console: cat /etc/asterisk/sip.conf. Four accounts; one was never on the books.' },
+        { id: 'o2', text: 'Find the call to the burner in the call log', cmd: 'grep 1337 /var/log/asterisk/cdr.csv', sig: '"1337","burner"', needs: ['grep', 'cat'], hint: 'The call records are a CSV: grep 1337 /var/log/asterisk/cdr.csv.' },
+        { id: 'o3', text: 'Find who extension 1337 belongs to', cmd: 'grep 1337 /etc/asterisk/extensions.conf', sig: 'A. Reyes', hint: 'The dial plan has a comment next to every extension: grep 1337 /etc/asterisk/extensions.conf.' },
+        { id: 'o4', text: 'Read the lineman’s notebook', cmd: 'cat ~/notebook.txt', sig: 'kept the master key', hint: 'cat ~/notebook.txt on the console, or read the paper one on the desk.' },
+        { id: 'o5', text: 'Read the mail from Reyes', cmd: 'cat /var/mail/lineman', sig: 'The vault at 10.0.3.1', hint: 'The banner said there is mail: cat /var/mail/lineman.' }
       ]
     }
   ];
@@ -730,6 +890,12 @@ Welcome, investigator. The next build is yours.
     fridge: { title: 'Drinks fridge', style: 'plain', text: 'OVERCLOCK in three flavours that all taste of battery. A hand-written card on the glass: ONE PER CUSTOMER PER HOUR, I AM NOT CLEANING THAT UP AGAIN. Behind the cans, a single bottle of water nobody has bought since the shop opened.' },
     bargain: { title: 'Bargain bin', style: 'plain', text: 'Floppy disks labelled DOOM (shareware), a mouse with a ball in it, three serial cables, a copy of Hacking Exposed with the spine broken at chapter 4, and a pager identical to yours with a dead battery. A sticker on the bin: EVERYTHING 5 CR, NOTHING WORKS.' },
     martposter: { title: 'Poster behind the counter', style: 'plain', text: 'A fake movie poster: NULL ROUTE, starring a person in a hoodie lit entirely by a terminal. Under it, in marker: THIS IS NOT WHAT IT LOOKS LIKE. IT LOOKS LIKE READING LOGS AT 3 AM. Nadia has drawn a small heart next to the 3.' },
+    // Building X
+    patchwall: { title: 'Patch panel', style: 'plain', text: 'Hundreds of jacks, four of them in use. Three are labelled in the same tidy hand: 1001 LAB, 1002 CADUCEUS, 1003 MART. The fourth cord is newer than the rest and runs into a sealed grey box with no label. Someone has written 1337 on the wall next to it in marker, and then tried to rub it off.', discovery: { id: 'XCH-PATCH', title: 'The fourth cord', text: 'Four live lines on the exchange patch panel. Three belong to the lab, Caduceus and the mart. The fourth, 1337, runs into a sealed box the lineman did not install.' } },
+    cdrprint: { title: 'Call record printout', style: 'paper', text: 'CALL DETAIL RECORDS, last 48h (printed 03:20)\n\n03:12  1337 -> burner  41s  ANSWERED\n03:14  1337 -> burner   0s  NO ANSWER\n03:15  1337 -> 1002    12s  ANSWERED\n\nIn the margin: 1002 is Julien. Twelve seconds. What do you say in twelve seconds? -- L.\n\nThe full log is on the console: /var/log/asterisk/cdr.csv', discovery: { id: 'XCH-CDR', title: 'Call records', text: 'Extension 1337 called the burner at 03:12 and then Julien for twelve seconds. The full call log is cdr.csv on the exchange console.' } },
+    linebook: { title: 'Lineman’s notebook', style: 'paper', text: 'A grease-stained notebook, open at the last page:\n\n1337 is NOT mine. Reyes put it in on install day. Master key is his.\nRegisters from 10.0.3.1. Cannot see that subnet. Nobody can.\n03:12, every night, it dials out. Now it dials her phone.\n\nThe same notes are on the console: cat ~/notebook.txt. The dial plan names him: grep 1337 /etc/asterisk/extensions.conf', discovery: { id: 'XCH-NOTEBOOK', title: 'The lineman’s notebook', text: 'Extension 1337 was installed by someone called Reyes on install day, who kept the master key and registers from 10.0.3.1, a subnet nobody on the Row can see.' } },
+    payphone: { title: 'Payphone', style: 'plain', text: 'A coin payphone bolted to the exchange wall, the last one on the Row. The receiver is off the hook and warm. Scratched into the paint above the keypad: 0312 OPENS THE DOOR. 1337 OPENS NOTHING YOU WANT OPENED.' },
+    relays: { title: 'Relay cabinet', style: 'plain', text: 'A wall of electromechanical relays that still click every time a call goes through, which tonight is never. A yellowed card inside the door lists the extensions in fountain pen: 1001, 1002, 1003. A fourth line has been added in ballpoint and crossed out twice.' },
     rack3: { title: 'Rack 3', style: 'plain', text: 'A full-height rack behind a mesh door. Two database servers, a switch, and a small grey box on the top shelf with no label and a blinking amber light. Its network cable goes nowhere you can see.' }
   };
 
@@ -949,6 +1115,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
           ports.forEach(p => lines.push(pad(p[0], 11) + pad(p[1], 9) + p[2]));
           if (r.ip === '10.0.0.200') lines.push('', 'Note: 31337/tcp is not listed in any STYX catalogue.');
           if (r.ip === '10.0.0.254') lines.push('', 'Note: this host has no DNS name. MAC vendor: unknown (de:ad:...). ssh banner: "ghost"');
+          if (r.ip === '10.0.2.1') lines.push('', 'Note: sip on 5060 is a telephone exchange. 8080 answers http: curl http://10.0.2.1:8080/');
           lines.push('', 'Nmap done: 1 IP address (1 host up) scanned in 0.42 seconds');
           return { out: lines.join('\n') };
         }
@@ -969,6 +1136,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
           if (r.ip === '10.0.0.60') return { out: '<!doctype html>\n<title>Caduceus Analytics</title>\n<p>Portal access by appointment. Contact: j.moreau@caduceus.styx.local</p>' };
           if (r.ip === '10.0.0.80') return { out: '<!doctype html>\n<title>Solarpunk Lab</title>\n<p>Workshops nightly, ground floor, Building H. Bring coffee.</p>' };
           if (r.ip === '10.0.0.200') return { out: (args[0] || '').includes('31337') ? '{"error":"token required","hint":"see /opt/styx/.token on the host that pulls nightly"}' : cmd + ': (7) Failed to connect to ' + r.name + ' port 80: Connection refused', err: !(args[0] || '').includes('31337') };
+          if (r.ip === '10.0.2.1') return (args[0] || '').includes('8080') ? { out: '<!doctype html>\n<title>door-controller</title>\n<h1>MERIDIAN EXCHANGE door-controller v2</h1>\n<p>Keypad on the street door, Building X, south side of Meridian Row.</p>\n<p>Code of the day: four digits. The lineman set it to the time everything on this street happens.</p>\n<p>sip: 5060. console: inside only.</p>' } : { out: cmd + ': (7) Failed to connect to exchange.styx.local port 80: Connection refused. (8080 is open: curl http://10.0.2.1:8080/)', err: true };
           if (r.ip === '10.0.0.254') return { out: '<!doctype html>\n<title>ghost</title>\n<p>Nobody is reading. Reports: ' + (10 + Object.keys(store.state.done).length) + '. Say hello on port 22.</p>' };
           return { out: cmd + ': (7) Failed to connect to ' + r.name + ' port 80: Connection refused', err: true };
         }
@@ -980,6 +1148,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
           const g = netGate(cmd); if (g) return { out: g, err: true };
           const target = (args[0] || ''); const user = target.includes('@') ? target.split('@')[0] : null; const hostName = target.split('@').pop();
           const r = resolveHost(hostName); if (!r) return { out: 'ssh: Could not resolve hostname ' + hostName + ': Name or service not known', err: true };
+          if (r.ip === '10.0.2.1') return { out: 'exchange: Permission denied (publickey). The lineman console is inside Building X, the Meridian Exchange, south side of the Row.', err: true };
           if (r.ip !== '10.0.0.254') return { out: user === host.user && r.ip === host.ip ? 'You are already here.' : 'Permission denied (publickey). This box only answers to its own console.', err: true };
           if (user && user !== 'ghost') return { out: user + '@10.0.0.254: Permission denied (publickey). The banner says ghost. Try ghost@10.0.0.254', err: true };
           remote = makeShell(store, HOSTS.ghost); remote.parent = api;
@@ -1030,7 +1199,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
         'Then knock: nmap it, and ssh in. The banner will tell you who to log in as. The workshop box in Building H has my notes if you want them: workshop/04-ghosts.md.'
       ];
       if (q5 === 'active') return ['arp -a lists what the switch remembers. The one with no name is yours. nmap it, read the banner, ssh in as whoever the banner says.'];
-      if (q5 === 'completed') return ['The door was never locked. She told you to say that, did she.', 'Then she is alive, and she is looking for whoever holds the third token. That makes two of you. Three, counting me. Go and sleep. The next build starts in the morning.'];
+      if (q5 === 'completed') return st.quests.quest_z1_burner === 'completed' ? ['Ines found you, then. Keep that phone charged. Whoever calls it knows more about this street than the gateway does.'] : ['The door was never locked. She told you to say that, did she.', 'Then she is alive, and she is looking for whoever holds the third token. That makes two of you. Three, counting me.', 'One more thing. A woman has been waiting by the fountain in the park, two blocks west of here. She asked for whoever finished Dara’s map. That is you now.'];
       if (q4 === 'active') return ['Utilities. The hum is a generator, and behind the generator is a rack. Everything on this street is a rack, in the end.'];
       return ['A database on a port nobody admits to, and a visitor that does not exist. Julien at Caduceus needs to hear it. He is outside Building F, and he is not opening the door for just anyone.'];
     },
@@ -1067,6 +1236,33 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
         'If you are looking for Rosa, she is outside Building H. If you are looking for Julien, so is everyone.',
         'I just walk. It is a whole thing. Try it.'
       ])];
+    },
+    courier(st) {
+      const q = st.quests.quest_z1_burner;
+      if (q === 'locked') return ['I am waiting for someone. Not you. Not yet.'];
+      if (q === 'available' || q === 'active') return [
+        'You finished her map. The ghost host, the third token, all of it. Rosa said you would come this way eventually.',
+        'Ines. I ran errands for Dara when she needed something off the network. This was the last errand.',
+        'A phone. Prepaid, cash, no name on it anywhere. She said: give it to whoever finishes the map, and tell them to keep it charged.',
+        'One more thing she said. Answer anything that is a number. Do not answer anything that is not.',
+        'That is the whole message. I do not know who is going to call. I know she was afraid of the answer. Good luck, investigator.'
+      ];
+      return ['Still charged? Good. Whoever is on the other end of that thing knows this street better than we do.', 'Dara is alive. I would not say that if I did not know it. Keep going.'];
+    },
+    caller(st) {
+      return [
+        'You hold Dara’s map. Now you hold her phone. Do you know what you are holding, investigator?',
+        'The third token is mine. This street runs on it. The lights, the water, the hum under Building D. Mine.',
+        'Stop pulling at STYX. Or the lights on Meridian Row go out one building at a time, starting with the lab.',
+        'You have until 03:12. Check your messages. I sent you a picture of where I will be.'
+      ];
+    },
+    caller2(st) {
+      return [
+        'Reyes. Now you know the name. The lineman talks too much, and his notebook talks more.',
+        'You found the extension, the call, the vault. You did not find the key, because the key was never on the network. That was the whole point.',
+        'Dara understood that too late. You have a little longer. 03:12, investigator. Keep the phone charged.'
+      ];
     },
     nadia(st) {
       const first = !st.flags.metNadia; const gigsDone = GIGS.filter(g => st.quests[g.id] === 'completed').length;
@@ -1266,12 +1462,14 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     [-3.6, 3.6].forEach(dx => { box(mat('martGlass', '#ffe9c0', { emissive: '#ffb070', unlit: true }), 2.6, 1.6, 0.1, -22.5 + dx, 0.9, -15 + 0.05, { cast: false }); box(mat('martFrame', '#1d1f26'), 2.8, 1.8, 0.14, -22.5 + dx, 0.8, -15 + 0.02, { cast: false }); });
     box(mat('martNeon', '#ff6a3d', { emissive: '#ff6a3d', unlit: true }), 9.6, 0.08, 0.08, -22.5, 2.9, -14.5, { cast: false });
     plane(texMat('martOpen', textTex('OPEN 24/7 · GEAR · GIGS', { w: 512, h: 96, color: '#8cf28c', glow: true }), { unlit: true, alpha: true, emissive: '#ffffff' }), 3.6, 0.68, -22.5 + 3.6, 3.7, -15 + 0.12, { ry: PI }); // above the right window, clear of the lit glass
+    building({ name: 'X', label: 'BUILDING X', sign: 'MERIDIAN EXCHANGE', signColor: '#c77dff', x: 24.5, z: 21, w: 9, d: 12, h: 8.4, wall: '#4a4e58', frame: '#1c1e24', lit: '#cfe0ff', cols: 5, rows: 6, seed: 61, face: -1, roof: 'masts', roofCol: '#2a2c33' });
+    box(mat('keypadBox', '#2b2d33', { spec: 0.4 }), 0.18, 0.26, 0.08, 24.5 + 1.75, 1.2, 15 - 0.05, { cast: false }); box(mat('keypadLed', '#ff5a3c', { emissive: '#ff3b1f', unlit: true }), 0.06, 0.03, 0.02, 24.5 + 1.75, 1.42, 15 - 0.1, { cast: false, name: 'keypadLed' });
     building({ name: 'D', label: 'BUILDING D', sign: 'MERIDIAN UTILITIES', signColor: '#e9d8ff', x: 13, z: 21, w: 15, d: 12, h: 12, wall: '#3d3a46', frame: '#1c1a22', lit: '#e8dcff', cols: 9, rows: 8, seed: 99, face: -1, roof: 'masts', roofCol: '#2a2730' });
     // back alleys behind them: dumpsters, a fence, a few crates
     [[-20, -30.5], [-14, -30.5], [6, -30.5], [22, -30.5], [-20, 30.5], [-4, 30.5], [8, 30.5], [24, 30.5]].forEach(p => dumpster(p[0], p[1]));
     [[-28, -30], [-28, 30], [28, -30], [28, 30]].forEach(p => box(mat('fence', '#2a2e36'), 0.12, 2.2, 5, p[0], 0, p[1], { collide: true }));
-    [[25, -21], [-25, 21], [26, 21]].forEach(p => { box(mat('crate', '#5f6672'), 1.4, 1.0, 1.0, p[0], 0, p[1], { collide: true }); box(mat('crateStripe', '#2a2f38', { emissive: '#1d6b75' }), 1.42, 0.08, 1.02, p[0], 0.55, p[1], { cast: false }); });
-    block(24.3, 25.7, -21.7, -20.3); block(-25.7, -24.3, 20.3, 21.7); block(25.3, 26.7, 20.3, 21.7);
+    [[25, -21], [-25, 21]].forEach(p => { box(mat('crate', '#5f6672'), 1.4, 1.0, 1.0, p[0], 0, p[1], { collide: true }); box(mat('crateStripe', '#2a2f38', { emissive: '#1d6b75' }), 1.42, 0.08, 1.02, p[0], 0.55, p[1], { cast: false }); });
+    block(24.3, 25.7, -21.7, -20.3); block(-25.7, -24.3, 20.3, 21.7);
 
     // solarpunk planters in front of H, STYX node cabinet by F, a street sign
     [-14.5, -3.5].forEach(x => { box(mat('planter', '#2f3a33'), 2.2, 0.6, 0.9, x, 0, 13.4, { collide: true }); sphere(mat('leaf', '#2f7a4a'), 1.2, x - 0.5, 0.95, 13.4, { seg: 10 }); sphere(mat('leaf2', '#3f9a5a'), 1.0, x + 0.5, 0.9, 13.4, { seg: 10 }); block(x - 1.1, x + 1.1, 12.95, 13.85); });
@@ -1817,7 +2015,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   }
 
   /* ---------- the other three interiors: Caduceus ops floor (F), the Solarpunk Lab workshop (H), the Utilities machine room (D) ---------- */
-  const IXF = 500, IXH = 750, IXD = 1000, IXM = 1250; // Byte Mart's interior sits at x+1250
+  const IXF = 500, IXH = 750, IXD = 1000, IXM = 1250, IXX = 1500; // Byte Mart's interior sits at x+1250
   // a one-room shell: floor, four walls, an exit door on the front wall (z = Z0) with a label, a few windows; the zone root decides which way it faces
   function room(o) {
     const { X0, X1, Z0, Z1, H, wallM, floorM, door } = o; const T = 0.3;
@@ -1992,8 +2190,12 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       const dist = (car ? 9 : state.zone === 'out' ? 5.5 : 3.2) * CAM.zoom, height = (car ? 3.4 : state.zone === 'out' ? 2.4 : 1.9) * CAM.zoom;
       const look = V3(pos.x, pos.y + (car ? 1.0 : 1.4), pos.z);
       camTarget.x += (look.x - camTarget.x) * k; camTarget.y += (look.y - camTarget.y) * Math.min(1, dt * 6); camTarget.z += (look.z - camTarget.z) * k;
-      const cx = camTarget.x - Math.sin(CAM.yaw) * dist, cz = camTarget.z - Math.cos(CAM.yaw) * dist;
-      cam.position.set(cx, camTarget.y + height, cz); cam.setTarget(V3(camTarget.x, camTarget.y + 0.3, camTarget.z));
+      let cx = camTarget.x - Math.sin(CAM.yaw) * dist, cz = camTarget.z - Math.cos(CAM.yaw) * dist, cy = camTarget.y + height;
+      // a wall between the character and the camera pulls the camera in front of it (entering a building no longer starts the camera outside)
+      const lx = camTarget.x, ly = camTarget.y + 1.2, lz = camTarget.z; const ddx = cx - lx, ddy = cy - ly, ddz = cz - lz; const dl = Math.hypot(ddx, ddy, ddz);
+      camRay.origin.set(lx, ly, lz); camRay.direction.set(ddx / dl, ddy / dl, ddz / dl); camRay.length = dl + 0.4;
+      const hit = scene.pickWithRay(camRay, m => m.occluder && m.isEnabled() && m.isVisible); if (hit && hit.hit && hit.distance < dl) { const f = Math.max(1.1 / dl, (hit.distance - 0.35) / dl); cx = lx + ddx * f; cy = ly + ddy * f; cz = lz + ddz * f; }
+      cam.position.set(cx, cy, cz); cam.setTarget(V3(camTarget.x, camTarget.y + 0.3, camTarget.z));
       fadeOccluders(dt); return;
     }
     camTarget.x += (want.x - camTarget.x) * k; camTarget.y += (want.y - camTarget.y) * Math.min(1, dt * 6); camTarget.z += (want.z - camTarget.z) * k;
@@ -2002,7 +2204,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   }
   function toggleCamera() { CAM.mode = CAM.mode === 'top' ? 'third' : 'top'; try { localStorage.setItem('nz-cam', CAM.mode); } catch (e) { /* ignore */ } if (CAM.mode === 'top') cam.rotation.set(PI / 2 - CAM.lean, 0, 0); else CAM.yaw = state.driving ? state.driving.heading : chars.player.yaw; ui.toast({ kind: '', title: 'Camera', text: CAM.mode === 'top' ? 'Overhead' : 'Chase (third person)' }); }
   // anything tall between the camera and the character (a building, a garage deck, an interior wall) is ghosted while it is in the way
-  const fading = new Map(); const occRay = new BABYLON.Ray(V3(0, 0, 0), V3(0, 1, 0), 1);
+  const fading = new Map(); const occRay = new BABYLON.Ray(V3(0, 0, 0), V3(0, 1, 0), 1); const camRay = new BABYLON.Ray(V3(0, 0, 0), V3(0, 1, 0), 1);
   function fadeOccluders(dt) {
     const p = chars.player; if (!p) return; const car = state.driving;
     const tx = car ? car.x : p.pivot.position.x, ty = (car ? 0 : p.pivot.position.y) + 0.9, tz = car ? car.z : p.pivot.position.z;
@@ -2025,7 +2227,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   function buildWorld() {
     // the prefiltered studio environment ships as base64 text so it can be served; it is decoded and handed to Babylon through a blob URL
     fetch('env/studio.env.txt').then(r => r.ok ? r.text() : Promise.reject(r.status)).then(b64 => { const bin = atob(b64.trim()); const bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); const url = URL.createObjectURL(new Blob([bytes])); scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(url, scene, '.env'); scene.environmentIntensity = 0.7; }).catch(() => { /* PBR falls back to lights only */ });
-    buildOutdoor(); buildInterior(); buildCaduceus(); buildLab(); buildUtilities(); buildMart(); spawnChips();
+    buildOutdoor(); buildInterior(); buildCaduceus(); buildLab(); buildUtilities(); buildMart(); buildExchange(); spawnChips();
     if (!NULL_ENGINE) { glow = new BABYLON.GlowLayer('glow', scene, { blurKernelSize: 32 }); glow.intensity = 0.5; noGlow.forEach(m => glow.addExcludedMesh(m)); }
     setZone('out', true);
   }
@@ -2078,7 +2280,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   addInter({ id: 'breaker', zone: 'util', pos: V3(IXD - 6.3, 0, -4.2), r: 1.4, label: 'Look at breaker panel', run() { ui.examine('breaker'); } });
   addInter({ id: 'mlog', zone: 'util', pos: V3(IXD + 1.4, 0, -4.3), r: 1.3, label: 'Read maintenance clipboard', run() { ui.examine('mlog'); } });
   addInter({ id: 'rack3', zone: 'util', pos: V3(IXD + 5.0, 0, 0.0), r: 1.5, label: 'Look at rack 3', run() { ui.examine('rack3'); } });
-  martInteractables();
+  martInteractables(); exchangeInteractables();
   // the two people on the street
   addInter({ id: 'rosa', zone: 'out', pos: V3(-7.2, 0, 13.6), r: 2.2, label: 'Talk to Rosa Tavares', run() { ui.dialogue('Rosa Tavares', ZD.DIALOGUE.rosa(store.state), () => { const st = store.state; if (st.quests.quest_f1_cli === 'completed' && st.quests.quest_f2_networking === 'available') { st.flags.rosaKit = true; store.activateQuest('quest_f2_networking'); } if (st.quests.quest_i2_utilities === 'completed' && st.quests.quest_i3_ghost === 'available') store.activateQuest('quest_i3_ghost'); }, 'rosa'); faceNPC('rosa'); } });
   addInter({ id: 'julien', zone: 'out', pos: V3(10.2, 0, -13.4), r: 2.2, label: 'Talk to Julien Moreau', run() { ui.dialogue('Julien Moreau', ZD.DIALOGUE.julien(store.state), () => { const st = store.state; if (st.quests.quest_f2_networking === 'completed' && st.quests.quest_i1_logs === 'available') { st.flags.cadAccess = true; store.activateQuest('quest_i1_logs'); } }, 'julien'); faceNPC('julien'); } });
@@ -2088,7 +2290,10 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     quest_f2_networking: { available: [-9, 14.3], active: null },
     quest_i1_logs: { available: [10.2, -12.0], active: [12, -14.3] },
     quest_i2_utilities: { available: [12, -14.3], active: [13, 14.3] },
-    quest_i3_ghost: { available: [-9, 14.3], active: [-9, 14.3] }
+    quest_i3_ghost: { available: [-9, 14.3], active: [-9, 14.3] },
+    quest_z1_burner: { available: [-50.5, 20.6], active: [-50.5, 20.6] },
+    quest_z2_dialtone: { available: null, active: null },
+    quest_z3_exchange: { available: [24.5, 14.3], active: [24.5, 14.3] }
   };
   function updateBeacon() {
     if (!beacon.node) return; const q = store.trackedQuest(); const st = store.state.quests[q.id]; const spec = BEACON[q.id]; const pos = spec && spec[st];
@@ -2159,12 +2364,14 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const k = e.key.toLowerCase();
     if (k === 'm' && state.ui !== 'term') { ui.setSound(SFX.toggle()); return; }
     if (k === 'n' && state.ui !== 'term') { ui.setMusic(SFX.toggleMusic()); return; }
+    if (state.ui === 'phone' && PHONE.ringing) { if (k === 'e' || k === 'enter') answerPhone(); if (k === 'escape') declineRing(); return; }
     if (state.ui) { if (k === 'escape' || ((k === 'j' || k === 'p') && state.ui === 'journal') || (k === 'l' && state.ui === 'settings')) ui.closeAll(); if ((k === 'e' || k === 'enter') && state.ui === 'dlg') ui.dlgAdvance(); if ((k === 'escape' || k === 'e' || k === 'enter') && state.ui === 'examine') ui.closeAll(); return; }
     if (!state.playing) return;
     keys[k] = true; if (k === 'e' || k === 'enter') interact(); if (k === 'j' || k === 'p') ui.openJournal(); if (k === 'l') ui.openSettings();
     if (k === 'h' && state.driving && !e.repeat) SFX.horn();
     if (k === 'c' && !e.repeat) toggleCamera();
     if (k === 'b' && !e.repeat) drinkOverclock();
+    if (k === 'f' && !e.repeat) openPhone();
     if (k === 'k' && !e.repeat) whistleCar();
     if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
   });
@@ -2226,7 +2433,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   }
   function interact() { if (state.ui || !current) return; current.run(); }
   function updateNPCs(dt, t) {
-    ['rosa', 'julien', 'nadia'].forEach(n => { const ch = chars[n]; if (!ch) return; let d = ch.yaw - ch.pivot.rotation.y; while (d > PI) d -= 2 * PI; while (d < -PI) d += 2 * PI; ch.pivot.rotation.y += d * Math.min(1, dt * 4); ch.talking = state.ui === 'dlg' && ui.dlgWho === n; ch.moving = false; animateChar(ch, dt); });
+    ['rosa', 'julien', 'nadia', 'courier'].forEach(n => { const ch = chars[n]; if (!ch) return; let d = ch.yaw - ch.pivot.rotation.y; while (d > PI) d -= 2 * PI; while (d < -PI) d += 2 * PI; ch.pivot.rotation.y += d * Math.min(1, dt * 4); ch.talking = state.ui === 'dlg' && ui.dlgWho === n; ch.moving = false; animateChar(ch, dt); });
     if (beacon.node && beacon.node.isEnabled()) { beacon.arrow.position.y = 4.0 + Math.sin(t * 2.2) * 0.4; beacon.arrow.rotation.y = t * 1.5; beacon.ring.scaling.setAll(1 + Math.sin(t * 2.2) * 0.06); } // the beacon is silent in this cut; the minimap carries the objective
   }
   function spatial(pos, range) { const p = chars.player.pivot.position; const dx = pos.x - p.x, dz = pos.z - p.z; const d = Math.hypot(dx, dz); const att = Math.pow(Math.max(0, 1 - d / range), 1.4); const pan = d > 0.01 ? dx / d * 0.8 : 0; return { att, pan }; }
@@ -2240,10 +2447,10 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     c.strokeStyle = '#2a2d36'; c.lineWidth = CITY.roadW * sx; CITY.roadsZ.forEach(rz => { c.beginPath(); c.moveTo(0, Y(rz)); c.lineTo(W, Y(rz)); c.stroke(); }); c.lineWidth = CITY.roadW * sz; CITY.roadsX.forEach(rx => { c.beginPath(); c.moveTo(X(rx), 0); c.lineTo(X(rx), H); c.stroke(); });
     c.strokeStyle = '#5a4a1c'; c.lineWidth = 1; c.beginPath(); c.moveTo(0, Y(0)); c.lineTo(W, Y(0)); c.stroke(); // Meridian Row itself
     mapBlocks.forEach(b => { c.fillStyle = b[4]; c.fillRect(X(b[0]), Y(b[3]), (b[1] - b[0]) * sx, (b[3] - b[2]) * sz); });
-    c.fillStyle = '#f2ecdc'; c.font = '9px "Oswald", sans-serif'; c.textAlign = 'center'; [['A', -8.5, -21], ['F', 12, -21], ['H', -9, 21], ['D', 13, 21], ['M', -22.5, -21]].forEach(l => c.fillText(l[0], X(l[1]), Y(l[2]) + 3));
+    c.fillStyle = '#f2ecdc'; c.font = '9px "Oswald", sans-serif'; c.textAlign = 'center'; [['A', -8.5, -21], ['F', 12, -21], ['H', -9, 21], ['D', 13, 21], ['M', -22.5, -21], ['X', 24.5, 21]].forEach(l => c.fillText(l[0], X(l[1]), Y(l[2]) + 3));
     if (store.has('scanner')) { c.fillStyle = '#ffd23f'; chips.forEach(ch => { if (!ch.alive) return; c.beginPath(); c.arc(X(ch.x), Y(ch.z), 1.6, 0, PI * 2); c.fill(); }); }
     const p = chars.player; if (!p) return;
-    const PINS = { in: ['A', -8.5, -21], cad: ['F', 12, -21], lab: ['H', -9, 21], util: ['D', 13, 21], mart: ['M', -22.5, -21] }; const pin = PINS[state.zone]; const inside = !!pin; const px = inside ? pin[1] : p.pivot.position.x, pz = inside ? pin[2] : p.pivot.position.z;
+    const PINS = { in: ['A', -8.5, -21], cad: ['F', 12, -21], lab: ['H', -9, 21], util: ['D', 13, 21], mart: ['M', -22.5, -21], xch: ['X', 24.5, 21] }; const pin = PINS[state.zone]; const inside = !!pin; const px = inside ? pin[1] : p.pivot.position.x, pz = inside ? pin[2] : p.pivot.position.z;
     if (beacon.node && beacon.node.isEnabled() && !inside) { const bp = beacon.node.position; const r = 3 + Math.sin(t * 5) * 1.5; c.fillStyle = '#3ee8f0'; c.beginPath(); c.arc(X(bp.x), Y(bp.z), r, 0, PI * 2); c.fill(); c.strokeStyle = 'rgba(62,232,240,.45)'; c.setLineDash([3, 3]); c.beginPath(); c.moveTo(X(px), Y(pz)); c.lineTo(X(bp.x), Y(bp.z)); c.stroke(); c.setLineDash([]); }
     c.save(); c.translate(X(px), Y(pz)); c.rotate(state.driving ? state.driving.heading : p.yaw); c.fillStyle = '#ffd23f'; c.beginPath(); c.moveTo(0, -6); c.lineTo(4.5, 5); c.lineTo(0, 2.5); c.lineTo(-4.5, 5); c.closePath(); c.fill(); c.restore();
     if (inside) { c.fillStyle = '#ffd23f'; c.font = '10px "Oswald", sans-serif'; c.fillText(pin[0] === 'M' ? 'INSIDE BYTE MART' : 'INSIDE BUILDING ' + pin[0], W / 2, H - 6); }
@@ -2252,7 +2459,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   let t = 0; let blinkT = 0; let mapT = 0;
   scene.onBeforeRenderObservable.add(() => {
     const dt = Math.min(engine.getDeltaTime() / 1000, 0.05); t += dt;
-    if (state.playing) { updatePlayer(dt); updateCamera(dt); updateInteract(); updateNPCs(dt, t); updateMart(dt, t); if (state.zone === 'out') { updateTraffic(dt); updatePeds(dt); rollWheels(dt); } mapT += dt; if (mapT > 0.08) { mapT = 0; drawMap(t); } }
+    if (state.playing) { updatePlayer(dt); updateCamera(dt); updateInteract(); updateNPCs(dt, t); updateMart(dt, t); updateAct2(dt, t); if (state.zone === 'out') { updateTraffic(dt); updatePeds(dt); rollWheels(dt); } mapT += dt; if (mapT > 0.08) { mapT = 0; drawMap(t); } }
     blinkT += dt; if (blinkT > 0.4) { blinkT = 0; const z = zones[state.zone]; if (z && z !== zones.out) z.meshes.forEach(m => { if (m.metadata && m.metadata.blink) m.setEnabled(!m.isEnabled()); }); }
   });
 
@@ -2382,11 +2589,92 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     car.x = MART_SPOT.x; car.z = MART_SPOT.z; car.heading = MART_SPOT.heading; car.speed = 0; car.vx = car.vz = 0; car.parked = true; car.root.position.set(car.x, car.y, car.z); car.root.rotation.y = car.heading;
     SFX.hornAt(car.x, car.z); ui.toast({ kind: 'ok', title: 'Coupe', text: 'Parked on Meridian Row by Byte Mart (M on the map).' });
   }
+
+  /* ---------- Act 2: the courier in the park, the burner phone, the call, and Building X, the Meridian Exchange ---------- */
+  function COURIER() { return [-50.5, 23.2]; } function XDOOR() { return [24.5, 15]; } // functions, not consts: the interactables below register before this file's statements run
+  function buildExchange() {
+    Z = makeZone('xch', IXX); // the door is on the south wall facing the Row, like Buildings H and D
+    addLights(Z, { hemi: 0.6, sky: '#b8c4d8', groundCol: '#141418', dir: V3(0.25, -1, 0.35), dirI: 0.35, dirCol: '#cfe0ff', dirPos: V3(IXX - 3, 8, -4), shadowRes: 1536 });
+    const X0 = -7, X1 = 7, Z0 = -6, Z1 = 6, H = 4.8;
+    const wallM = pbr('xchWallP', { color: '#9aa3a8', roughness: 0.95, albedo: 'plaster.jpg', u: 4, v: 2 });
+    const floorM = pbr('xchFloorP', { color: '#5a5c60', roughness: 0.9, albedo: 'pavers.jpg', u: 5, v: 4 });
+    room({ name: 'X', X0, X1, Z0, Z1, H, wallM, floorM, door: -1.0, windows: [[4.2, 2.6, Z0 + 0.1, 2.0, 0.9, 0, 'front']] });
+    const steel = pbr('steelP', { color: '#9a9ea6', metallic: 0.95, roughness: 0.32 }); const grey = mat('relayGrey', '#6e7378', { spec: 0.35, power: 40 }); const cream = mat('bakelite', '#d9cfae', { spec: 0.3 }); const dark = mat('darkPlastic', '#17181c', { spec: 0.25 });
+    const cordCols = ['#ffd23f', '#3ee8f0', '#ff3d7f', '#8cf28c', '#c77dff', '#ff6a3d'];
+    // the relay cabinets: a wall of tall grey cases along the back, glass fronts, rows of relays that click (blink) behind them
+    for (let i = 0; i < 6; i++) { const cx = X0 + 1.2 + i * 2.3; // each cabinet is a shell: back, sides, top, a plinth, relays on a lit backboard, glass across the front
+      box(grey, 2.0, 3.4, 0.08, cx, 0, Z1 - 0.14, { cast: false, name: i === 2 ? 'relays' : 'cab' }); [-0.97, 0.97].forEach(dx => box(grey, 0.06, 3.4, 0.7, cx + dx, 0, Z1 - 0.45, { cast: true })); box(grey, 2.0, 0.08, 0.7, cx, 3.36, Z1 - 0.45, { cast: false }); box(grey, 2.0, 0.4, 0.7, cx, 0, Z1 - 0.45, { collide: true, cast: false });
+      box(mat('cabBoard', '#d9d2c4', { spec: 0.1 }), 1.86, 2.9, 0.03, cx, 0.42, Z1 - 0.2, { cast: false }); box(mat('cabLamp', '#fff4d6', { emissive: '#ffe9b0', unlit: true }), 1.6, 0.04, 0.04, cx, 3.25, Z1 - 0.6, { cast: false });
+      for (let r = 0; r < 7; r++) for (let k = 0; k < 6; k++) { const m = box(k % 3 === i % 3 ? cream : dark, 0.2, 0.22, 0.16, cx - 0.75 + k * 0.3, 0.6 + r * 0.36, Z1 - 0.32, { cast: false }); if ((r * 6 + k + i) % 11 === 0) m.metadata = { blink: true }; }
+      box(mat('cabGlass', '#9fd0e8', { alpha: 0.16, spec: 0.9, power: 96 }), 1.86, 2.9, 0.02, cx, 0.42, Z1 - 0.8, { cast: false }); }
+    box(steel, X1 - X0, 0.08, 0.3, 0, H - 0.5, Z1 - 0.5, { cast: false }); // cable ladder over the cabinets
+    // the patch wall on the left: a grid of jacks and four live cords running into a sealed grey box
+    box(mat('patchPanel', '#2b2d33', { spec: 0.3 }), 0.12, 2.4, 5.0, X0 + 0.06, 0.8, -1.0, { cast: false, name: 'patchwall' });
+    for (let r = 0; r < 10; r++) for (let k = 0; k < 20; k++) cyl(mat('jack', '#8a8f99', { spec: 0.6 }), 0.05, 0.03, X0 + 0.13, 1.0 + r * 0.22, -3.3 + k * 0.24, { cast: false, tess: 8, rz: PI / 2 });
+    [[2, 3, 0], [4, 7, 1], [6, 11, 3], [8, 15, 4]].forEach((cd, i) => { const y = 1.0 + cd[0] * 0.22, z = -3.3 + cd[1] * 0.24; cyl(mat('cord' + cd[2], cordCols[cd[2]], { spec: 0.4 }), 0.03, 1.2 + i * 0.4, X0 + 0.2, y - 1.2 - i * 0.4, z, { cast: false, tess: 6 }); plane(texMat('jackLbl' + i, textTex(['1001 LAB', '1002 CADUCEUS', '1003 MART', '1337 ?'][i], { w: 256, h: 64, color: i === 3 ? '#ff6a3d' : '#f3e6bd', bg: '#1a1a22' }), { emissive: '#ffffff', spec: 0 }), 0.42, 0.1, X0 + 0.14, y + 0.12, z, { ry: -PI / 2 }); });
+    box(grey, 0.5, 0.5, 0.5, X0 + 0.4, 0.0, 2.3, { collide: true, cast: true }); box(mat('ledA', '#ffb454', { emissive: '#ffb454', unlit: true }), 0.04, 0.04, 0.04, X0 + 0.66, 0.4, 2.3, { cast: false }).metadata = { blink: true }; // the sealed box the fourth cord runs into
+    decal(texMat('wall1337', textTex('1337', { w: 256, h: 128, color: 'rgba(40,40,48,.9)', font: '500 90px "Caveat", cursive' }), { unlit: true, alpha: true, emissive: '#ffffff' }), 0.8, 0.4, X0 + 0.13, 1.1, 2.3, { ry: -PI / 2 });
+    // the lineman's desk with the console, the notebook, the printout; a swivel chair; the payphone on the right wall
+    const oak = pbr('oakP', { albedo: 'hw2_diffuse.jpg', bump: 'hw2_bump.jpg', rough: 'hw2_rough.jpg', u: 2, v: 0.5, bumpLevel: 0.5, roughness: 0.5 });
+    box(oak, 2.4, 0.06, 1.0, 1.0, 0.76, 1.2, { collide: true, recv: true }); [[-1.1, -0.4], [1.1, -0.4], [-1.1, 0.4], [1.1, 0.4]].forEach(l => box(steel, 0.05, 0.76, 0.05, 1.0 + l[0], 0, 1.2 + l[1], { cast: false }));
+    const xm = monitor(0.4, 0.82, 1.5, 0, ['exchange 10.0.2.1', 'asterisk: 4 peers', '1337: REGISTERED', '  from 10.0.3.1', 'lineman@exchange:~$ _'], '#ffbe5c'); xm.rotation.y = 0;
+    box(mat('clipboard', '#8a5a3a', { spec: 0.2 }), 0.24, 0.01, 0.32, 1.9, 0.82, 1.1, { cast: false, ry: -0.3, name: 'cdrprint' }); box(mat('cream', '#e9e2d3'), 0.22, 0.006, 0.3, 1.9, 0.83, 1.1, { cast: false, ry: -0.3 });
+    box(mat('notebook', '#2a3a6a', { spec: 0.2 }), 0.22, 0.03, 0.3, 1.3, 0.82, 0.95, { cast: false, ry: 0.4, name: 'linebook' }); box(mat('cream'), 0.2, 0.004, 0.28, 1.3, 0.85, 0.95, { cast: false, ry: 0.4 });
+    chair(1.0, 0.2, 0);
+    box(dark, 0.5, 0.9, 0.22, X1 - 0.11, 1.0, -2.5, { cast: false, name: 'payphone' }); box(steel, 0.3, 0.3, 0.06, X1 - 0.25, 1.35, -2.5, { cast: false }); cyl(dark, 0.06, 0.25, X1 - 0.2, 1.05, -2.72, { cast: false, tess: 8, rz: PI / 2 });
+    plane(texMat('payLbl', textTex('0312 OPENS THE DOOR', { w: 512, h: 96, color: '#aab', font: '500 56px "Caveat", cursive' }), { unlit: true, alpha: true, emissive: '#ffffff' }), 0.9, 0.17, X1 - 0.13, 2.05, -2.5, { ry: PI / 2 });
+    // fluorescent tubes, one flickering, and a sign by the door
+    [[-3, -3], [3, -3], [-3, 2], [3, 2]].forEach((p, i) => { const t = box(mat('tube', '#f6f8ff', { emissive: '#dfe8ff', unlit: true }), 1.4, 0.06, 0.12, p[0], H - 0.1, p[1], { cast: false }); if (i === 1) t.metadata = { blink: true }; });
+    decal(texMat('xchSign', textTex('MERIDIAN EXCHANGE  ·  AUTHORISED LINEMEN ONLY', { w: 1024, h: 96, color: '#c77dff' }), { unlit: true, alpha: true, emissive: '#ffffff' }), 4.0, 0.38, -1.0, 0.02, -4.6);
+    pointLight(-2, 3.8, -2, '#dfe8ff', 0.7, 11); pointLight(3, 3.8, 2, '#dfe8ff', 0.7, 11); pointLight(X0 + 1, 2.0, 2.3, '#ffb454', 0.3, 4); pointLight(0, 2.5, 5.0, '#cfe0ff', 0.5, 7);
+  }
+  function exchangeInteractables() {
+    addInter({ id: 'doorX', zone: 'out', pos: V3(XDOOR()[0], 0, XDOOR()[1]), r: 2.2, label: 'Enter Building X', run() { if (!store.state.flags.xchOpen) { ui.openKeypad(); return; } enterExchange(); } });
+    addInter({ id: 'exitX', zone: 'xch', pos: V3(IXX - 1, 0, -5.5), r: 1.5, label: 'Leave Building X', run() { transition(() => { setZone('out'); placePlayer(XDOOR()[0], 0, XDOOR()[1] - 2.6, PI); }); } });
+    addInter({ id: 'comp-x-01', zone: 'xch', pos: V3(IXX + 0.6, 0, 0.5), r: 1.6, label: 'Use lineman console (exchange)', run() { ui.openTerminal('xch'); } });
+    addInter({ id: 'linebook', zone: 'xch', pos: V3(IXX + 1.4, 0, 0.3), r: 1.0, label: 'Read the lineman’s notebook', run() { ui.examine('linebook'); } });
+    addInter({ id: 'cdrprint', zone: 'xch', pos: V3(IXX + 2.1, 0, 0.5), r: 1.0, label: 'Read the call printout', run() { ui.examine('cdrprint'); } });
+    addInter({ id: 'patchwall', zone: 'xch', pos: V3(IXX - 6.2, 0, -1.0), r: 1.6, label: 'Look at the patch panel', run() { ui.examine('patchwall'); } });
+    addInter({ id: 'relays', zone: 'xch', pos: V3(IXX - 1.2, 0, 4.6), r: 1.6, label: 'Look at the relay cabinet', run() { ui.examine('relays'); } });
+    addInter({ id: 'payphone', zone: 'xch', pos: V3(IXX + 6.3, 0, -2.5), r: 1.4, label: 'Look at the payphone', run() { ui.examine('payphone'); } });
+    addInter({ id: 'courier', zone: 'out', pos: V3(COURIER()[0], 0, COURIER()[1]), r: 2.2, label: 'Talk to the woman by the fountain', run() { const st = store.state; const q = st.quests.quest_z1_burner; if (q === 'available') store.activateQuest('quest_z1_burner'); ui.dialogue(q === 'locked' ? 'Woman by the fountain' : 'Ines', ZD.DIALOGUE.courier(st), () => { if (st.quests.quest_z1_burner === 'active') { store.completeObjective('quest_z1_burner', 'o1'); st.flags.hasPhone = true; st.inv.phone = 1; ui.toast({ kind: 'found', title: 'Burner phone', text: 'Prepaid, no name. F opens it.' }); store.completeObjective('quest_z1_burner', 'o2'); state.ringAt = t + 22; } }, 'courier'); faceNPC('courier'); } });
+  }
+  function enterExchange() { transition(() => { setZone('xch'); placePlayer(IXX - 1.0, 0, -4.8, 0); if (store.state.quests.quest_z3_exchange === 'available') store.activateQuest('quest_z3_exchange'); }); }
+  function placeCourier() {
+    if (chars.courier) return; const prev = Z; Z = zones.out;
+    let ch; if (AV.ready) { ch = makeAvatar('courier', 'rosa', { tint: ['#4a4a52', '#1a1a22', '#2a2a2a'] }); giveAnims(ch, [['idle', 'anim-f-idle'], ['talk', 'anim-f-talk']]); } else ch = makeFigure('courier', { jacket: '#4a4a52', pants: '#1a1a22', skin: '#c9a080', hair: '#2a2a2a' });
+    ch.pivot.position.set(COURIER()[0], 0, COURIER()[1]); ch.yaw = -2.4; ch.pivot.rotation.y = ch.yaw; ch.female = true;
+    const c = BABYLON.MeshBuilder.CreateCylinder('npcCol', { height: 1.8, diameter: 0.7 }, scene); c.position.set(COURIER()[0], 0.9, COURIER()[1]); c.isVisible = false; c.isPickable = false; c.checkCollisions = true; c.parent = Z.root;
+    Z = prev;
+  }
+  /* ---------- the phone: rings on a timer after the courier, answered with E or the button; F opens it afterwards ---------- */
+  const PHONE = { ringing: false, lastRing: 0, calls: [] };
+  function updateAct2(dt, t) {
+    const st = store.state; if (!st.flags.hasPhone) return;
+    const due = (!st.flags.called && state.ringAt != null && t > state.ringAt) || (st.flags.call2Due && !st.flags.called2);
+    if (due && !PHONE.ringing && !state.ui) startRing(st.flags.called ? 2 : 1);
+    if (PHONE.ringing && t - PHONE.lastRing > 2.6) { PHONE.lastRing = t; SFX.ring(); }
+  }
+  function startRing(which) { PHONE.ringing = which; PHONE.lastRing = -10; state.ui = 'phone'; $('phoneCaller').textContent = 'UNKNOWN NUMBER'; $('phoneState').textContent = 'INCOMING CALL'; $('phoneAnswer').hidden = false; $('phoneMsgs').hidden = true; $('phoneShell').hidden = true; $('phone').classList.remove('off'); $('phoneBox').classList.add('ringing'); }
+  function answerPhone() {
+    const which = PHONE.ringing; if (!which) return; PHONE.ringing = false; $('phoneBox').classList.remove('ringing'); $('phone').classList.add('off'); state.ui = null; SFX.pickUp();
+    const st = store.state;
+    if (which === 1) { ui.dialogue('Unknown number', ZD.DIALOGUE.caller(st), () => { st.flags.called = true; PHONE.calls.push('03:12 unknown number, 41 s'); if (st.quests.quest_z2_dialtone === 'available') store.activateQuest('quest_z2_dialtone'); ui.toast({ kind: 'warn', title: 'Burner', text: '1 new message with a photo. F opens the phone; its shell reads like any other.' }); save(); }, 'caller'); }
+    else { ui.dialogue('Unknown number', ZD.DIALOGUE.caller2(st), () => { st.flags.called2 = true; st.flags.call2Due = false; ui.toast({ kind: 'quest', title: 'Zero Day', text: 'End of Act 2. The vault at 10.0.3.1 is the next build.' }); save(); }, 'caller'); }
+  }
+  function declineRing() { PHONE.ringing = false; $('phoneBox').classList.remove('ringing'); $('phone').classList.add('off'); state.ui = null; state.ringAt = t + 20; ui.toast({ kind: '', title: 'Burner', text: 'Missed call. It will ring again.' }); }
+  function openPhone() {
+    if (state.ui || !state.playing || !store.state.flags.hasPhone) return; state.ui = 'phone'; SFX.swish();
+    const st = store.state; $('phoneCaller').textContent = st.flags.called ? '1 message · 1 call' : 'no messages yet'; $('phoneState').textContent = 'BURNER'; $('phoneAnswer').hidden = true; $('phoneShell').hidden = false; $('phoneMsgs').hidden = false;
+    $('phoneMsgs').innerHTML = st.flags.called ? '<div class="msg"><div class="from">UNKNOWN NUMBER · 03:12</div><p>You hold Dara’s map. Now you hold her phone. The third token is mine, and this street runs on it. Stop pulling at STYX, or the lights on Meridian Row go out one building at a time, starting with the lab. You have until 03:12.</p><div class="photo">[photo] a steel door with a keypad. Sign above it: MERIDIAN EXCHANGE.</div></div>' + (st.flags.called2 ? '<div class="msg"><div class="from">CALL LOG · 03:12</div><p>unknown number, answered. "Keep the phone charged."</p></div>' : '') : '<div class="msg"><p>No messages. Keep it charged. Answer anything that is a number.</p></div>';
+    $('phone').classList.remove('off');
+  }
+  function placeCourierBeacon() { /* beacons for Act 2 live in the BEACON table */ }
   /* ---------- sound: everything is synthesised with Web Audio, nothing is streamed ---------- */
   const SFX = (function () {
     let ctx = null, master = null, white = null, brown = null, bus = {}, humG = null, muted = false, musicOff = false, voicesOff = false, padTimers = [], mix = {}; const music = { out: null, in: null, zone: 'out', step: { out: 0, in: 0 }, next: 0 };
     const vol = { master: 100, music: 70, sfx: 100, ambient: 80 };
-    const VOICES = { rosa: { female: true, pitch: 1.0, rate: 1.0, pick: 0 }, julien: { female: false, pitch: 0.85, rate: 0.95, pick: 0 }, nadia: { female: true, pitch: 1.12, rate: 1.08, pick: 1 }, ped: { female: false, pitch: 1.0, rate: 1.0, pick: 0 } };
+    const VOICES = { courier: { female: true, pitch: 0.95, rate: 0.97, pick: 2 }, caller: { female: false, pitch: 0.55, rate: 0.85, pick: 1 }, rosa: { female: true, pitch: 1.0, rate: 1.0, pick: 0 }, julien: { female: false, pitch: 0.85, rate: 0.95, pick: 0 }, nadia: { female: true, pitch: 1.12, rate: 1.08, pick: 1 }, ped: { female: false, pitch: 1.0, rate: 1.0, pick: 0 } };
     if (window.speechSynthesis) { try { window.speechSynthesis.getVoices(); window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices(); } catch (e) { /* no speech */ } }
     try { muted = localStorage.getItem('nz-sound') === 'off'; musicOff = localStorage.getItem('nz-music') === 'off'; voicesOff = localStorage.getItem('nz-voices') === 'off'; const v = JSON.parse(localStorage.getItem('nz-vol') || 'null'); if (v) Object.keys(vol).forEach(k => { if (typeof v[k] === 'number') vol[k] = v[k]; }); } catch (e) { /* no storage */ }
     const rnd = Math.random;
@@ -2533,6 +2821,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       quest() { [523.3, 659.3, 784, 1046.5].forEach((fr, i) => tone(fr, 0.32, 'triangle', 0.2, { delay: i * 0.11 })); tone(1568, 0.7, 'sine', 0.1, { delay: 0.44 }); tone(2093, 0.9, 'sine', 0.06, { delay: 0.5 }); },
       discovery() { tone(1568, 0.5, 'sine', 0.16); tone(2349, 0.35, 'sine', 0.07, { delay: 0.02 }); tone(1046.5, 0.4, 'triangle', 0.08, { delay: 0.12 }); },
       warn() { tone(196, 0.2, 'triangle', 0.12, { to: 150 }); },
+      ring() { for (let k = 0; k < 2; k++) { tone(1160, 0.42, 'square', 0.05, { delay: k * 0.6, lp: 2600 }); tone(1480, 0.42, 'square', 0.035, { delay: k * 0.6, lp: 2600 }); for (let i = 0; i < 8; i++) tone(1160, 0.025, 'square', 0.04, { delay: k * 0.6 + i * 0.05, lp: 2600 }); } },
+      pickUp() { noise(0.05, 0.1, 'bandpass', 1800, 1); tone(440, 0.08, 'sine', 0.08, { delay: 0.05 }); },
       coin(big) { tone(big ? 1318.5 : 1046.5, 0.08, 'square', 0.06, { lp: 4000 }); tone(big ? 1976 : 1568, 0.22, 'square', 0.05, { delay: 0.07, lp: 4000 }); },
       buy() { tone(660, 0.06, 'square', 0.05, { lp: 3000 }); tone(880, 0.06, 'square', 0.05, { delay: 0.07, lp: 3000 }); tone(1320, 0.3, 'triangle', 0.1, { delay: 0.14 }); noise(0.05, 0.1, 'highpass', 3000, 0.5, { delay: 0.14 }); },
       fizz() { noise(0.6, 0.18, 'highpass', 2600, 0.6, { attack: 0.02 }); tone(520, 0.12, 'sine', 0.08, { delay: 0.1, to: 780 }); tone(1040, 0.3, 'sine', 0.05, { delay: 0.3 }); },
@@ -2594,10 +2884,10 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       const ul = $('qList'); ul.innerHTML = '';
       if (stt === 'available') { const li = document.createElement('li'); li.innerHTML = '<span class="mark"></span><span>' + esc(q.start) + '</span>'; ul.appendChild(li); }
       else { let hinted = false; q.objectives.forEach(o => { const li = document.createElement('li'); const done = store.isDone(q.id, o.id); if (done) li.className = 'done'; li.innerHTML = '<span class="mark"></span><span>' + esc(o.text) + '</span>'; ul.appendChild(li); if (!done && !hinted && o.hint) { hinted = true; const h = document.createElement('li'); h.className = 'hint'; h.innerHTML = '<span></span><span>Look around: ' + esc(o.hint) + '</span>'; ul.appendChild(h); } }); }
-      const next = $('qNext'); if (stt === 'completed') { const nq = store.nextQuest(q.id); next.hidden = false; next.textContent = nq ? 'Next: ' + nq.title + '. ' + nq.start : 'End of this build. Zero Day is open; thanks for playing.'; } else next.hidden = true;
+      const next = $('qNext'); if (stt === 'completed') { const nq = store.nextQuest(q.id); next.hidden = false; next.textContent = nq ? 'Next: ' + nq.title + '. ' + nq.start : 'End of Act 2. The vault at 10.0.3.1 is the next build.'; } else next.hidden = true;
       if (state.ui === 'journal') ui.renderJournal();
     },
-    closeAll() { const wasDlg = state.ui === 'dlg', done = ui.dlgDone; ui.dlgDone = null; if (wasDlg) SFX.hush(); if (state.ui === 'term') SFX.termOff(); else if (state.ui === 'journal' || state.ui === 'examine' || state.ui === 'settings' || state.ui === 'shop') SFX.close(); ['term', 'examine', 'dlg', 'settings', 'shop'].forEach(id => $(id).classList.add('off')); $('jr').classList.remove('on'); state.ui = null; if (state.touch) $('tE').hidden = !current; canvas.focus(); if (wasDlg && done) done(); },
+    closeAll() { const wasDlg = state.ui === 'dlg', done = ui.dlgDone; ui.dlgDone = null; if (wasDlg) SFX.hush(); if (state.ui === 'term') SFX.termOff(); else if (state.ui === 'journal' || state.ui === 'examine' || state.ui === 'settings' || state.ui === 'shop') SFX.close(); ['term', 'examine', 'dlg', 'settings', 'shop', 'phone', 'keypad'].forEach(id => $(id).classList.add('off')); $('jr').classList.remove('on'); state.ui = null; if (state.touch) $('tE').hidden = !current; canvas.focus(); if (wasDlg && done) done(); },
     openTerminal(which) {
       state.ui = 'term'; SFX.termOn(); const host = ZD.HOSTS[which];
       if (!ui.shells) ui.shells = {}; const first = !ui.shells[which]; if (first) ui.shells[which] = ZD.makeShell(store, host); ui.shell = ui.shells[which];
@@ -2633,6 +2923,12 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
         list.appendChild(el);
       });
     },
+    openKeypad() { state.ui = 'keypad'; SFX.swish(); $('kpIn').value = ''; $('kpNote').textContent = 'MERIDIAN EXCHANGE. Four digits.'; $('keypad').classList.remove('off'); setTimeout(() => $('kpIn').focus(), 30); },
+    keypadTry() {
+      const v = $('kpIn').value.trim(); if (v.length < 4) return;
+      if (v === '0312') { SFX.objective(); store.state.flags.xchOpen = true; $('kpNote').textContent = 'The lock clicks. Green.'; const led = zones.out.meshes.find(m => m.name === 'keypadLed'); if (led) led.material = mat('keypadLedG', '#4ff08a', { emissive: '#4ff08a', unlit: true }); store.addDiscovery({ id: 'XCH-CODE', title: 'The exchange door code', text: '0312. The lineman set the keypad to Dara’s time, the minute everything on this street happens.' }); setTimeout(() => { ui.closeAll(); enterExchange(); }, 500); }
+      else { SFX.buzz(); $('kpIn').value = ''; $('kpNote').textContent = 'The lock blinks red. ' + (store.state.quests.quest_z2_dialtone === 'completed' ? 'The door page said: the time everything on this street happens.' : 'Four digits. Someone on this street knows them.'); }
+    },
     cashPop(text) { const el = $('cashPop'); el.textContent = text; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); $('hudCredits').textContent = String(store.state.credits).padStart(6, '0'); },
     jrTab: 'quests',
     renderJournal() {
@@ -2662,6 +2958,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   $('jrClose').addEventListener('click', () => ui.closeAll());
   $('setClose').addEventListener('click', () => ui.closeAll());
   $('shopClose').addEventListener('click', () => ui.closeAll());
+  $('phoneAnswer').addEventListener('click', () => answerPhone()); $('phoneClose').addEventListener('click', () => { if (PHONE.ringing) declineRing(); else ui.closeAll(); }); $('phoneShell').addEventListener('click', () => { ui.closeAll(); ui.openTerminal('phone'); });
+  $('kpGo').addEventListener('click', () => ui.keypadTry()); $('kpClose').addEventListener('click', () => ui.closeAll()); $('kpIn').addEventListener('keydown', (e) => { if (e.key === 'Enter') { ui.keypadTry(); e.preventDefault(); } else if (e.key === 'Escape') ui.closeAll(); e.stopPropagation(); });
   [['volMaster', 'master'], ['volMusic', 'music'], ['volSfx', 'sfx'], ['volAmbient', 'ambient']].forEach(v => $(v[0]).addEventListener('input', (e) => SFX.setVolume(v[1], +e.target.value)));
   $('journalBtn').addEventListener('click', () => { if (state.ui === 'journal') ui.closeAll(); else if (!state.ui) ui.openJournal(); });
   document.querySelectorAll('#jrHead .tab').forEach(b => b.addEventListener('click', () => { ui.jrTab = b.dataset.tab; ui.renderJournal(); }));
@@ -2678,7 +2976,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   store.on('toast', o => { ui.toast(o); if (o.kind === 'ok') SFX.objective(); else if (o.kind === 'quest') SFX.quest(); else if (o.kind === 'found') SFX.discovery(); else if (o.kind === 'warn') SFX.warn(); else if (o.kind === 'buy') SFX.buy(); else if (o.kind === 'cash') SFX.coin(); else SFX.tick(); });
   store.on('bought', id => { if (id === 'keys') ensureOwnCar(); });
   store.on('change', () => { ui.refreshQuest(); updateBeacon(); save(); });
-  store.on('questComplete', (qid) => { if (qid === 'quest_i3_ghost') setTimeout(() => ui.toast({ kind: 'quest', title: 'Zero Day', text: 'End of this build. Thanks for playing the overhead cut of Meridian Row.' }), 4200); });
+  store.on('questComplete', (qid) => { if (qid === 'quest_i3_ghost') setTimeout(() => ui.toast({ kind: 'quest', title: 'Zero Day', text: 'Rosa has one more thing to say. Someone is waiting in the park.' }), 4200); if (qid === 'quest_z3_exchange') setTimeout(() => { store.state.flags.call2Due = true; save(); }, 6000); });
 
   /* ---------- persistence ---------- */
   const SAVE_KEY = 'netrunner-zero-day-overhead-save';
@@ -2722,7 +3020,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     rosa.pivot.position.set(-7.2, 0, 13.6); rosa.yaw = PI; rosa.pivot.rotation.y = PI;
     jul.pivot.position.set(10.2, 0, -13.4); jul.yaw = 0.2; jul.pivot.rotation.y = 0.2;
     [rosa, jul].forEach(ch => { const c = BABYLON.MeshBuilder.CreateCylinder('npcCol', { height: 1.8, diameter: 0.7 }, scene); c.position.set(ch.pivot.position.x, 0.9, ch.pivot.position.z); c.isVisible = false; c.isPickable = false; c.checkCollisions = true; c.parent = Z.root; });
-    placeNadia();
+    placeNadia(); placeCourier();
     spawnTraffic(22); spawnPeds(AV.ready ? 18 : 28);
     [[-20, -3.6, PI / 2], [26, 3.6, -PI / 2], [-30, 3.6, -PI / 2], [-40, -20, 0], [40, 22, PI], [-40, 60, 0], [40, -60, PI], [-76, 20, 0], [76, -20, PI]].forEach(p => spawnCar({ x: p[0], z: p[1], heading: p[2], parked: true }));
     if (!NULL_ENGINE && AV.ready) { const sg = zones.out.sg; Object.values(chars).forEach(ch => { if (ch.kind === 'avatar' && ch !== chars.nadia) charMeshes(ch).forEach(m => sg.addShadowCaster(m)); }); }
@@ -2735,7 +3033,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const st = store.state; const sv = resume ? loadSave() : null;
     if (sv && sv.save) { store.restore(sv.save); if (sv.pos) { setZone(sv.zone || 'out', true); placePlayer(sv.pos[0], sv.pos[1], sv.pos[2], sv.pos[3]); } else placePlayer(-5, 0, 0, 0); }
     else { st.profile = ($('pname').value.trim() || 'Fresh Investigator').slice(0, 24); placePlayer(-5, 0, 0, 0); if (st.quests.quest_f1_cli === 'available') store.activateQuest('quest_f1_cli'); }
-    updateBeacon(); ensureOwnCar();
+    updateBeacon(); ensureOwnCar(); if (st.flags.hasPhone && !st.flags.called) state.ringAt = t + 14;
     $('start').classList.add('off'); state.playing = true; ui.refreshQuest(); save(); canvas.focus();
     setTimeout(() => $('fade').classList.add('clear'), 80);
     if (!resume) setTimeout(() => ui.toast({ kind: '', title: 'Building A', text: 'The cyan arrow marks the door. W runs, A and D turn, E at a car takes it.' }), 1200);

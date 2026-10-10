@@ -29,6 +29,7 @@ then visit http://localhost:8000/. Babylon.js itself loads from jsDelivr.
 | M / N | sound and music on or off |
 | B | drink an OVERCLOCK (from Byte Mart) |
 | K | whistle your own car back to Byte Mart |
+| F | the burner phone (Act 2) |
 
 ## Quests
 
@@ -37,6 +38,12 @@ then visit http://localhost:8000/. Babylon.js itself loads from jsDelivr.
 3. Three Twelve: the Caduceus auth log in Building F (grep, wc, pipes, cron)
 4. The Hum: the service console in Building D (ps, ss, find)
 5. Ghost Host: the host with no name (arp, nmap, ssh)
+
+Act 2 opens once the ghost host is done:
+
+6. Burner: Rosa sends you to a courier by the park fountain, who hands over Dara's prepaid phone (F opens it)
+7. Dial Tone: a threatening call at 03:12 and a photo of a keypad door; trace the VoIP gateway (traceroute, nmap, curl on a non-standard port)
+8. The Exchange: Building X, the Meridian Exchange, with a keypad door and a lineman console running the phone system (sip.conf, call records as CSV, grep through a dial plan, mail)
 
 Every objective shows a "look around" hint, and each room holds its own cheat sheet or handout.
 
