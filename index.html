@@ -106,6 +106,29 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 #startBox h1{font-family:var(--font-display);font-size:clamp(56px,11vw,110px);line-height:.86;margin:0;letter-spacing:.02em;color:var(--cash);text-shadow:5px 5px 0 #000,8px 8px 0 var(--hot);text-wrap:balance}
 #startBox h1 span{display:block;color:var(--cyan);font-size:.36em;letter-spacing:.22em;margin-top:10px;text-shadow:3px 3px 0 #000}
 #startBox p{margin:0;max-width:62ch;color:#d9d2c5}
+#customizeBox{width:min(760px,100%);display:grid;grid-template-columns:minmax(220px,.8fr) minmax(280px,1.2fr);gap:22px;align-items:stretch}
+#customizePreview{min-height:280px;display:grid;place-items:center;background:linear-gradient(145deg,rgba(62,232,240,.12),rgba(255,61,127,.12)),#11141c;border:2px solid var(--line);box-shadow:4px 4px 0 #000;position:relative;overflow:hidden}
+#customizePreview:after{content:'RUNNER PROFILE';position:absolute;left:14px;top:12px;font:600 11px var(--font-ui);letter-spacing:.16em;color:var(--mute)}
+#characterPreviewCanvas{width:100%;height:100%;min-height:280px;display:block;touch-action:none;cursor:grab}
+#characterPreviewCanvas:active{cursor:grabbing}
+.previewRotateControls{position:absolute;left:14px;bottom:10px;display:flex;gap:6px;z-index:2}
+.previewRotateControls button{width:34px;height:30px;border:1px solid var(--cyan);background:rgba(5,10,18,.88);color:var(--cyan);font:700 20px/1 var(--font-ui);cursor:pointer}
+.previewRotateControls button:hover{background:var(--cyan);color:#061018}
+.previewHint{position:absolute;right:14px;bottom:12px;font:600 10px var(--font-ui);letter-spacing:.14em;color:var(--cyan);pointer-events:none}
+
+.runnerPreview .head{position:absolute;left:35px;top:14px;width:42px;height:42px;border-radius:50%;background:var(--preview-skin);border:3px solid #06070c}
+.runnerPreview .hair{position:absolute;left:33px;top:10px;width:46px;height:17px;border-radius:22px 22px 8px 8px;background:var(--preview-hair);border:3px solid #06070c;z-index:2}
+.runnerPreview .body{position:absolute;left:22px;top:53px;width:68px;height:82px;border-radius:12px 12px 7px 7px;background:var(--preview-top);border:3px solid #06070c}
+.runnerPreview .arm{position:absolute;top:60px;width:18px;height:70px;border-radius:10px;background:var(--preview-top);border:3px solid #06070c}
+.runnerPreview .arm.left{left:7px;transform:rotate(8deg)} .runnerPreview .arm.right{right:7px;transform:rotate(-8deg)}
+.runnerPreview .leg{position:absolute;top:130px;width:25px;height:56px;border-radius:5px 5px 10px 10px;background:var(--preview-bottom);border:3px solid #06070c}
+.runnerPreview .leg.left{left:28px}.runnerPreview .leg.right{right:28px}
+#customizePanel{padding:20px;display:flex;flex-direction:column;gap:14px}
+#styleChoices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.styleChoice{border:2px solid var(--line);background:#11141c;color:var(--fg);padding:10px;text-align:left;display:flex;gap:9px;align-items:center;border-radius:2px}
+.styleChoice.selected{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan) inset;background:#17232b}
+.styleDot{width:24px;height:24px;border-radius:50%;border:2px solid #06070c;flex:none;background:linear-gradient(135deg,var(--dot-top) 0 50%,var(--dot-bottom) 50%)}
+@media (max-width:650px){#customizeBox{grid-template-columns:1fr}#customizePreview{min-height:180px}.runnerPreview{transform:scale(.8)}}
 .field{display:flex;flex-direction:column;gap:6px}
 .field input{font:500 16px var(--font-ui);letter-spacing:.04em;background:#11141c;border:2px solid var(--line);color:var(--fg);padding:9px 12px;border-radius:2px;width:min(320px,100%)}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
@@ -210,6 +233,23 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
       <div class="field"><label class="eyebrow" for="pname">Profile name</label><input id="pname" value="Fresh Investigator" maxlength="24" autocomplete="off"></div>
       <div class="row"><button id="enterBtn" class="btn" type="button" disabled>Drop into Meridian Row</button><button id="continueBtn" class="btn ghost" type="button" hidden>Continue saved profile</button><span id="loadline">LOADING ENGINE...</span></div>
       <div id="controls"><span><b>W / S</b> run forward, back</span><span><b>A / D</b> turn</span><span><b>Shift</b> stroll outside, run inside</span><span><b>E</b> interact, talk to people, enter or leave a car</span><span><b>W / S</b> gas and brake in a car</span><span><b>A / D</b> steer</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> switch between overhead and chase camera</span><span><b>B</b> drink an OVERCLOCK from Byte Mart</span><span><b>K</b> whistle your own car back to the mart</span><span><b>Wheel</b> zoom the camera</span><span><b>P</b> missions and journal</span><span><b>L</b> settings</span><span><b>N</b> music on or off</span><span><b>Esc</b> close window</span><span>On a phone: stick to move, tap E, tap BRAKE in a car.</span></div>
+    </div>
+  </div>
+
+  <div id="customize" class="screen off" aria-label="Character styling">
+    <div id="customizeBox">
+      <div id="customizePreview" aria-label="Rotatable 3D character preview">
+        <canvas id="characterPreviewCanvas" aria-label="Drag to rotate your 3D runner"></canvas>
+        <div class="previewRotateControls"><button type="button" id="previewRotateLeft" aria-label="Rotate character left">LEFT</button><button type="button" id="previewRotateRight" aria-label="Rotate character right">RIGHT</button></div>
+        <div class="previewHint">DRAG TO ROTATE</div>
+      </div>
+      <div id="customizePanel" class="card">
+        <div class="eyebrow">Before drop-in</div>
+        <h2 style="font:32px var(--font-display);margin:0;color:var(--cash);letter-spacing:.05em">Style your runner</h2>
+        <p style="margin:0;color:#d9d2c5">Pick a look for Meridian Row. You can change this later by starting a new profile.</p>
+        <div id="styleChoices" role="radiogroup" aria-label="Character styles"></div>
+        <div class="row"><button id="customizeBack" class="btn ghost" type="button">Back</button><button id="customizeStart" class="btn" type="button">Jump in</button></div>
+      </div>
     </div>
   </div>
 
@@ -2682,7 +2722,63 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
 
   /* ---------- persistence ---------- */
   const SAVE_KEY = 'netrunner-zero-day-overhead-save';
-  function snapshot() { const p = chars.player; const car = state.driving; return { save: store.serialize(), pos: p ? [car ? car.x : p.pivot.position.x, car ? 0 : p.pivot.position.y, car ? car.z : p.pivot.position.z, p.yaw] : null, zone: state.zone, playing: state.playing }; }
+  const STYLE_PRESETS = [
+    { id: 'cyan', name: 'Signal Ghost', top: '#3ee8f0', bottom: '#1a1d26', hair: '#161b2a', skin: '#d9a06a' },
+    { id: 'amber', name: 'Street Heat', top: '#ff9f43', bottom: '#332018', hair: '#4a211c', skin: '#f0c8a0' },
+    { id: 'violet', name: 'Night Bloom', top: '#a78bfa', bottom: '#20203b', hair: '#261637', skin: '#b8795b' },
+    { id: 'mint', name: 'Soft Intrusion', top: '#8cf28c', bottom: '#1d332d', hair: '#132d2a', skin: '#c98f6f' },
+    { id: 'mono', name: 'Black ICE', top: '#d9d2c5', bottom: '#15161b', hair: '#050509', skin: '#d9a06a' },
+    { id: 'red', name: 'Zero Day', top: '#ff477e', bottom: '#291522', hair: '#180b17', skin: '#f0c8a0' }
+  ];
+  let chosenStyle = STYLE_PRESETS[0], pendingResume = false;
+  function applyPlayerStyle() {
+    const ch = chars.player; if (!ch) return;
+    if (ch.kind === 'avatar') {
+      ch.meshes.forEach(m => {
+        const mt = m.material; if (!mt) return;
+        if (!m.metadata || !m.metadata.styleClone) { m.material = mt.clone(mt.name + '-runner-style'); m.metadata = Object.assign({}, m.metadata || {}, { styleClone: true }); }
+        const matl = m.material, n = (m.name + ' ' + matl.name).toLowerCase();
+        let colour = null;
+        if (n.includes('outfit_top')) colour = chosenStyle.top;
+        else if (n.includes('outfit_bottom') || n.includes('outfit_footwear')) colour = chosenStyle.bottom;
+        else if (n.includes('hair') || n.includes('beard')) colour = chosenStyle.hair;
+        else if (n.includes('skin') || n.includes('body')) colour = chosenStyle.skin;
+        if (!colour) return;
+        if ('albedoTexture' in matl) matl.albedoTexture = null;
+        if ('diffuseTexture' in matl) matl.diffuseTexture = null;
+        if (matl.albedoColor) matl.albedoColor = C3(colour);
+        if (matl.diffuseColor) matl.diffuseColor = C3(colour);
+      });
+    } else {
+      const part = ch.parts; [part.torso, part.armL, part.armR].forEach(m => { if (m && m.material) m.material.diffuseColor = C3(chosenStyle.top); });
+      [part.legL, part.legR].forEach(m => { if (m && m.material) m.material.diffuseColor = C3(chosenStyle.bottom); });
+      if (part.head && part.head.material) part.head.material.diffuseColor = C3(chosenStyle.skin);
+      if (part.hairTop && part.hairTop.material) part.hairTop.material.diffuseColor = C3(chosenStyle.hair);
+    }
+  }
+  function renderStyleChoices() {
+    const box = $('styleChoices'); box.innerHTML = '';
+    STYLE_PRESETS.forEach(style => { const b = document.createElement('button'); b.type = 'button'; b.className = 'styleChoice' + (style.id === chosenStyle.id ? ' selected' : ''); b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', style.id === chosenStyle.id ? 'true' : 'false'); b.innerHTML = '<span class="styleDot" style="--dot-top:' + style.top + ';--dot-bottom:' + style.bottom + '"></span><span><b>' + esc(style.name) + '</b><br><small>' + style.id.toUpperCase() + '</small></span>'; b.addEventListener('click', () => { chosenStyle = style; updateStylePreview(); renderStyleChoices(); }); box.appendChild(b); });
+  }
+  const preview3d = { engine: null, scene: null, root: null, meshes: [], ready: false, dragging: false, lastX: 0 };
+  function paintPreview() {
+    preview3d.meshes.forEach(m => { const mt = m.material; if (!mt) return; const n = (m.name + ' ' + mt.name).toLowerCase(); let colour = null; if (n.includes('outfit_top')) colour = chosenStyle.top; else if (n.includes('outfit_bottom') || n.includes('outfit_footwear')) colour = chosenStyle.bottom; else if (n.includes('hair') || n.includes('beard')) colour = chosenStyle.hair; else if (n.includes('skin') || n.includes('body')) colour = chosenStyle.skin; if (!colour) return; if ('albedoTexture' in mt) mt.albedoTexture = null; if ('diffuseTexture' in mt) mt.diffuseTexture = null; if (mt.albedoColor) mt.albedoColor = C3(colour); if (mt.diffuseColor) mt.diffuseColor = C3(colour); });
+  }
+  async function init3DPreview() {
+    if (preview3d.engine) return;
+    const canvas = $('characterPreviewCanvas'); preview3d.engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true }); preview3d.scene = new BABYLON.Scene(preview3d.engine); preview3d.scene.clearColor = new BABYLON.Color4(.025, .035, .055, 1);
+    const camera = new BABYLON.ArcRotateCamera('characterPreviewCamera', -Math.PI / 2, Math.PI / 2.15, 2.8, new BABYLON.Vector3(0, .9, 0), preview3d.scene); camera.lowerRadiusLimit = 1.8; camera.upperRadiusLimit = 4; camera.lowerBetaLimit = .65; camera.upperBetaLimit = 2.5; camera.panningSensibility = 0; camera.wheelPrecision = 0; camera.detachControl();
+    const key = new BABYLON.HemisphericLight('previewKey', new BABYLON.Vector3(-.4, 1, -.6), preview3d.scene); key.intensity = 1.2; const rim = new BABYLON.PointLight('previewRim', new BABYLON.Vector3(1, 1.8, 1.5), preview3d.scene); rim.diffuse = new BABYLON.Color3(.25, .9, 1); rim.intensity = 12;
+    preview3d.root = new BABYLON.TransformNode('characterPreviewRoot', preview3d.scene); preview3d.root.rotation.y = Math.PI;
+    const rotate = amount => { preview3d.root.rotation.y += amount; }; $('previewRotateLeft').addEventListener('click', () => rotate(-Math.PI / 8)); $('previewRotateRight').addEventListener('click', () => rotate(Math.PI / 8));
+    canvas.addEventListener('pointerdown', e => { preview3d.dragging = true; preview3d.lastX = e.clientX; canvas.setPointerCapture(e.pointerId); }); canvas.addEventListener('pointermove', e => { if (!preview3d.dragging) return; preview3d.root.rotation.y += (e.clientX - preview3d.lastX) * .012; preview3d.lastX = e.clientX; }); canvas.addEventListener('pointerup', e => { preview3d.dragging = false; canvas.releasePointerCapture(e.pointerId); });
+    try { const res = await fetch('./models/avatar-player.glb.txt'); const b64 = (await res.text()).trim(); const bin = atob(b64); const bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); const file = new File([bytes], 'player.glb'); const container = await BABYLON.SceneLoader.LoadAssetContainerAsync('', file, preview3d.scene); container.addAllToScene(); container.rootNodes.forEach(n => n.parent = preview3d.root); preview3d.meshes = preview3d.scene.meshes.filter(m => m.getTotalVertices && m.getTotalVertices() > 0); preview3d.meshes.forEach(m => m.isPickable = false); preview3d.ready = true; paintPreview(); } catch (e) { console.error('3D character preview failed', e); }
+    preview3d.engine.runRenderLoop(() => preview3d.scene.render()); window.addEventListener('resize', () => preview3d.engine.resize());
+  }
+  function updateStylePreview() { const r = $('runnerPreview'); if (r) { r.style.setProperty('--preview-top', chosenStyle.top); r.style.setProperty('--preview-bottom', chosenStyle.bottom); r.style.setProperty('--preview-hair', chosenStyle.hair); r.style.setProperty('--preview-skin', chosenStyle.skin); } paintPreview(); }
+  function openCustomizer(resume) { pendingResume = resume; if (resume) { const sv = loadSave(); if (sv && sv.appearance) chosenStyle = STYLE_PRESETS.find(x => x.id === sv.appearance.id) || chosenStyle; } $('start').classList.add('off'); $('customize').classList.remove('off'); renderStyleChoices(); updateStylePreview(); init3DPreview(); }
+  function closeCustomizer() { $('customize').classList.add('off'); $('start').classList.remove('off'); }
+  function snapshot() { const p = chars.player; const car = state.driving; return { save: store.serialize(), appearance: chosenStyle, pos: p ? [car ? car.x : p.pivot.position.x, car ? 0 : p.pivot.position.y, car ? car.z : p.pivot.position.z, p.yaw] : null, zone: state.zone, playing: state.playing }; }
   function save() { try { if (state.playing) localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot())); } catch (e) { /* storage unavailable */ } }
   function loadSave() { try { const s = localStorage.getItem(SAVE_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
   try { if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(snapshot); } catch (e) { /* no hot support */ }
@@ -2735,13 +2831,15 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const st = store.state; const sv = resume ? loadSave() : null;
     if (sv && sv.save) { store.restore(sv.save); if (sv.pos) { setZone(sv.zone || 'out', true); placePlayer(sv.pos[0], sv.pos[1], sv.pos[2], sv.pos[3]); } else placePlayer(-5, 0, 0, 0); }
     else { st.profile = ($('pname').value.trim() || 'Fresh Investigator').slice(0, 24); placePlayer(-5, 0, 0, 0); if (st.quests.quest_f1_cli === 'available') store.activateQuest('quest_f1_cli'); }
-    updateBeacon(); ensureOwnCar();
+    applyPlayerStyle(); updateBeacon(); ensureOwnCar();
     $('start').classList.add('off'); state.playing = true; ui.refreshQuest(); save(); canvas.focus();
     setTimeout(() => $('fade').classList.add('clear'), 80);
     if (!resume) setTimeout(() => ui.toast({ kind: '', title: 'Building A', text: 'The cyan arrow marks the door. W runs, A and D turn, E at a car takes it.' }), 1200);
   }
-  $('enterBtn').addEventListener('click', () => { if (loaded) begin(false); });
-  $('continueBtn').addEventListener('click', () => { if (loaded) begin(true); });
+  $('enterBtn').addEventListener('click', () => { if (loaded) openCustomizer(false); });
+  $('continueBtn').addEventListener('click', () => { if (loaded) openCustomizer(true); });
+  $('customizeBack').addEventListener('click', closeCustomizer);
+  $('customizeStart').addEventListener('click', () => { $('customize').classList.add('off'); begin(pendingResume); });
   const existing = loadSave(); if (existing && existing.save && existing.save.profile) { $('continueBtn').hidden = false; $('continueBtn').textContent = 'Continue as ' + existing.save.profile; }
 
   async function start(hot) {
@@ -2758,5 +2856,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   const hot = window.claude && window.claude.hot;
   if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
 })();
+  // Local inspection handle; no gameplay logic changed.
+  window.__nrInspect = { get state(){ return state; }, get player(){ return chars.player; }, get store(){ return store.state; }, get interactables(){ return inter; }, setZone, placePlayer, ui };
 </script>
 
