@@ -1093,7 +1093,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     }
   };
 
-  const PED_NAMES = ['Teo', 'Marisol', 'Yusuf', 'Hanne', 'Kwame', 'Ingrid', 'Bao', 'Priya', 'Lucas', 'Amara', 'Sven', 'Noor', 'Dmitri', 'Esme', 'Tariq', 'Wren', 'Jonas', 'Leila', 'Mateo', 'Sigrid', 'Ravi', 'Chiara', 'Ola', 'Farah'];
+  const PED_NAMES = { female: ['Marisol', 'Hanne', 'Ingrid', 'Priya', 'Amara', 'Noor', 'Esme', 'Wren', 'Leila', 'Sigrid', 'Chiara', 'Farah'], male: ['Teo', 'Yusuf', 'Kwame', 'Bao', 'Lucas', 'Sven', 'Dmitri', 'Tariq', 'Jonas', 'Mateo', 'Ravi', 'Ola'] };
   return { HOSTS, QUESTS, GIGS, SHOP, EXAMINABLES, DIALOGUE, PED_NAMES, makeStore, makeShell };
 })();
 </script>
@@ -1585,8 +1585,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   function charMeshes(ch) { return ch.kind === 'avatar' ? ch.meshes.filter(m => m.getTotalVertices && m.getTotalVertices() > 0) : Object.values(ch.parts); }
   const RIGS = ['player', 'rosa', 'julien'];
   function newPed(name, look) {
-    if (!AV.ready) return makeFigure(name, { jacket: look[0], pants: look[1], skin: look[2], hair: look[3] });
-    const ch = makeAvatar(name, RIGS[Math.floor(rnd() * RIGS.length)], { tint: [look[0], look[1], rnd() < 0.5 ? look[3] : null] });
+    if (!AV.ready) { const ch = makeFigure(name, { jacket: look[0], pants: look[1], skin: look[2], hair: look[3] }); ch.female = rnd() < 0.5; return ch; }
+    const rig = RIGS[Math.floor(rnd() * RIGS.length)]; const ch = makeAvatar(name, rig, { tint: [look[0], look[1], rnd() < 0.5 ? look[3] : null] }); ch.rig = rig; ch.female = rig === 'rosa'; // the voice and the name follow the body
     giveAnims(ch, [['idle', 'anim-m-idle'], ['walk', 'anim-m-walk'], ['jog', 'anim-m-jog']]); return ch;
   }
   function animateFigure(ch, dt) {
@@ -1605,7 +1605,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       const road = alongX ? CITY.roadsZ[Math.floor(rnd() * CITY.roadsZ.length)] : CITY.roadsX[Math.floor(rnd() * CITY.roadsX.length)];
       const along = (alongX ? CITY.bounds.x0 : CITY.bounds.z0) + 10 + rnd() * ((alongX ? CITY.bounds.x1 - CITY.bounds.x0 : CITY.bounds.z1 - CITY.bounds.z0) - 20);
       const d = DIRS[dir]; const rx = d[1], rz = -d[0];
-      const r = rnd(); const w = { ch, x: alongX ? along : road + rx * CITY.walk * side, z: alongX ? road + rz * CITY.walk * side : along, dir, speed: 1.2 + rnd() * 0.8, pause: 0, side, name: ZD.PED_NAMES[i % ZD.PED_NAMES.length], mood: r < 0.42 ? 'kind' : r < 0.72 ? 'rude' : 'busy', female: rnd() < 0.5, seed: i, talk: 0, scared: 0 };
+      const r = rnd(); const w = { ch, x: alongX ? along : road + rx * CITY.walk * side, z: alongX ? road + rz * CITY.walk * side : along, dir, speed: 1.2 + rnd() * 0.8, pause: 0, side, name: (ch.female ? ZD.PED_NAMES.female : ZD.PED_NAMES.male)[i % 12], mood: r < 0.42 ? 'kind' : r < 0.72 ? 'rude' : 'busy', female: !!ch.female, seed: i, talk: 0, scared: 0 };
       peds.push(w);
     }
   }
