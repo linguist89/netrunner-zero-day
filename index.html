@@ -290,7 +290,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
       <div id="assessmentQuestion"></div>
       <div id="assessmentOptions" role="radiogroup"></div>
       <div id="assessmentNote" aria-live="polite"></div>
-      <div class="row"><button id="assessmentNext" class="btn" type="button" disabled>Next question</button></div>
+      <div class="row"><button id="assessmentNext" class="btn" type="button" disabled>Next question</button><button id="assessmentSkip" class="btn ghost" type="button">Skip and start as Beginner</button></div>
     </div>
   </div>
 
@@ -3509,9 +3509,11 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     item.a.forEach((text, i) => { const label = document.createElement('label'); label.className = 'assessmentOption'; label.innerHTML = '<input type="radio" name="cyberAnswer" value="' + i + '"><span>' + esc(text) + '</span>'; label.querySelector('input').addEventListener('change', () => { assessment.answers[assessment.index] = i; SFX.tick(); $('assessmentNext').disabled = false; }); $('assessmentOptions').appendChild(label); });
     $('assessmentNext').disabled = assessment.answers[assessment.index] == null; $('assessmentNext').textContent = assessment.index === CYBER_ASSESSMENT.length - 1 ? 'Finish assessment' : 'Next question';
   }
-  function openAssessment(resume) { assessment.index = 0; assessment.answers = []; assessment.resume = resume; SFX.init(); SFX.softMusic(); $('start').classList.add('off'); $('customize').classList.add('off'); $('assessment').classList.remove('off'); renderAssessment(); }
-  function finishAssessment() { const result = assessmentResult(assessment.answers); if (assessment.resume) pendingCyberResult = result; else { store.state.cyberScore = result.score; store.state.cyberLevel = result.level; } $('assessment').classList.add('off'); openCustomizer(assessment.resume); }
+  function openAssessment(resume) { assessment.index = 0; assessment.answers = []; assessment.resume = resume; SFX.init(); SFX.softMusic(); $('start').classList.add('off'); $('customize').classList.add('off'); $('assessment').classList.remove('off'); $('assessmentSkip').hidden = !!resume; renderAssessment(); }
+  function finishAssessment() { const result = assessmentResult(assessment.answers); if (assessment.resume) pendingCyberResult = result; else { store.state.cyberScore = result.score; store.state.cyberLevel = result.level; } $('assessment').classList.add('off'); openCustomizer(false); }
+  function skipAssessment() { store.state.cyberScore = 0; store.state.cyberLevel = 'Beginner'; pendingCyberResult = null; $('assessment').classList.add('off'); openCustomizer(false); }
   $('assessmentNext').addEventListener('click', () => { if (assessment.answers[assessment.index] == null) return; if (assessment.index === CYBER_ASSESSMENT.length - 1) finishAssessment(); else { assessment.index++; renderAssessment(); } });
+  $('assessmentSkip').addEventListener('click', skipAssessment);
 
   /* ---------- persistence ---------- */
   const SAVE_KEY = 'netrunner-zero-day-overhead-save';
@@ -3566,7 +3568,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   function begin(resume) {
     SFX.init(); SFX.zone(state.zone === 'out' ? 'out' : 'in'); ui.setSound(SFX.muted); ui.setMusic(SFX.musicOff); ui.setVoices(SFX.voicesOff);
     const st = store.state; const sv = resume ? loadSave() : null;
-    if (sv && sv.save) { store.restore(sv.save); if (pendingCyberResult) { store.state.cyberScore = pendingCyberResult.score; store.state.cyberLevel = pendingCyberResult.level; pendingCyberResult = null; } if (sv.pos) { setZone(sv.zone || 'out', true); placePlayer(sv.pos[0], sv.pos[1], sv.pos[2], sv.pos[3]); } else placePlayer(-5, 0, 0, 0); }
+    if (sv && sv.appearance) LOOK.current = normalizeLook(sv.appearance);
+    if (sv && sv.save) { store.restore(sv.save); if (store.state.cyberScore == null) { store.state.cyberScore = 0; store.state.cyberLevel = 'Beginner'; } if (pendingCyberResult) { store.state.cyberScore = pendingCyberResult.score; store.state.cyberLevel = pendingCyberResult.level; pendingCyberResult = null; } if (sv.pos) { setZone(sv.zone || 'out', true); placePlayer(sv.pos[0], sv.pos[1], sv.pos[2], sv.pos[3]); } else placePlayer(-5, 0, 0, 0); }
     else { st.profile = ($('pname').value.trim() || 'Fresh Investigator').slice(0, 24); placePlayer(-5, 0, 0, 0); if (st.quests.quest_f1_cli === 'available') store.activateQuest('quest_f1_cli'); }
     if (sv && typeof sv.clock === 'number' && sv.clock >= START_MIN) CLOCK.total = sv.clock; else if (!resume) CLOCK.total = START_MIN; // a new profile starts on Saturday 10 October at 19:00
     CLOCK.shownMin = -1; syncLogs(); drawClock();
@@ -3576,7 +3579,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (!resume) { setTimeout(() => ui.toast({ kind: '', title: longDate(), text: '19:00 on Meridian Row. Six days since anyone saw Dara. T shows the clock.' }), 600); setTimeout(() => ui.toast({ kind: '', title: 'Building A', text: 'The cyan arrow marks the door. W runs, A and D turn, E at a car takes it.' }), 1200); }
   }
   $('enterBtn').addEventListener('click', () => { if (loaded) openAssessment(false); });
-  $('continueBtn').addEventListener('click', () => { if (!loaded) return; const existing = loadSave(); if (existing && existing.save && existing.save.cyberLevel) openCustomizer(true); else openAssessment(true); });
+  $('continueBtn').addEventListener('click', () => { if (!loaded) return; begin(true); });
   $('customizeBack').addEventListener('click', closeCustomizer);
   $('customizeStart').addEventListener('click', () => { $('customize').classList.add('off'); begin(creator.pendingResume); });
   const existing = loadSave(); if (existing && existing.save && existing.save.profile) { $('continueBtn').hidden = false; $('continueBtn').textContent = 'Continue as ' + existing.save.profile; }
