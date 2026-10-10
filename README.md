@@ -30,6 +30,7 @@ then visit http://localhost:8000/. Babylon.js itself loads from jsDelivr.
 | B | drink an OVERCLOCK (from Byte Mart) |
 | K | whistle your own car back to Byte Mart |
 | F | the burner phone (Act 2) |
+| T | show or hide the clock and the date |
 
 ## Quests
 
@@ -58,6 +59,23 @@ Before dropping in (and whenever you continue) the runner is styled Morrowind-st
 ## People
 
 Rosa, Julien and Nadia speak their lines through the browser's own speech voices (a Voices switch in settings turns this off; without voices the old radio blips play). Every passer-by has a name and a mood: the kind ones give directions and gossip about Dara, the rude ones tell you to keep walking, the busy ones are late for Caduceus. Anyone you nearly ran over will mention it.
+
+## Time, date and the 03:12 event
+
+Meridian Row runs on its own calendar. A new profile starts on Saturday 10 October 2026 at 19:00, six days after Dara was last seen. Two game minutes pass every real second, so a day lasts twelve minutes, and the clock stops while a terminal, a conversation or a menu is open. T shows a pager-style clock with the time, the date and a 24-hour strip. The date is saved with the profile.
+
+- **Day and night.** Outdoors the sun rises at 06:00 in the east and sets at 18:00 in the west; sky, fog and shadows follow it. By day the street lamps, their light pools, lit office windows and bloom fade out; at dusk they come back.
+- **03:12 every night.** The cron job on Caduceus runs: the street lights stutter, the pager reports the ops login, and the logs grow by one night (`auth.log` and `styx-sync.log` on Caduceus, `styxd.log` on the Building D box, `cdr.csv` at the exchange). The gateway's hit counter goes up by one.
+- **The caller's deadline.** Answering the first call in Act 2 starts a countdown to the next 03:12 (at least six game hours away), shown in red on the clock. Miss it before finishing The Exchange and Building H goes dark, windows, sign and lab lights; finishing The Exchange brings it back.
+- **In the terminals** `date` and the new `cal` command use the game's date; journal and notebook entries carry game-date stamps.
+
+## Meridian Police
+
+The station is on the block east of Building X, facing the Row (P on the minimap), with blue POLICE lamps, bollards and two cruisers on the forecourt. The notice on its door lists Dara's missing person report (MP-2610-044) and explains how to report a cyber incident properly; reading it adds a notebook entry.
+
+Six officers patrol the sidewalks, three of them on Meridian Row. They wear a uniform built on the game's own rigs and fixed to their bones, so it follows every animation: navy shirt and trousers, black boots, a peaked cap with a chequered band and gold badge, a hi-vis vest with reflective bands and POLICE on the back, a duty belt and a radio. Talk to them with E for cyber-safety advice (phishing, responsible disclosure, logs as evidence) and remarks that follow the story.
+
+Three white cruisers patrol the grid with flashing red and blue light bars and a POLICE roof plate readable from above. Take one and dispatch reports it stolen; speed past an officer and you get a warning.
 
 ## Byte Mart
 

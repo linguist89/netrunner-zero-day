@@ -85,6 +85,22 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 #journalBtn,#soundBtn,#musicBtn{position:absolute;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));padding:6px 12px 4px;font-size:15px}
 #soundBtn{right:118px}
 #musicBtn{right:220px}
+/* the clock: a wristwatch-style LCD that drops in at the top centre on T, with a 24-hour strip whose marker walks from night to day */
+#clock{position:absolute;left:50%;top:16px;transform:translate(-50%,-8px);width:232px;padding:8px 12px 10px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;background:#1d2315;border:3px solid #0a0c08;border-radius:6px;box-shadow:0 5px 0 #000,inset 0 0 0 2px #2d3821}
+#clock.on{opacity:1;transform:translate(-50%,0)}
+#clock .lbl{display:flex;justify-content:space-between;font:600 9px var(--font-ui);letter-spacing:.2em;text-transform:uppercase;color:#7c8a60}
+#clock .lcd{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:4px 0 6px;padding:2px 10px 0;background:var(--pager-bg);border-radius:2px;color:var(--pager-fg);text-shadow:0 0 6px rgba(200,255,106,.55)}
+#clockTime{font:52px/1 var(--font-lcd);letter-spacing:.02em;font-variant-numeric:tabular-nums}
+#clockTime .col{animation:clkblink 1s steps(1) infinite}
+@keyframes clkblink{50%{opacity:.15}}
+#clockPhase{font:22px/1 var(--font-lcd);color:#eaffb0;text-align:right}
+#clockStrip{position:relative;height:10px;border-radius:1px;background:linear-gradient(90deg,#141a33 0%,#141a33 21%,#e0795a 26%,#8ec6ef 32%,#b4dcff 50%,#8ec6ef 70%,#ff8a4c 77%,#141a33 83%,#141a33 100%);box-shadow:inset 0 0 0 1px #0a0c08}
+#clockMark{position:absolute;top:-4px;width:4px;height:18px;margin-left:-2px;background:var(--cash);box-shadow:0 0 0 1px #000,0 0 8px rgba(255,210,63,.7)}
+#clockAlert{margin-top:6px;padding:3px 6px 1px;background:#3a1410;border-radius:2px;font:17px/1 var(--font-lcd);color:#ff9a7a;text-shadow:0 0 6px rgba(255,106,61,.5);text-align:center;letter-spacing:.02em}
+#clockTicks{display:flex;justify-content:space-between;margin-top:3px;font:15px/1 var(--font-lcd);color:#7c8a60}
+@media (max-width:640px){#clock{top:150px;width:200px}#clockTime{font-size:44px}}
+@media (prefers-reduced-motion:reduce){#clock{transition:none}#clockTime .col{animation:none}}
+#tClock{bottom:calc(300px + env(safe-area-inset-bottom,0px));width:56px;height:56px;font-size:15px}
 #setBox label.check{grid-template-columns:72px auto;justify-content:start}
 #setBox input[type=checkbox]{width:18px;height:18px;accent-color:var(--cash)}
 
@@ -234,10 +250,11 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 
   <div id="hud" aria-live="polite">
     <div id="quest" class="card"><div class="eyebrow" id="qEyebrow">Foundation</div><div class="title" id="qTitle"></div><ul id="qList"></ul><div class="next" id="qNext" hidden></div></div>
+    <div id="clock" aria-live="off" role="timer"><div class="lbl"><span>Meridian Row</span><span id="clockDay">SAT 10 OCT 2026</span></div><div class="lcd"><span id="clockTime">19<span class="col">:</span>00</span><span id="clockPhase">DUSK</span></div><div id="clockStrip"><div id="clockMark"></div></div><div id="clockTicks"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div><div id="clockAlert" hidden></div></div>
     <div id="cash"><div id="cashPop"></div><div class="num" id="hudCredits">000000</div><div class="name" id="hudName">...</div><div id="boost" hidden></div></div>
     <div id="carName"></div>
     <div id="prompt" class="card" hidden><kbd>E</kbd><span id="promptText"></span></div>
-    <div id="hints"><span><b>W S</b> run</span><span><b>A D</b> turn</span><span><b>Shift</b> stroll / run inside</span><span><b>E</b> interact / car</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> camera</span><span><b>B</b> drink</span><span><b>K</b> whistle car</span><span><b>F</b> phone</span><span><b>P</b> missions</span><span><b>L</b> settings</span><span><b>M</b> sound</span><span><b>N</b> music</span><span><b>wheel</b> zoom</span></div>
+    <div id="hints"><span><b>W S</b> run</span><span><b>A D</b> turn</span><span><b>Shift</b> stroll / run inside</span><span><b>E</b> interact / car</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> camera</span><span><b>B</b> drink</span><span><b>K</b> whistle car</span><span><b>F</b> phone</span><span><b>T</b> clock</span><span><b>P</b> missions</span><span><b>L</b> settings</span><span><b>M</b> sound</span><span><b>N</b> music</span><span><b>wheel</b> zoom</span></div>
     <canvas id="map" width="170" height="186" aria-label="Minimap"></canvas>
     <div id="pager"><div class="lbl"><span>STYX PAGER</span><span id="pagerTime">--:--</span></div><div class="lcd" id="pagerText"></div></div>
     <button id="musicBtn" class="btn ghost" type="button" aria-pressed="true">Music on</button>
@@ -247,20 +264,20 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 
   <div id="touch">
     <div id="stick"><div id="knob"></div></div>
-    <button id="tRun" class="tbtn" type="button">STROLL</button>
+    <button id="tRun" class="tbtn" type="button">STROLL</button><button id="tClock" class="tbtn" type="button" aria-label="Clock">TIME</button>
     <button id="tBrake" class="tbtn" type="button" hidden>BRAKE</button>
     <button id="tE" class="tbtn" type="button" hidden>E</button>
   </div>
 
   <div id="start" class="screen">
     <div id="startBox">
-      <div class="eyebrow">Overhead cut · Meridian Row · nine blocks, one gateway</div>
+      <div class="eyebrow">Saturday 10 October 2026 · 19:00 · Meridian Row · nine blocks, one gateway</div>
       <h1>Netrunner <span>Zero Day</span></h1>
-      <p id="brief">Seen from the rooftops, Meridian Row is nine city blocks that no map admits to. Traffic circles, pedestrians drift, and under the asphalt runs STYX, the network that keeps the lights on. Building A belonged to Dara Okafor, a penetration tester. She left in a hurry. Her workstation is still logged in, and the trail runs through all four buildings. Byte Mart, under the orange sign, sells the gear that bends the rules; credits come from quests, gigs and the chips lying around the street.</p>
+      <p id="brief">Seen from the rooftops, Meridian Row is nine city blocks that no map admits to. Traffic circles, pedestrians drift, and under the asphalt runs STYX, the network that keeps the lights on. Building A belonged to Dara Okafor, a penetration tester. She left in a hurry, and nobody has seen her since Sunday night, the 4th. Six days on, her workstation is still logged in, and the trail runs through all four buildings. Byte Mart, under the orange sign, sells the gear that bends the rules; credits come from quests, gigs and the chips lying around the street.</p>
       <p><b>Follow the arrow to Building A. Steal a car if you like, nobody here is counting. Except the gateway.</b></p>
       <div class="field"><label class="eyebrow" for="pname">Profile name</label><input id="pname" value="Fresh Investigator" maxlength="24" autocomplete="off"></div>
       <div class="row"><button id="enterBtn" class="btn" type="button" disabled>Drop into Meridian Row</button><button id="continueBtn" class="btn ghost" type="button" hidden>Continue saved profile</button><span id="loadline">LOADING ENGINE...</span></div>
-      <div id="controls"><span><b>W / S</b> run forward, back</span><span><b>A / D</b> turn</span><span><b>Shift</b> stroll outside, run inside</span><span><b>E</b> interact, talk to people, enter or leave a car</span><span><b>W / S</b> gas and brake in a car</span><span><b>A / D</b> steer</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> switch between overhead and chase camera</span><span><b>B</b> drink an OVERCLOCK from Byte Mart</span><span><b>K</b> whistle your own car back to the mart</span><span><b>Wheel</b> zoom the camera</span><span><b>P</b> missions and journal</span><span><b>L</b> settings</span><span><b>N</b> music on or off</span><span><b>Esc</b> close window</span><span>On a phone: stick to move, tap E, tap BRAKE in a car.</span></div>
+      <div id="controls"><span><b>W / S</b> run forward, back</span><span><b>A / D</b> turn</span><span><b>Shift</b> stroll outside, run inside</span><span><b>E</b> interact, talk to people, enter or leave a car</span><span><b>W / S</b> gas and brake in a car</span><span><b>A / D</b> steer</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> switch between overhead and chase camera</span><span><b>B</b> drink an OVERCLOCK from Byte Mart</span><span><b>K</b> whistle your own car back to the mart</span><span><b>Wheel</b> zoom the camera</span><span><b>T</b> show or hide the clock and the date; a day lasts 12 minutes and the clock stops in terminals and menus</span><span><b>P</b> missions and journal</span><span><b>L</b> settings</span><span><b>N</b> music on or off</span><span>Meridian PD patrols on foot and in white cruisers; the station is east of Building X</span><span><b>Esc</b> close window</span><span>On a phone: stick to move, tap E, tap BRAKE in a car.</span></div>
     </div>
   </div>
 
@@ -961,6 +978,7 @@ Lineman's notebook, Meridian Exchange.
     linebook: { title: 'Lineman’s notebook', style: 'paper', text: 'A grease-stained notebook, open at the last page:\n\n1337 is NOT mine. Reyes put it in on install day. Master key is his.\nRegisters from 10.0.3.1. Cannot see that subnet. Nobody can.\n03:12, every night, it dials out. Now it dials her phone.\n\nThe same notes are on the console: cat ~/notebook.txt. The dial plan names him: grep 1337 /etc/asterisk/extensions.conf', discovery: { id: 'XCH-NOTEBOOK', title: 'The lineman’s notebook', text: 'Extension 1337 was installed by someone called Reyes on install day, who kept the master key and registers from 10.0.3.1, a subnet nobody on the Row can see.' } },
     payphone: { title: 'Payphone', style: 'plain', text: 'A coin payphone bolted to the exchange wall, the last one on the Row. The receiver is off the hook and warm. Scratched into the paint above the keypad: 0312 OPENS THE DOOR. 1337 OPENS NOTHING YOU WANT OPENED.' },
     relays: { title: 'Relay cabinet', style: 'plain', text: 'A wall of electromechanical relays that still click every time a call goes through, which tonight is never. A yellowed card inside the door lists the extensions in fountain pen: 1001, 1002, 1003. A fourth line has been added in ballpoint and crossed out twice.' },
+    policeNotice: { title: 'Notice on the station door', style: 'paper', text: 'MERIDIAN POLICE · FRONT DESK\nOpen 24 hours. Ring the bell and wait.\n\nCYBERCRIME DESK: closed until Monday 19 October.\n\nMISSING PERSON: OKAFOR, Dara. Last seen Sunday 4 October, 23:40, Building F (Caduceus Analytics). Report filed Monday 5 October, ref. MP-2610-044. Status: open.\n\nTo report a cyber incident, write down what you saw, the date and the time it happened, and the address or host. Keep the logs. Do not log in to systems you do not own to check for yourself.', discovery: { id: 'POLICE-MP-044', title: 'Missing person report MP-2610-044', text: 'Meridian Police list Dara Okafor as missing: last seen Sunday 4 October at 23:40 at Caduceus (Building F), reported Monday 5 October. The cybercrime desk is closed until 19 October.' } },
     rack3: { title: 'Rack 3', style: 'plain', text: 'A full-height rack behind a mesh door. Two database servers, a switch, and a small grey box on the top shelf with no label and a blinking amber light. Its network cable goes nowhere you can see.' }
   };
 
@@ -1019,8 +1037,8 @@ Lineman's notebook, Meridian Exchange.
       consume(id) { if (!api.has(id)) return false; s.inv[id]--; emit('change'); return true; },
       addCredits(n, title, text) { s.credits += n; if (title) emit('toast', { kind: 'cash', title, text }); emit('change'); },
       isDone(qid, oid) { return s.done[qid].includes(oid); },
-      addJournal(title, text) { s.journal.push({ t: Date.now(), title, text }); emit('change'); },
-      addDiscovery(d) { if (s.notebook.some(n => n.id === d.id)) return false; s.notebook.push({ t: Date.now(), ...d }); emit('toast', { kind: 'found', title: 'Discovery', text: d.title }); emit('change'); return true; },
+      addJournal(title, text) { s.journal.push({ t: Date.now(), g: window.ZD && window.ZD.now ? window.ZD.now() : null, title, text }); emit('change'); },
+      addDiscovery(d) { if (s.notebook.some(n => n.id === d.id)) return false; s.notebook.push({ t: Date.now(), g: window.ZD && window.ZD.now ? window.ZD.now() : null, ...d }); emit('toast', { kind: 'found', title: 'Discovery', text: d.title }); emit('change'); return true; },
       activateQuest(id) {
         const q = api.quest(id); if (!q || s.quests[id] === 'active' || s.quests[id] === 'completed') return;
         s.quests[id] = 'active'; api.addJournal(q.title, q.journalStart);
@@ -1082,7 +1100,7 @@ Lineman's notebook, Meridian Exchange.
   sort / uniq [-c]      sort lines, fold duplicates (use after a pipe: cat f | sort | uniq -c)
   find <path> -name X   find files by name      ps aux         running processes
   ss -ltnp / netstat    listening sockets       mail           check the mailbox
-  history  clear  whoami  hostname  id  uname  date  echo  exit
+  history  clear  whoami  hostname  id  uname  date  cal  echo  exit
 Network kit (after Rosa): dig  ping  nmap  traceroute  curl  arp  ssh
 Pipes work: cmd | grep PAT | wc -l
 Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
@@ -1101,7 +1119,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
         case 'hostname': return { out: host.hostname };
         case 'id': return { out: 'uid=1000(' + host.user + ') gid=1000(' + host.user + ') groups=1000(' + host.user + '),1337(styx)' };
         case 'uname': return { out: has('a') ? 'Linux ' + host.hostname + ' 6.1.0-styx #1 SMP x86_64 GNU/Linux' : 'Linux' };
-        case 'date': return { out: new Date().toString().replace(/\(.*\)$/, '').trim() };
+        case 'date': return { out: window.ZD.dateStr ? window.ZD.dateStr() : new Date().toString().replace(/\(.*\)$/, '').trim() };
+        case 'cal': { const g = window.ZD.gameDate ? window.ZD.gameDate() : new Date(); const y = g.getUTCFullYear(), mo = g.getUTCMonth(), today = g.getUTCDate(); const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; const first = new Date(Date.UTC(y, mo, 1)).getUTCDay(), days = new Date(Date.UTC(y, mo + 1, 0)).getUTCDate(); const head = names[mo] + ' ' + y; const rows = [' '.repeat(Math.floor((20 - head.length) / 2)) + head, 'Su Mo Tu We Th Fr Sa']; let line = '   '.repeat(first); for (let dd = 1; dd <= days; dd++) { line += String(dd).padStart(2, ' ') + (dd === today ? '*' : ' '); if ((first + dd) % 7 === 0) { rows.push(line.trimEnd()); line = ''; } } if (line) rows.push(line.trimEnd()); rows.push('', 'Today is marked *. Dara was last seen on the 4th. The ops login comes every night at 03:12.'); return { out: rows.join('\n') }; }
         case 'echo': return { out: args.join(' ') };
         case 'history': { const hf = node(host.home + '/.bash_history'); return { out: (hf ? hf.text.trim().split('\n') : []).concat(history).map((h, i) => String(i + 1).padStart(5) + '  ' + h).join('\n') }; }
         case 'mail': { const mb = node('/var/mail/' + host.user); return { out: mb ? '"/var/mail/' + host.user + '": 1 message 1 unread\n>U  1  ' + (mb.text.split('\n')[0].replace(/^From /, '')) + '\nType: cat /var/mail/' + host.user : 'No mail for ' + host.user }; }
@@ -1205,7 +1224,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
           const g = netGate(cmd); if (g) return { out: g, err: true };
           if (!args[0]) return { out: 'nmap: usage: nmap <host>', err: true };
           const r = resolveHost(args[0]); if (!r) return { out: 'Failed to resolve "' + args[0] + '".', err: true };
-          const ports = PORTS[r.ip] || []; const lines = ['Starting Nmap 7.94 at ' + new Date().toISOString().slice(0, 16).replace('T', ' '), 'Nmap scan report for ' + (r.name === r.ip ? r.ip : r.name + ' (' + r.ip + ')'), 'Host is up (0.00041s latency).', '', 'PORT       STATE    SERVICE'];
+          const ports = PORTS[r.ip] || []; const lines = ['Starting Nmap 7.94 at ' + (window.ZD.isoStamp ? window.ZD.isoStamp() : new Date().toISOString().slice(0, 16).replace('T', ' ')), 'Nmap scan report for ' + (r.name === r.ip ? r.ip : r.name + ' (' + r.ip + ')'), 'Host is up (0.00041s latency).', '', 'PORT       STATE    SERVICE'];
           ports.forEach(p => lines.push(pad(p[0], 11) + pad(p[1], 9) + p[2]));
           if (r.ip === '10.0.0.200') lines.push('', 'Note: 31337/tcp is not listed in any STYX catalogue.');
           if (r.ip === '10.0.0.254') lines.push('', 'Note: this host has no DNS name. MAC vendor: unknown (de:ad:...). ssh banner: "ghost"');
@@ -1226,7 +1245,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
           const g = netGate(cmd); if (g) return { out: g, err: true };
           const url = (args[0] || '').replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/:\d+$/, ''); const r = resolveHost(url);
           if (!r) return { out: cmd + ': (6) Could not resolve host: ' + (url || '(empty)'), err: true };
-          if (r.ip === '10.0.0.1') return { out: '<!doctype html>\n<title>STYX hit counter</title>\n<h1>STYX hit counter</h1>\n<p>You are visitor #4,113.</p>\n<p>Last hit: 03:12 from 10.0.0.254 (unregistered)</p>' };
+          if (r.ip === '10.0.0.1') return { out: '<!doctype html>\n<title>STYX hit counter</title>\n<h1>STYX hit counter</h1>\n<p>You are visitor #' + (window.ZD.gwCounter ? window.ZD.gwCounter() : 4113).toLocaleString('en-US') + '.</p>\n<p>Last hit: 03:12 from 10.0.0.254 (unregistered)</p>' };
           if (r.ip === '10.0.0.60') return { out: '<!doctype html>\n<title>Caduceus Analytics</title>\n<p>Portal access by appointment. Contact: j.moreau@caduceus.styx.local</p>' };
           if (r.ip === '10.0.0.80') return { out: '<!doctype html>\n<title>Solarpunk Lab</title>\n<p>Workshops nightly, ground floor, Building H. Bring coffee.</p>' };
           if (r.ip === '10.0.0.200') return { out: (args[0] || '').includes('31337') ? '{"error":"token required","hint":"see /opt/styx/.token on the host that pulls nightly"}' : cmd + ': (7) Failed to connect to ' + r.name + ' port 80: Connection refused', err: !(args[0] || '').includes('31337') };
@@ -1299,6 +1318,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     },
     // passers-by: a mood each, a few lines per mood, and a line for anyone you nearly ran over
     ped(mood, st, scared) {
+      if (mood === 'cop') return DIALOGUE.cop(st, scared);
       const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
       if (scared) return [pick(['You nearly ran me over! Is that Dara’s car? It drives like Dara’s car.', 'Watch it! The sidewalk is for people, the road is for the cabs that hate people.', 'Hey! I have a pager too, you know. I could page someone about you.'])];
       const q1 = st.quests.quest_f1_cli === 'completed', q5 = st.quests.quest_i3_ghost === 'completed';
@@ -1330,6 +1350,24 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
         'If you are looking for Rosa, she is outside Building H. If you are looking for Julien, so is everyone.',
         'I just walk. It is a whole thing. Try it.'
       ])];
+    },
+    cop(st, scared) {
+      const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      if (scared) return [pick(['Meridian PD! Slow that thing down before I write you up.', 'Easy! I have seen how you drive. Walk, maybe.'])];
+      const f = st.flags, q = st.quests;
+      const pool = [
+        'Evening. Meridian PD. Keep moving, keep it legal, keep your receipts.',
+        'Okafor? The missing persons report went in on Monday the 5th. It sits on the cybercrime desk. The cybercrime desk is one man, and he is on leave until the 19th.',
+        'Found something on a network that is not yours? Write down what you saw, the date and the time, and report it. Do not keep poking to prove it. That is how good people end up on our side of the desk.',
+        'The street lights stutter every night at 03:12. Utilities says it is normal. Everything is normal on this street, apparently.',
+        'If you see anyone with their hands in the STYX cabinets, call it in. Do not open them yourself.',
+        'Phishing complaints are up again. Fake parcel texts with a link to pay customs. Do not click, do not pay, forward them to us.',
+        'Strong password, a second factor, updates on. That is most of my crime prevention talk. Nobody comes to the talk.'
+      ];
+      if (q.quest_i1_logs === 'completed') pool.push('Caduceus filed a complaint about logins at 03:12. Logins. We do burglaries. I told them to keep the logs, at least. Logs are evidence.');
+      if (f.labDark) pool.push('Building H went dark at 03:12. Utilities found no fault on the line. Funny, that.');
+      if (q.quest_z3_exchange === 'completed') pool.push('The exchange called us about a phone line nobody installed. Extension 1337. We wrote it down. That is what we do.');
+      return [pick(pool)];
     },
     courier(st) {
       const q = st.quests.quest_z1_burner;
@@ -1603,6 +1641,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       if (kind === 'park') park(x0, x1, z0, z1);
       else if (kind === 'lot') parkingLot(x0, x1, z0, z1);
       else if (kind === 'garage') garage(x0, x1, z0, z1, k);
+      else if (i === 3 && j === 3) policeStation(); // the block east of Building X, across the Row from the parking lot
       else offices(x0, x1, z0, z1, k);
     }
   }
@@ -2405,7 +2444,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
 
   /* ---------- cars: getting in and out ---------- */
   function enterCar(car) {
-    if (!car || state.driving) return; const p = chars.player;
+    if (!car || state.driving) return; const p = chars.player; if (car.cop) copCarTaken(car);
     if (car.driver) { car.driver = false; const look = PED_LOOKS[Math.floor(rnd() * PED_LOOKS.length)]; const n = 'jacked' + Date.now(); const ch = newPed(n, look); const side = Math.cos(car.heading), sidez = -Math.sin(car.heading); const d = Math.floor(rnd() * 4); peds.push({ ch, x: car.x + side * 2.2, z: car.z + sidez * 2.2, dir: d, speed: 1.4, pause: 0, side: 1, flee: 3 }); SFX.yelp(car.x, car.z); }
     car.parked = false; car.speed = 0; car.vx = Math.sin(car.heading) * 0; car.vz = 0; state.driving = car; p.pivot.setEnabled(false); car.cone.setEnabled(true);
     SFX.door(); ui.carName(car.type.name); ui.prompt(null); if (state.touch) { $('tBrake').hidden = false; $('tRun').hidden = true; }
@@ -2468,6 +2507,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (k === 'b' && !e.repeat) drinkOverclock();
     if (k === 'f' && !e.repeat) openPhone();
     if (k === 'k' && !e.repeat) whistleCar();
+    if (k === 't' && !e.repeat) toggleClock();
     if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
   });
   window.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
@@ -2488,6 +2528,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const end = (e) => { if (e.pointerId !== pid) return; pid = null; joy.on = false; joy.x = joy.y = 0; setKnob(0, 0); };
     stick.addEventListener('pointerup', end); stick.addEventListener('pointercancel', end);
     $('tE').addEventListener('click', () => { if (state.ui === 'dlg') ui.dlgAdvance(); else if (state.ui === 'examine') ui.closeAll(); else interact(); });
+    $('tClock').addEventListener('click', () => { if (state.playing && !state.ui) toggleClock(); });
     $('tRun').addEventListener('click', () => { state.run = !state.run; $('tRun').classList.toggle('on', state.run); });
     const brake = $('tBrake'); brake.addEventListener('pointerdown', () => { state.brake = true; brake.classList.add('on'); }); ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => brake.addEventListener(ev, () => { state.brake = false; brake.classList.remove('on'); }));
   })();
@@ -2542,7 +2583,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     c.strokeStyle = '#2a2d36'; c.lineWidth = CITY.roadW * sx; CITY.roadsZ.forEach(rz => { c.beginPath(); c.moveTo(0, Y(rz)); c.lineTo(W, Y(rz)); c.stroke(); }); c.lineWidth = CITY.roadW * sz; CITY.roadsX.forEach(rx => { c.beginPath(); c.moveTo(X(rx), 0); c.lineTo(X(rx), H); c.stroke(); });
     c.strokeStyle = '#5a4a1c'; c.lineWidth = 1; c.beginPath(); c.moveTo(0, Y(0)); c.lineTo(W, Y(0)); c.stroke(); // Meridian Row itself
     mapBlocks.forEach(b => { c.fillStyle = b[4]; c.fillRect(X(b[0]), Y(b[3]), (b[1] - b[0]) * sx, (b[3] - b[2]) * sz); });
-    c.fillStyle = '#f2ecdc'; c.font = '9px "Oswald", sans-serif'; c.textAlign = 'center'; [['A', -8.5, -21], ['F', 12, -21], ['H', -9, 21], ['D', 13, 21], ['M', -22.5, -21], ['X', 24.5, 21]].forEach(l => c.fillText(l[0], X(l[1]), Y(l[2]) + 3));
+    c.fillStyle = '#f2ecdc'; c.font = '9px "Oswald", sans-serif'; c.textAlign = 'center'; [['A', -8.5, -21], ['F', 12, -21], ['H', -9, 21], ['D', 13, 21], ['M', -22.5, -21], ['X', 24.5, 21], ['P', 54, 17]].forEach(l => c.fillText(l[0], X(l[1]), Y(l[2]) + 3));
     if (store.has('scanner')) { c.fillStyle = '#ffd23f'; chips.forEach(ch => { if (!ch.alive) return; c.beginPath(); c.arc(X(ch.x), Y(ch.z), 1.6, 0, PI * 2); c.fill(); }); }
     const p = chars.player; if (!p) return;
     const PINS = { in: ['A', -8.5, -21], cad: ['F', 12, -21], lab: ['H', -9, 21], util: ['D', 13, 21], mart: ['M', -22.5, -21], xch: ['X', 24.5, 21] }; const pin = PINS[state.zone]; const inside = !!pin; const px = inside ? pin[1] : p.pivot.position.x, pz = inside ? pin[2] : p.pivot.position.z;
@@ -2554,10 +2595,136 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   let t = 0; let blinkT = 0; let mapT = 0;
   scene.onBeforeRenderObservable.add(() => {
     const dt = Math.min(engine.getDeltaTime() / 1000, 0.05); t += dt;
-    if (state.playing) { updatePlayer(dt); updateCamera(dt); updateInteract(); updateNPCs(dt, t); updateMart(dt, t); updateAct2(dt, t); if (state.zone === 'out') { updateTraffic(dt); updatePeds(dt); rollWheels(dt); } mapT += dt; if (mapT > 0.08) { mapT = 0; drawMap(t); } }
+    if (state.playing) { updatePlayer(dt); updateCamera(dt); updateInteract(); updateNPCs(dt, t); updateMart(dt, t); updateAct2(dt, t); if (state.zone === 'out') { updateTraffic(dt); updatePeds(dt); rollWheels(dt); updateCops(dt, t); } mapT += dt; if (mapT > 0.08) { mapT = 0; drawMap(t); } }
     blinkT += dt; if (blinkT > 0.4) { blinkT = 0; const z = zones[state.zone]; if (z && z !== zones.out) z.meshes.forEach(m => { if (m.metadata && m.metadata.blink) m.setEnabled(!m.isEnabled()); }); }
   });
 
+
+
+  /* ---------- the calendar and the time of day. Meridian Row runs on its own clock: two game minutes pass every real second, so a day takes twelve
+     minutes, and the clock stops while a terminal, a conversation or a menu is open. The game starts on Saturday 10 October 2026 at 19:00, six days
+     after Dara was last seen (Julien's logbook, Oct 4, 23:40). Every night at 03:12 the cron job runs, the logs grow and the street lights stutter.
+     The clock shows on T; outdoors the sun climbs, the sky and fog brighten, and street lamps, lit windows and bloom fade out by day ---------- */
+  const GAME_EPOCH = Date.UTC(2026, 9, 10); // CLOCK.total counts game minutes from midnight on Saturday 10 October 2026
+  const START_MIN = 19 * 60, CRON_MIN = 3 * 60 + 12;
+  const CLOCK = { total: START_MIN, rate: 2, shown: false, saveT: 0, shownMin: -1, look: null, flicker: 0, nights: 0 };
+  try { const v = parseFloat(localStorage.getItem('nz-time')); if (isFinite(v) && v >= START_MIN) CLOCK.total = v; CLOCK.shown = localStorage.getItem('nz-clock') === 'on'; } catch (e) { /* no storage */ }
+  const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const DOW_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], MON_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const p2 = n => String(n).padStart(2, '0');
+  function gameDate(total) { return new Date(GAME_EPOCH + Math.floor(total == null ? CLOCK.total : total) * 60000); } // read with the UTC getters: the game has no time zone but its own
+  function dayLabel(total) { const d = gameDate(total); return DOW[d.getUTCDay()].toUpperCase() + ' ' + p2(d.getUTCDate()) + ' ' + MON[d.getUTCMonth()].toUpperCase() + ' ' + d.getUTCFullYear(); }
+  function stampLabel(total) { const d = gameDate(total); return DOW[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + MON[d.getUTCMonth()] + ' ' + d.getUTCFullYear() + ', ' + p2(d.getUTCHours()) + ':' + p2(d.getUTCMinutes()); }
+  function longDate(total) { const d = gameDate(total); return DOW_LONG[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + MON_LONG[d.getUTCMonth()] + ' ' + d.getUTCFullYear(); }
+  function logDay(d) { return MON[d.getUTCMonth()] + ' ' + String(d.getUTCDate()).padStart(2, ' '); } // syslog style: "Oct  9", "Oct 10"
+  function nextCron(minAhead) { let m = Math.floor(CLOCK.total / 1440) * 1440 + CRON_MIN; while (m < CLOCK.total + (minAhead || 0)) m += 1440; return m; }
+  // the shells read the game's date: date, cal, nmap's banner, the gateway's hit counter, the timestamps in the journal
+  ZD.now = () => CLOCK.total; ZD.stamp = stampLabel;
+  ZD.dateStr = () => { const d = gameDate(); return DOW[d.getUTCDay()] + ' ' + MON[d.getUTCMonth()] + ' ' + String(d.getUTCDate()).padStart(2, ' ') + ' ' + p2(d.getUTCHours()) + ':' + p2(d.getUTCMinutes()) + ':' + p2(Math.floor((CLOCK.total % 1) * 60)) + ' CEST ' + d.getUTCFullYear(); };
+  ZD.isoStamp = () => { const d = gameDate(); return d.getUTCFullYear() + '-' + p2(d.getUTCMonth() + 1) + '-' + p2(d.getUTCDate()) + ' ' + p2(d.getUTCHours()) + ':' + p2(d.getUTCMinutes()) + ' CEST'; };
+  ZD.gameDate = () => gameDate();
+  ZD.gwCounter = () => 4117 + CLOCK.nights + 1; // 4111 on Oct 3, one ghost visit a night since, plus you
+  // every 03:12 that has passed leaves its lines in the logs on Caduceus, the database box and the exchange; Oct 9 and earlier are written into the files already
+  function cronLines(k) {
+    const d = new Date(GAME_EPOCH + k * 86400000); const day = logDay(d); const n = 10 + k;
+    const fsLog = (host, file) => ZD.HOSTS[host].fs.children.var.children.log.children[file];
+    const add = (node, lines) => { if (node) node.text += lines.join('\n') + '\n'; };
+    add(fsLog('cad', 'auth.log'), [day + ' 03:12:02 caduceus sshd[' + (4100 + n * 7) + ']: Accepted publickey for ops from 10.0.0.254 port 51' + (200 + n) + ' ssh2', day + ' 03:12:02 caduceus systemd-logind: New session ' + (900 + n) + ' of user ops.', day + ' 03:12:41 caduceus sshd[' + (4100 + n * 7) + ']: Disconnected from user ops 10.0.0.254']);
+    add(fsLog('cad', 'styx-sync.log'), [DOW[d.getUTCDay()] + ' ' + day + ' 03:12:40 ' + d.getUTCFullYear() + ' sync ok, reported to 10.0.0.254']);
+    add(fsLog('util', 'styxd.log'), [day + ' 03:12:40 styxd: catalogue served to 10.0.0.60 token=STYX-SVC-SYNC-9C21E0', day + ' 03:12:41 styxd: report sent to 10.0.0.254']);
+    if (k > 0) { const cdr = ZD.HOSTS.xch.fs.children.var.children.log.children.asterisk.children['cdr.csv']; add(cdr, ['"' + day + '","03:12","1337","burner","0","' + (store.state.flags.called ? 'ANSWERED' : 'NO ANSWER') + '"']); }
+  }
+  function syncLogs() { const due = CLOCK.total >= CRON_MIN ? Math.floor((CLOCK.total - CRON_MIN) / 1440) + 1 : 0; while (CLOCK.nights < Math.min(due, 60)) { cronLines(CLOCK.nights); CLOCK.nights++; } }
+  const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const mixC = (a, b, t) => new BABYLON.Color3(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t);
+  function clockText() { const w = Math.floor(CLOCK.total % 1440); return p2(Math.floor(w / 60)) + ':' + p2(w % 60); }
+  function toggleClock() { CLOCK.shown = !CLOCK.shown; $('clock').classList.toggle('on', CLOCK.shown); try { localStorage.setItem('nz-clock', CLOCK.shown ? 'on' : 'off'); } catch (e) { /* ignore */ } CLOCK.shownMin = -1; drawClock(); }
+  function sunAt(min) { // sunrise 06:00, noon 12:00, sunset 18:00
+    const elev = Math.sin(((min - 360) / 720) * PI); // above 0 by day, below 0 by night
+    const day = sstep(-0.1, 0.3, elev); // 0 at night, 1 in full daylight
+    const golden = Math.max(0, 1 - Math.abs(elev) / 0.28) * sstep(-0.22, -0.06, elev); // the warm band either side of the horizon
+    return { elev, day, golden, az: ((min - 360) / 720) * PI };
+  }
+  function phaseName(min) { const h = min / 60; return h < 5 ? 'NIGHT' : h < 7 ? 'DAWN' : h < 11 ? 'MORNING' : h < 14 ? 'MIDDAY' : h < 17 ? 'AFTERNOON' : h < 19.5 ? 'DUSK' : 'NIGHT'; }
+  // the caller's deadline: "You have until 03:12". Answering the call sets it; finishing The Exchange clears it; missing it puts the lab's lights out
+  function deadlineText() {
+    const f = store.state.flags; if (f.labDark) return 'BUILDING H DARK · TRACE THE CALLER';
+    if (!f.deadline || store.state.quests.quest_z3_exchange === 'completed') return '';
+    const left = Math.max(0, Math.ceil(f.deadline - CLOCK.total)); return 'DEADLINE 03:12 · ' + Math.floor(left / 60) + 'H ' + p2(left % 60) + 'M LEFT';
+  }
+  function drawClock() {
+    const min = CLOCK.total % 1440, whole = Math.floor(min);
+    if (whole === CLOCK.shownMin) return; CLOCK.shownMin = whole;
+    $('clockTime').innerHTML = p2(Math.floor(whole / 60)) + '<span class="col">:</span>' + p2(whole % 60); $('clockPhase').textContent = phaseName(min);
+    $('clockDay').textContent = dayLabel(); $('clockMark').style.left = (min / 1440 * 100).toFixed(2) + '%';
+    const al = deadlineText(); $('clockAlert').hidden = !al; $('clockAlert').textContent = al;
+  }
+  function captureLook() { // remember the night look the city was built with, so every frame scales from it
+    const out = zones.out; if (!out) return null;
+    const L = { hemi: out.lights.find(l => l instanceof BABYLON.HemisphericLight), dir: out.dir, lamps: [], facades: [], heads: [], neons: [], labLamps: [] };
+    out.lights.forEach(l => { if (l instanceof BABYLON.PointLight) L.lamps.push([l, l.intensity]); });
+    if (zones.lab) zones.lab.lights.forEach(l => { if (l instanceof BABYLON.PointLight) L.labLamps.push([l, l.intensity]); });
+    scene.materials.forEach(m => { if (!m.emissiveColor) return; const n = m.name || ''; if (n.indexOf('core_') === 0) L.facades.push(m); else if (n === 'lampHead') L.heads.push([m, m.emissiveColor.clone()]); else if (n.indexOf('neon') === 0) L.neons.push([m, m.emissiveColor.clone()]); });
+    // Building H's own skin, door strip, neon and sign: what goes dark if the caller keeps his word
+    const hMesh = out.meshes.find(m => m.material && /^core_/.test(m.material.name) && Math.abs(m.position.x + 9) < 0.6 && Math.abs(m.position.z - 21) < 0.6); L.hFacade = hMesh ? hMesh.material : null;
+    L.hStrip = scene.getMaterialByName('doorStripH'); L.hStripC = L.hStrip ? L.hStrip.emissiveColor.clone() : null; L.hSign = scene.getMaterialByName('signH'); L.grow = scene.getMaterialByName('growLight'); L.growC = L.grow ? L.grow.emissiveColor.clone() : null;
+    L.night = { hemiI: L.hemi.intensity, sky: L.hemi.diffuse.clone(), ground: L.hemi.groundColor.clone(), dirI: L.dir.intensity, dirCol: L.dir.diffuse.clone(), dirV: L.dir.direction.clone(), clear: new BABYLON.Color3(scene.clearColor.r, scene.clearColor.g, scene.clearColor.b) };
+    L.dayC = { sky: C3('#d6e8ff'), ground: C3('#5d5a50'), sun: C3('#fff1d6'), clear: C3('#8fbde6'), fog: C3('#a7c4de') };
+    L.dusk = { sun: C3('#ff9a52'), clear: C3('#d9744f'), fog: C3('#6b4a52') };
+    return L;
+  }
+  // what happens on the clock: midnight turns the date, 03:12 runs the cron job, and the caller's deadline is checked
+  function clockEvents(before, after) {
+    const st = store.state;
+    if (Math.floor(after / 1440) > Math.floor(before / 1440)) ui.toast({ kind: '', title: 'Midnight', text: longDate(after) + '. Another day on Meridian Row.' });
+    const cronAt = Math.floor((after - CRON_MIN) / 1440) * 1440 + CRON_MIN; if (!(cronAt > before && cronAt <= after)) return;
+    syncLogs(); CLOCK.flicker = 2.4; SFX.buzz();
+    ui.toast({ kind: '', title: '03:12', text: 'The street lights stutter. At Caduceus, ops logs in from 10.0.0.254 again. The logs are one night longer.' });
+    if (st.flags.deadline && cronAt >= st.flags.deadline && st.quests.quest_z3_exchange !== 'completed' && !st.flags.labDark) {
+      st.flags.labDark = true; st.flags.deadline = null;
+      setTimeout(() => ui.toast({ kind: 'warn', title: 'Building H', text: 'The lights in the Solarpunk Lab go out. He kept his word. The answers are in the exchange.' }), 900); save();
+    }
+  }
+  function startDeadline() { const f = store.state.flags; if (f.deadline || f.labDark) return; f.deadline = nextCron(360); f.callAt = CLOCK.total; ui.toast({ kind: 'warn', title: 'Deadline', text: 'He said 03:12, ' + longDate(f.deadline) + '. T shows the clock. It stops while you are in a terminal.' }); }
+  function updateClock(dt) {
+    const before = CLOCK.total;
+    if (!state.ui) CLOCK.total += dt * CLOCK.rate; // time stands still while a terminal, a conversation or a menu is open
+    if (Math.floor(CLOCK.total) !== Math.floor(before)) clockEvents(before, CLOCK.total);
+    CLOCK.saveT += dt; if (CLOCK.saveT > 5) { CLOCK.saveT = 0; try { localStorage.setItem('nz-time', CLOCK.total.toFixed(1)); } catch (e) { /* ignore */ } }
+    if (CLOCK.shown) drawClock();
+    if (NULL_ENGINE) return;
+    if (!CLOCK.look) { CLOCK.look = captureLook(); if (!CLOCK.look) return; }
+    const L = CLOCK.look, N = L.night, s = sunAt(CLOCK.total % 1440), d = s.day, gold = s.golden, night = 1 - d;
+    const dark = !!store.state.flags.labDark;
+    if (CLOCK.flicker > 0) CLOCK.flicker -= dt;
+    const stutter = CLOCK.flicker > 0 ? (Math.random() < 0.45 ? 0.1 : 1) : 1;
+    const lampsOn = (1 - sstep(0.25, 0.7, d)) * stutter; // lamps switch off a little after sunrise and back on before dark
+    L.labLamps.forEach(([l, i0]) => { l.intensity = i0 * (dark ? 0.12 : 1); }); if (L.grow) L.grow.emissiveColor.copyFrom(dark ? BABYLON.Color3.Black() : L.growC);
+    if (state.zone !== 'out') { // interiors keep their own lamps; only shared materials go back to their night values
+      if (glowDisc) glowDisc.alpha = 1; if (coneMat) coneMat.alpha = 1; if (glow) glow.intensity = 0.5; ipc.exposure = 1.2; if (scene.environmentTexture) scene.environmentIntensity = 0.7; return;
+    }
+    // sky and haze
+    const warm = gold * 0.85;
+    const clear = mixC(mixC(N.clear, L.dayC.clear, d), L.dusk.clear, warm * 0.8); scene.clearColor.set(clear.r, clear.g, clear.b, 1);
+    scene.fogColor = mixC(mixC(C3('#07080f'), L.dayC.fog, d), L.dusk.fog, warm * 0.7); scene.fogDensity = 0.0032 - 0.0018 * d;
+    // ambient fill and the sun (by night the directional light is the original warm city glow from the north-east)
+    L.hemi.intensity = N.hemiI + (1.05 - N.hemiI) * d; L.hemi.diffuse = mixC(N.sky, L.dayC.sky, d); L.hemi.groundColor = mixC(N.ground, L.dayC.ground, d);
+    const sunCol = mixC(L.dayC.sun, L.dusk.sun, gold); L.dir.diffuse = mixC(N.dirCol, sunCol, sstep(-0.05, 0.15, s.elev));
+    L.dir.intensity = N.dirI * night + (0.5 + 1.25 * Math.max(0, s.elev)) * d;
+    const sunV = new BABYLON.Vector3(-Math.cos(s.az), -(0.3 + 0.7 * Math.max(0, s.elev)), -0.3).normalize();
+    const dv = BABYLON.Vector3.Lerp(N.dirV, sunV, d).normalize(); L.dir.direction.copyFrom(dv); L.dir.position.copyFrom(dv.scale(-100));
+    ipc.exposure = 1.2 - 0.18 * d; if (scene.environmentTexture) scene.environmentIntensity = 0.7 + 0.35 * d;
+    // what the city switches on after dark
+    L.lamps.forEach(([l, i0]) => { l.intensity = i0 * lampsOn; l.setEnabled(lampsOn > 0.02); });
+    if (glowDisc) glowDisc.alpha = lampsOn; if (coneMat) coneMat.alpha = 0.35 + 0.65 * lampsOn; if (glow) glow.intensity = 0.15 + 0.35 * night;
+    const win = 0.12 + 0.88 * (1 - sstep(0.15, 0.85, d)); L.facades.forEach(m => m.emissiveColor.set(win, win, win));
+    L.heads.forEach(([m, c]) => m.emissiveColor.copyFrom(c.scale(0.25 + 0.75 * lampsOn)));
+    L.neons.forEach(([m, c]) => m.emissiveColor.copyFrom(dark && m.name === 'neonSH' ? BABYLON.Color3.Black() : c.scale(0.55 + 0.45 * night)));
+    if (dark) { if (L.hFacade) L.hFacade.emissiveColor.set(0, 0, 0); if (L.hStrip) L.hStrip.emissiveColor.set(0, 0, 0); if (L.hSign) L.hSign.alpha = 0.12; }
+    else { if (L.hStrip) L.hStrip.emissiveColor.copyFrom(L.hStripC); if (L.hSign) L.hSign.alpha = 1; }
+  }
+  $('clock').classList.toggle('on', CLOCK.shown); drawClock();
+  scene.onBeforeRenderObservable.add(() => { if (state.playing) updateClock(Math.min(engine.getDeltaTime() / 1000, 0.05)); });
 
   /* ---------- Byte Mart: the shop on the west end of the north block, its interior, the gear it sells, and the credit chips that pay for it ---------- */
   var MART_SPOT = { x: -26, z: -3.6, heading: PI / 2 }, chips = []; // hoisted: the interactables below are registered before this file's statements run
@@ -2685,6 +2852,119 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     SFX.hornAt(car.x, car.z); ui.toast({ kind: 'ok', title: 'Coupe', text: 'Parked on Meridian Row by Byte Mart (M on the map).' });
   }
 
+  /* ---------- Meridian Police: the station on the block east of Building X, officers on foot in uniform, cruisers on patrol ---------- */
+  // the station: a pale concrete hero building facing the Row, blue POLICE lamps either side of the door, two cruisers on the forecourt
+  const STATION = { x: 54, z: 17, w: 17, d: 13, h: 11 };
+  function policeStation() {
+    const S = STATION;
+    building({ name: 'P', label: 'MERIDIAN POLICE', sign: 'MERIDIAN POLICE', signColor: '#5aa8ff', x: S.x, z: S.z, w: S.w, d: S.d, h: S.h, wall: '#b9bec7', frame: '#26324e', lit: '#e6f0ff', cols: 9, rows: 6, seed: 131, face: -1, roof: 'masts', roofCol: '#3a4250' });
+    const fz = S.z - S.d / 2; const lampM = texMat('copLampTex', textTex('POLICE', { w: 256, h: 128, color: '#ffffff', bg: '#2457c9', font: '700 78px "Oswald", "Arial Narrow", sans-serif' }), { emissive: '#ffffff', unlit: true });
+    [-2.1, 2.1].forEach(dx => { box(mat('pole'), 0.08, 0.08, 0.5, S.x + dx, 3.2, fz - 0.25, { cast: false }); box(lampM, 0.46, 0.4, 0.46, S.x + dx, 2.95, fz - 0.55, { cast: false }); });
+    [-4.0, -3.0, 3.0, 4.0].forEach(dx => { cyl(mat('bollard', '#2a3550', { spec: 0.3 }), 0.28, 0.9, S.x + dx, 0, fz - 1.2, { collide: true, tess: 10 }); cyl(mat('bollardBand', '#e9edf3', { emissive: '#6a7080' }), 0.29, 0.08, S.x + dx, 0.7, fz - 1.2, { cast: false, tess: 10 }); block(S.x + dx - 0.15, S.x + dx + 0.15, fz - 1.35, fz - 1.05); });
+    decal(texMat('copStep', textTex('MERIDIAN POLICE · 24 HOUR FRONT DESK', { w: 1024, h: 96, color: '#cfe0ff', bg: '#1b2440' }), { emissive: '#8090b0', spec: 0 }), 5.2, 0.5, S.x, 0.2, fz - 0.6);
+  }
+  // the cruiser: the Kenney sedan in white, a navy roof plate that reads POLICE from the overhead camera, and a red and blue light bar
+  const COP_CAR = { name: 'MERIDIAN PD CRUISER', model: 'sedan', cell: 6, len: 4.7, wid: 2.0, h: 0.66, cab: 0.55, top: 205, acc: 11, cols: ['#eef1f5'] };
+  const copCars = [];
+  const COP_UNITS = ['07', '12', '19', '23', '31'];
+  function spawnCopCar(o) {
+    const car = spawnCar(Object.assign({ type: COP_CAR, color: '#eef1f5' }, o)); car.cop = true; car.unit = COP_UNITS[copCars.length % COP_UNITS.length];
+    car.root.computeWorldMatrix(true); let top = 1.4; try { const bb = car.root.getHierarchyBoundingVectors(true); top = Math.max(0.9, bb.max.y - car.root.position.y); } catch (e) { /* keep the default */ }
+    const prev = Z; Z = zones.out;
+    decal(texMat('copRoof' + car.unit, textTex('POLICE ' + car.unit, { w: 512, h: 160, color: '#ffffff', bg: '#1b2a52', font: '700 92px "Oswald", "Arial Narrow", sans-serif' }), { emissive: '#ffffff', unlit: true }), 1.0, 1.7, 0, top + 0.012, -0.35, { parent: car.root, ry: PI / 2, name: 'copRoof' });
+    box(mat('copBarBase', '#15171c', { spec: 0.4 }), COP_CAR.wid * 0.62, 0.06, 0.26, 0, top + 0.01, 0.35, { parent: car.root, cast: false });
+    car.barR = box(mat('copRedOff', '#4a0f0f', { emissive: '#240404', unlit: true }), COP_CAR.wid * 0.28, 0.1, 0.24, -COP_CAR.wid * 0.15, top + 0.07, 0.35, { parent: car.root, cast: false });
+    car.barB = box(mat('copBlueOff', '#0f1f4a', { emissive: '#040a24', unlit: true }), COP_CAR.wid * 0.28, 0.1, 0.24, COP_CAR.wid * 0.15, top + 0.07, 0.35, { parent: car.root, cast: false });
+    Z = prev; copCars.push(car); return car;
+  }
+  function spawnPatrols(n) {
+    for (let i = 0; i < n; i++) {
+      const alongX = i % 2 === 0; const dir = alongX ? (rnd() < 0.5 ? 0 : 2) : (rnd() < 0.5 ? 1 : 3);
+      const road = alongX ? CITY.roadsZ[(i * 2 + 1) % CITY.roadsZ.length] : CITY.roadsX[(i * 3) % CITY.roadsX.length];
+      const along = (alongX ? CITY.bounds.x0 : CITY.bounds.z0) + 20 + rnd() * 100;
+      const d = DIRS[dir]; const rx = d[1], rz = -d[0];
+      const c = spawnCopCar({ x: alongX ? along : road + rx * CITY.lane, z: alongX ? road + rz * CITY.lane : along, heading: Math.atan2(d[0], d[1]), dir }); c.speed = 6; c.cruise = 6.5 + rnd() * 2; c.flash = true;
+    }
+  }
+  // the uniform: navy shirt and trousers, black boots, a peaked cap with a black-and-white chequered band, a hi-vis yellow vest with
+  // silver reflective bands and POLICE on the back, a duty belt and a radio on the chest. Each piece hangs off the bone it belongs to.
+  const COP_LOOK = { shirt: '#1b2440', trousers: '#141a29', boots: '#0d0e12' };
+  const copMats = {};
+  function copMat(key, make) { return copMats[key] || (copMats[key] = make()); }
+  function checkerTex() { return dtex('copBand', 256, 32, (c, W, H) => { const s = 16; for (let x = 0; x < W; x += s) for (let y = 0; y < H; y += s) { c.fillStyle = ((x + y) / s) % 2 ? '#f2f2ee' : '#101216'; c.fillRect(x, y, s, s); } }, { u: 6 }); }
+  function dressCop(ch) {
+    if (ch.kind !== 'avatar') return;
+    ch.meshes.forEach(m => {
+      const mt = m.material; if (!mt) return; const n = mt.name || '';
+      const kind = /Outfit_Top/.test(n) ? 'shirt' : /Outfit_Bottom/.test(n) ? 'trousers' : /Outfit_Footwear/.test(n) ? 'boots' : null;
+      if (m.name === 'Wolf3D_Hair') m.setEnabled(false); // tucked under the cap
+      if (!kind) return;
+      m.material = copMat(kind + ':' + n, () => { const c = mt.clone(n + '_police'); c.albedoColor = C3(COP_LOOK[kind]); c.albedoTexture = null; if ('roughness' in c) c.roughness = kind === 'boots' ? 0.35 : 0.75; if ('metallic' in c) c.metallic = 0; return c; });
+    });
+    // bone positions in the rest pose, measured with the figure at the origin facing +z
+    ch.pivot.computeWorldMatrix(true); ch.fix.computeWorldMatrix(true); ch.nodes.forEach(n => n.computeWorldMatrix && n.computeWorldMatrix(true));
+    const bone = name => ch.nodes.find(n => n.name === name); const at = name => { const b = bone(name); return b ? b.getAbsolutePosition().clone() : null; };
+    const head = at('Head'), top = at('HeadTop_End'), neck = at('Neck'), sp1 = at('Spine1'), sp2 = at('Spine2'), hips = at('Hips');
+    if (!head || !top || !neck || !sp1 || !sp2 || !hips) return;
+    let fwd = 1; const eye = ch.meshes.find(m => m.name === 'EyeLeft'); if (eye) { eye.computeWorldMatrix(true); fwd = eye.getBoundingInfo().boundingBox.centerWorld.z >= head.z ? 1 : -1; } // which way the face points
+    const k = Math.max(0.7, Math.min(1.3, (top.y - head.y) / 0.227)), kb = Math.max(0.7, Math.min(1.3, (neck.y - hips.y) / 0.507));
+    const navy = copMat('capNavy', () => mat('copCapNavy', '#151c33', { spec: 0.15 })), black = copMat('gloss', () => mat('copGloss', '#0b0c10', { spec: 0.8, power: 96 })), gold = copMat('gold', () => mat('copGold', '#d9b24a', { spec: 0.9, power: 64, emissive: '#3a2a08' }));
+    const vest = copMat('vest', () => mat('copVest', '#c6ec1a', { spec: 0.1, emissive: '#2a3300' })), refl = copMat('refl', () => mat('copRefl', '#d9dde3', { spec: 0.9, power: 64, emissive: '#5a5f68' }));
+    const band = copMat('band', () => texMat('copBandM', checkerTex(), { spec: 0.1 }));
+    const back = copMat('back', () => texMat('copBack', textTex('POLICE', { w: 512, h: 128, color: '#141a2e', bg: '#d9dde3', font: '700 96px "Oswald", "Arial Narrow", sans-serif' }), { spec: 0.3, emissive: '#5a5f68' }));
+    const made = [];
+    const piece = (mesh, material, x, y, z, parentName, o) => { o = o || {}; mesh.material = material; mesh.position.set(x, y, z); if (o.rx) mesh.rotation.x = o.rx; if (o.ry) mesh.rotation.y = o.ry; mesh.isPickable = false; mesh.parent = ch.pivot; mesh.computeWorldMatrix(true); const b = bone(parentName); if (b) mesh.setParent(b); made.push(mesh); return mesh; };
+    const cx = (head.x + top.x) / 2, cz = top.z;
+    // the cap: crown, chequered band, a glossy peak tilted down over the eyes, a gold badge
+    piece(BABYLON.MeshBuilder.CreateCylinder('copCrown', { height: 0.07 * k, diameterTop: 0.275 * k, diameterBottom: 0.23 * k, tessellation: 20 }, scene), navy, cx, top.y - 0.015 * k, cz - fwd * 0.005, 'Head');
+    piece(BABYLON.MeshBuilder.CreateCylinder('copBand', { height: 0.048 * k, diameter: 0.232 * k, tessellation: 20 }, scene), band, cx, top.y - 0.072 * k, cz - fwd * 0.005, 'Head');
+    piece(BABYLON.MeshBuilder.CreateBox('copPeak', { width: 0.2 * k, height: 0.014, depth: 0.1 * k }, scene), black, cx, top.y - 0.098 * k, cz + fwd * 0.135 * k, 'Head', { rx: fwd * 0.28 });
+    piece(BABYLON.MeshBuilder.CreateBox('copBadge', { width: 0.045 * k, height: 0.05 * k, depth: 0.01 }, scene), gold, cx, top.y - 0.022 * k, cz + fwd * 0.128 * k, 'Head');
+    // the vest over the shirt, two reflective bands, POLICE across the back
+    const vw = 0.36 * kb, vd = 0.25 * kb, vy0 = sp1.y - 0.1 * kb, vy1 = neck.y - 0.05 * kb, vh = vy1 - vy0, vy = (vy0 + vy1) / 2, vz = sp2.z + fwd * 0.012;
+    piece(BABYLON.MeshBuilder.CreateBox('copVest', { width: vw, height: vh, depth: vd }, scene), vest, sp2.x, vy, vz, 'Spine2');
+    [0.28, 0.62].forEach(f => piece(BABYLON.MeshBuilder.CreateBox('copRefl', { width: vw + 0.012, height: 0.034 * kb, depth: vd + 0.012 }, scene), refl, sp2.x, vy0 + vh * f, vz, 'Spine2'));
+    piece(BABYLON.MeshBuilder.CreatePlane('copBackText', { width: 0.27 * kb, height: 0.07 * kb, sideOrientation: BABYLON.Mesh.FRONTSIDE }, scene), back, sp2.x, vy0 + vh * 0.8, vz - fwd * (vd / 2 + 0.008), 'Spine2', { ry: fwd > 0 ? 0 : PI });
+    piece(BABYLON.MeshBuilder.CreateBox('copRadio', { width: 0.05, height: 0.09, depth: 0.03 }, scene), black, sp2.x + 0.09 * kb, vy0 + vh * 0.82, vz + fwd * (vd / 2 + 0.015), 'Spine2');
+    // the duty belt and a holster on the right hip
+    piece(BABYLON.MeshBuilder.CreateBox('copBelt', { width: 0.35 * kb, height: 0.06, depth: 0.25 * kb }, scene), black, hips.x, hips.y - 0.01, hips.z + fwd * 0.01, 'Hips');
+    piece(BABYLON.MeshBuilder.CreateBox('copHolster', { width: 0.06, height: 0.16, depth: 0.1 }, scene), black, hips.x - 0.19 * kb, hips.y - 0.07, hips.z, 'Hips');
+    ch.copParts = made; ch.parts = (ch.parts || []).concat(made);
+    if (!NULL_ENGINE && zones.out && zones.out.sg) made.forEach(m => zones.out.sg.addShadowCaster(m));
+  }
+  const COP_NAMES = { female: ['Officer Lund', 'Sergeant Okoye', 'Officer Brandt', 'Officer Reyes-Holm'], male: ['Officer Halvorsen', 'Sergeant Diallo', 'Officer Kaya', 'Officer Mikkelsen'] };
+  function newCop(name, female) {
+    if (!AV.ready) { const ch = makeFigure(name, { jacket: '#c6ec1a', pants: COP_LOOK.trousers, skin: '#c9a080', hair: '#1a1a1a', beanie: '#151c33' }); ch.female = female; return ch; }
+    const rig = female ? 'rosa' : (rnd() < 0.5 ? 'player' : 'julien'); const ch = makeAvatar(name, rig, {}); ch.rig = rig; ch.female = female;
+    dressCop(ch); giveAnims(ch, [['idle', 'anim-m-idle'], ['walk', 'anim-m-walk'], ['jog', 'anim-m-jog']]); return ch;
+  }
+  // officers walk the sidewalks like everyone else, but half of them walk Meridian Row itself
+  function spawnCops(n) {
+    for (let i = 0; i < n; i++) {
+      const female = i % 2 === 1; const ch = newCop('cop' + i, female);
+      const alongX = i % 3 !== 2; const dir = alongX ? (i % 2 ? 0 : 2) : (i % 2 ? 1 : 3); const side = i % 4 < 2 ? 1 : -1;
+      const road = alongX ? (i < 3 ? 0 : CITY.roadsZ[(i * 2) % CITY.roadsZ.length]) : CITY.roadsX[i % CITY.roadsX.length];
+      const along = (alongX ? -50 : -60) + i * 23; const d = DIRS[dir]; const rx = d[1], rz = -d[0];
+      peds.push({ ch, x: alongX ? along : road + rx * CITY.walk * side, z: alongX ? road + rz * CITY.walk * side : along, dir, speed: 1.15 + (i % 3) * 0.1, pause: 0, side, name: (female ? COP_NAMES.female : COP_NAMES.male)[Math.floor(i / 2) % 4], mood: 'cop', cop: true, female, seed: 40 + i, talk: 0, scared: 0 });
+    }
+  }
+  function spawnPolice() {
+    spawnCopCar({ x: STATION.x - 7, z: STATION.z - STATION.d / 2 - 1.9, heading: PI / 2, parked: true });
+    spawnCopCar({ x: STATION.x + 7, z: STATION.z - STATION.d / 2 - 1.9, heading: -PI / 2, parked: true });
+    spawnPatrols(3); spawnCops(AV.ready ? 6 : 8);
+  }
+  // light bars wig-wag red and blue on patrol and while you drive one; officers notice reckless driving and a stolen cruiser
+  const COPS = { warnT: 0 };
+  function copCarTaken(car) { if (car.reported) return; car.reported = true; car.flash = true; ui.toast({ kind: 'warn', title: 'Meridian PD', text: 'Dispatch: cruiser ' + car.unit + ' taken on ' + (Math.abs(car.z) < 8 ? 'Meridian Row' : 'the grid') + '. All units, eyes open.' }); }
+  function updateCops(dt, t) {
+    const phase = Math.floor(t * 6) % 4;
+    copCars.forEach(c => { const on = c.flash || c === state.driving; c.barR.material = on && phase === 0 ? mat('copRedOn', '#ff3030', { emissive: '#ff2020', unlit: true }) : mat('copRedOff'); c.barB.material = on && phase === 2 ? mat('copBlueOn', '#3070ff', { emissive: '#2a66ff', unlit: true }) : mat('copBlueOff'); });
+    COPS.warnT -= dt; const car = state.driving; if (!car || COPS.warnT > 0 || Math.abs(car.speed) < 6) return;
+    const w = peds.find(p => p.cop && Math.hypot(p.x - car.x, p.z - car.z) < 5); if (!w) return;
+    COPS.warnT = 25; ui.toast({ kind: 'warn', title: w.name, text: car.cop ? 'That is one of OUR cars. Pull over. Now.' : 'Slow down! This is a street, not a racetrack.' });
+  }
+  addInter({ id: 'doorP', zone: 'out', pos: V3(STATION.x, 0, STATION.z - STATION.d / 2 - 1.2), r: 2.2, label: 'Read the notice on the police station door', run() { ui.examine('policeNotice'); } });
+
   /* ---------- Act 2: the courier in the park, the burner phone, the call, and Building X, the Meridian Exchange ---------- */
   function COURIER() { return [-50.5, 23.2]; } function XDOOR() { return [24.5, 15]; } // functions, not consts: the interactables below register before this file's statements run
   function buildExchange() {
@@ -2754,14 +3034,14 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   function answerPhone() {
     const which = PHONE.ringing; if (!which) return; PHONE.ringing = false; $('phoneBox').classList.remove('ringing'); $('phone').classList.add('off'); state.ui = null; SFX.pickUp();
     const st = store.state;
-    if (which === 1) { ui.dialogue('Unknown number', ZD.DIALOGUE.caller(st), () => { st.flags.called = true; PHONE.calls.push('03:12 unknown number, 41 s'); if (st.quests.quest_z2_dialtone === 'available') store.activateQuest('quest_z2_dialtone'); ui.toast({ kind: 'warn', title: 'Burner', text: '1 new message with a photo. F opens the phone; its shell reads like any other.' }); save(); }, 'caller'); }
+    if (which === 1) { ui.dialogue('Unknown number', ZD.DIALOGUE.caller(st), () => { st.flags.called = true; PHONE.calls.push('03:12 unknown number, 41 s'); startDeadline(); if (st.quests.quest_z2_dialtone === 'available') store.activateQuest('quest_z2_dialtone'); ui.toast({ kind: 'warn', title: 'Burner', text: '1 new message with a photo. F opens the phone; its shell reads like any other.' }); save(); }, 'caller'); }
     else { ui.dialogue('Unknown number', ZD.DIALOGUE.caller2(st), () => { st.flags.called2 = true; st.flags.call2Due = false; ui.toast({ kind: 'quest', title: 'Zero Day', text: 'End of Act 2. The vault at 10.0.3.1 is the next build.' }); save(); }, 'caller'); }
   }
   function declineRing() { PHONE.ringing = false; $('phoneBox').classList.remove('ringing'); $('phone').classList.add('off'); state.ui = null; state.ringAt = t + 20; ui.toast({ kind: '', title: 'Burner', text: 'Missed call. It will ring again.' }); }
   function openPhone() {
     if (state.ui || !state.playing || !store.state.flags.hasPhone) return; state.ui = 'phone'; SFX.swish();
     const st = store.state; $('phoneCaller').textContent = st.flags.called ? '1 message · 1 call' : 'no messages yet'; $('phoneState').textContent = 'BURNER'; $('phoneAnswer').hidden = true; $('phoneShell').hidden = false; $('phoneMsgs').hidden = false;
-    $('phoneMsgs').innerHTML = st.flags.called ? '<div class="msg"><div class="from">UNKNOWN NUMBER · 03:12</div><p>You hold Dara’s map. Now you hold her phone. The third token is mine, and this street runs on it. Stop pulling at STYX, or the lights on Meridian Row go out one building at a time, starting with the lab. You have until 03:12.</p><div class="photo">[photo] a steel door with a keypad. Sign above it: MERIDIAN EXCHANGE.</div></div>' + (st.flags.called2 ? '<div class="msg"><div class="from">CALL LOG · 03:12</div><p>unknown number, answered. "Keep the phone charged."</p></div>' : '') : '<div class="msg"><p>No messages. Keep it charged. Answer anything that is a number.</p></div>';
+    $('phoneMsgs').innerHTML = st.flags.called ? '<div class="msg"><div class="from">UNKNOWN NUMBER · ' + (st.flags.callAt != null ? stampLabel(st.flags.callAt).toUpperCase() : '03:12') + '</div><p>You hold Dara’s map. Now you hold her phone. The third token is mine, and this street runs on it. Stop pulling at STYX, or the lights on Meridian Row go out one building at a time, starting with the lab. You have until 03:12.</p><div class="photo">[photo] a steel door with a keypad. Sign above it: MERIDIAN EXCHANGE.</div></div>' + (st.flags.called2 ? '<div class="msg"><div class="from">CALL LOG · 03:12</div><p>unknown number, answered. "Keep the phone charged."</p></div>' : '') : '<div class="msg"><p>No messages. Keep it charged. Answer anything that is a number.</p></div>';
     $('phone').classList.remove('off');
   }
   function placeCourierBeacon() { /* beacons for Act 2 live in the BEACON table */ }
@@ -2970,7 +3250,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     // every notice arrives on the pager: one line at a time, a beep, five seconds on the LCD
     pagerQ: [], pagerBusy: false,
     toast(o) { ui.pagerQ.push(o); if (!ui.pagerBusy) ui.pagerNext(); },
-    pagerNext() { const o = ui.pagerQ.shift(); const p = $('pager'); if (!o) { ui.pagerBusy = false; p.classList.remove('on'); return; } ui.pagerBusy = true; $('pagerText').innerHTML = '<b>' + esc(o.title).toUpperCase() + '</b> ' + esc(o.text || ''); const d = new Date(); $('pagerTime').textContent = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); p.classList.add('on'); SFX.pager(); setTimeout(ui.pagerNext, 4800); },
+    pagerNext() { const o = ui.pagerQ.shift(); const p = $('pager'); if (!o) { ui.pagerBusy = false; p.classList.remove('on'); return; } ui.pagerBusy = true; $('pagerText').innerHTML = '<b>' + esc(o.title).toUpperCase() + '</b> ' + esc(o.text || ''); $('pagerTime').textContent = clockText(); /* the pager runs on Meridian Row time */ p.classList.add('on'); SFX.pager(); setTimeout(ui.pagerNext, 4800); },
     carName(name) { const el = $('carName'); if (!name) { el.classList.remove('on'); return; } el.textContent = name; el.classList.add('on'); clearTimeout(ui.carT); ui.carT = setTimeout(() => el.classList.remove('on'), 3500); },
     prompt(text) { const p = $('prompt'); if (!text) { p.hidden = true; $('tE').hidden = true; return; } $('promptText').textContent = text; p.hidden = false; if (state.touch) $('tE').hidden = false; },
     refreshQuest() {
@@ -3032,8 +3312,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       const st = store.state; const body = $('jrBody'); body.innerHTML = '';
       document.querySelectorAll('#jrHead .tab').forEach(b => b.classList.toggle('on', b.dataset.tab === ui.jrTab));
       if (ui.jrTab === 'quests') ZD.QUESTS.concat(ZD.GIGS.filter(g => st.quests[g.id] !== 'available')).forEach(q => { const s = st.quests[q.id]; const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<span class="state ' + s + '">' + s + '</span><h4>' + esc(q.title) + '</h4><div class="meta">' + esc(q.category + ' · ' + q.location + ' · ' + q.reward + ' credits') + '</div>' + (s === 'locked' ? '<p>Locked.</p>' : '<ul>' + q.objectives.map(o => '<li class="' + (store.isDone(q.id, o.id) ? 'done' : '') + '">' + esc(o.text) + (o.hint && !store.isDone(q.id, o.id) ? '<div class="hint">' + esc(cyberHint(o, cyberLevel(st.cyberScore || 0))) + '</div>' : '') + '</li>').join('') + '</ul>'); body.appendChild(el); });
-      if (ui.jrTab === 'log') { if (!st.journal.length) body.innerHTML = '<div class="entry"><p>No entries yet.</p></div>'; st.journal.slice().reverse().forEach(j => { const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<div class="meta">' + new Date(j.t).toLocaleString() + '</div><h4>' + esc(j.title) + '</h4><p>' + esc(j.text) + '</p>'; body.appendChild(el); }); }
-      if (ui.jrTab === 'notebook') { if (!st.notebook.length) body.innerHTML = '<div class="entry"><p>Nothing examined yet. Look closely at what Dara left on the reading table.</p></div>'; st.notebook.slice().reverse().forEach(n => { const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<div class="meta">' + esc(n.id) + '</div><h4>' + esc(n.title) + '</h4><p>' + esc(n.text) + '</p>'; body.appendChild(el); }); }
+      if (ui.jrTab === 'log') { if (!st.journal.length) body.innerHTML = '<div class="entry"><p>No entries yet.</p></div>'; st.journal.slice().reverse().forEach(j => { const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<div class="meta">' + (j.g != null ? stampLabel(j.g) : new Date(j.t).toLocaleString()) + '</div><h4>' + esc(j.title) + '</h4><p>' + esc(j.text) + '</p>'; body.appendChild(el); }); }
+      if (ui.jrTab === 'notebook') { if (!st.notebook.length) body.innerHTML = '<div class="entry"><p>Nothing examined yet. Look closely at what Dara left on the reading table.</p></div>'; st.notebook.slice().reverse().forEach(n => { const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<div class="meta">' + esc(n.id) + (n.g != null ? ' · ' + stampLabel(n.g) : '') + '</div><h4>' + esc(n.title) + '</h4><p>' + esc(n.text) + '</p>'; body.appendChild(el); }); }
     }
   };
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
@@ -3073,7 +3353,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   store.on('toast', o => { ui.toast(o); if (o.kind === 'ok') SFX.objective(); else if (o.kind === 'quest') SFX.quest(); else if (o.kind === 'found') SFX.discovery(); else if (o.kind === 'warn') SFX.warn(); else if (o.kind === 'buy') SFX.buy(); else if (o.kind === 'cash') SFX.coin(); else SFX.tick(); });
   store.on('bought', id => { if (id === 'keys') ensureOwnCar(); });
   store.on('change', () => { ui.refreshQuest(); updateBeacon(); save(); });
-  store.on('questComplete', (qid) => { if (qid === 'quest_i3_ghost') setTimeout(() => ui.toast({ kind: 'quest', title: 'Zero Day', text: 'Rosa has one more thing to say. Someone is waiting in the park.' }), 4200); if (qid === 'quest_z3_exchange') setTimeout(() => { store.state.flags.call2Due = true; save(); }, 6000); });
+  store.on('questComplete', (qid) => { if (qid === 'quest_i3_ghost') setTimeout(() => ui.toast({ kind: 'quest', title: 'Zero Day', text: 'Rosa has one more thing to say. Someone is waiting in the park.' }), 4200); if (qid === 'quest_z3_exchange') { const f = store.state.flags; f.deadline = null; if (f.labDark) { f.labDark = false; setTimeout(() => ui.toast({ kind: 'ok', title: 'Building H', text: 'The lights in the lab come back on. Whatever the 1337 line was holding over the street, it let go.' }), 2500); } setTimeout(() => { store.state.flags.call2Due = true; save(); }, 6000); } });
 
   /* ---------- character creator: face, hair, facial hair, colours, cycled Morrowind-style with arrows; the same look is assembled in the preview and in the game ---------- */
   const LOOK = { current: null };
@@ -3202,7 +3482,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
 
   /* ---------- persistence ---------- */
   const SAVE_KEY = 'netrunner-zero-day-overhead-save';
-  function snapshot() { const p = chars.player; const car = state.driving; return { save: store.serialize(), appearance: LOOK.current, pos: p ? [car ? car.x : p.pivot.position.x, car ? 0 : p.pivot.position.y, car ? car.z : p.pivot.position.z, p.yaw] : null, zone: state.zone, playing: state.playing }; }
+  function snapshot() { const p = chars.player; const car = state.driving; return { save: store.serialize(), appearance: LOOK.current, pos: p ? [car ? car.x : p.pivot.position.x, car ? 0 : p.pivot.position.y, car ? car.z : p.pivot.position.z, p.yaw] : null, zone: state.zone, playing: state.playing, clock: CLOCK.total }; }
   function save() { try { if (state.playing) localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot())); } catch (e) { /* storage unavailable */ } }
   function loadSave() { try { const s = localStorage.getItem(SAVE_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
   try { if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(snapshot); } catch (e) { /* no hot support */ }
@@ -3243,7 +3523,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     jul.pivot.position.set(10.2, 0, -13.4); jul.yaw = 0.2; jul.pivot.rotation.y = 0.2;
     [rosa, jul].forEach(ch => { const c = BABYLON.MeshBuilder.CreateCylinder('npcCol', { height: 1.8, diameter: 0.7 }, scene); c.position.set(ch.pivot.position.x, 0.9, ch.pivot.position.z); c.isVisible = false; c.isPickable = false; c.checkCollisions = true; c.parent = Z.root; });
     placeNadia(); placeCourier();
-    spawnTraffic(22); spawnPeds(AV.ready ? 18 : 28);
+    spawnTraffic(22); spawnPeds(AV.ready ? 18 : 28); spawnPolice();
     [[-20, -3.6, PI / 2], [26, 3.6, -PI / 2], [-30, 3.6, -PI / 2], [-40, -20, 0], [40, 22, PI], [-40, 60, 0], [40, -60, PI], [-76, 20, 0], [76, -20, PI]].forEach(p => spawnCar({ x: p[0], z: p[1], heading: p[2], parked: true }));
     if (!NULL_ENGINE && AV.ready) { const sg = zones.out.sg; Object.values(chars).forEach(ch => { if (ch.kind === 'avatar' && ch !== chars.nadia) charMeshes(ch).forEach(m => sg.addShadowCaster(m)); }); }
     // the clip rigs' meshes have done their job; the animation groups stay, because the character creator rebuilds the player and retargets them again
@@ -3255,10 +3535,12 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const st = store.state; const sv = resume ? loadSave() : null;
     if (sv && sv.save) { store.restore(sv.save); if (pendingCyberResult) { store.state.cyberScore = pendingCyberResult.score; store.state.cyberLevel = pendingCyberResult.level; pendingCyberResult = null; } if (sv.pos) { setZone(sv.zone || 'out', true); placePlayer(sv.pos[0], sv.pos[1], sv.pos[2], sv.pos[3]); } else placePlayer(-5, 0, 0, 0); }
     else { st.profile = ($('pname').value.trim() || 'Fresh Investigator').slice(0, 24); placePlayer(-5, 0, 0, 0); if (st.quests.quest_f1_cli === 'available') store.activateQuest('quest_f1_cli'); }
+    if (sv && typeof sv.clock === 'number' && sv.clock >= START_MIN) CLOCK.total = sv.clock; else if (!resume) CLOCK.total = START_MIN; // a new profile starts on Saturday 10 October at 19:00
+    CLOCK.shownMin = -1; syncLogs(); drawClock();
     applyLook(LOOK.current); updateBeacon(); ensureOwnCar(); if (st.flags.hasPhone && !st.flags.called) state.ringAt = t + 14;
     $('start').classList.add('off'); state.playing = true; ui.refreshQuest(); save(); canvas.focus();
     setTimeout(() => $('fade').classList.add('clear'), 80);
-    if (!resume) setTimeout(() => ui.toast({ kind: '', title: 'Building A', text: 'The cyan arrow marks the door. W runs, A and D turn, E at a car takes it.' }), 1200);
+    if (!resume) { setTimeout(() => ui.toast({ kind: '', title: longDate(), text: '19:00 on Meridian Row. Six days since anyone saw Dara. T shows the clock.' }), 600); setTimeout(() => ui.toast({ kind: '', title: 'Building A', text: 'The cyan arrow marks the door. W runs, A and D turn, E at a car takes it.' }), 1200); }
   }
   $('enterBtn').addEventListener('click', () => { if (loaded) openAssessment(false); });
   $('continueBtn').addEventListener('click', () => { if (!loaded) return; const existing = loadSave(); if (existing && existing.save && existing.save.cyberLevel) openCustomizer(true); else openAssessment(true); });
