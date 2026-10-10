@@ -265,7 +265,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
       <div id="customizePanel" class="card">
         <div class="eyebrow">Before drop-in</div>
         <h2 style="font:32px var(--font-display);margin:0;color:var(--cash);letter-spacing:.05em">Style your runner</h2>
-        <p style="margin:0;color:#d9d2c5">Hair, facial hair, skin and clothing. Saved with your profile; change it whenever you continue.</p>
+        <p style="margin:0;color:#d9d2c5" id="bodyNote"></p>
         <div id="styleChoices" class="lookRows" aria-label="Character options"></div>
         <div class="row"><button id="customizeBack" class="btn ghost" type="button">Back</button><button id="customizeRandom" class="btn ghost" type="button">Random</button><button id="customizeStart" class="btn" type="button">Jump in</button></div>
       </div>
@@ -3022,7 +3022,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   /* ---------- character creator: face, hair, facial hair, colours, cycled Morrowind-style with arrows; the same look is assembled in the preview and in the game ---------- */
   const LOOK = { current: null };
   const LOOK_OPTS = {
-    face: [['player', 'Face I'], ['julien', 'Face II'], ['rosa', 'Face III']],
+    face: [['player', 'Man'], ['rosa', 'Woman']], /* chosen once, when the profile is created */
     hair: [['own', 'Natural cut'], ['player', 'Cropped'], ['julien', 'Swept back'], ['rosa', 'Long'], ['none', 'Shaved']],
     beard: [['own', 'Natural'], ['none', 'Clean shaven'], ['player', 'Short beard'], ['julien', 'Full beard']],
     hairCol: [[null, 'Natural'], ['#14100e', 'Black'], ['#4a2e1c', 'Brown'], ['#8a5a2a', 'Chestnut'], ['#d6b36a', 'Blond'], ['#a8381a', 'Red'], ['#c9c9d2', 'Silver'], ['#3ee8f0', 'Cyan'], ['#ff3d7f', 'Pink'], ['#8cf28c', 'Mint']],
@@ -3032,7 +3032,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   };
   const LOOK_ROWS = [['hair', 'Hair'], ['hairCol', 'Hair colour'], ['beard', 'Facial hair'], ['skin', 'Skin'], ['top', 'Jacket'], ['bottom', 'Trousers']];
   function defaultLook() { return { face: 0, hair: 0, hairCol: 0, beard: 0, skin: 0, top: 0, bottom: 0 }; }
-  function normalizeLook(l) { const d = defaultLook(); if (!l || typeof l !== 'object') return d; Object.keys(d).forEach(k => { const n = LOOK_OPTS[k].length; d[k] = typeof l[k] === 'number' && l[k] >= 0 && l[k] < n ? l[k] : 0; }); d.face = 0; return d; } // the face and body are fixed: changing them swapped the whole character, clothes included
+  function normalizeLook(l) { const d = defaultLook(); if (!l || typeof l !== 'object') return d; Object.keys(d).forEach(k => { const n = LOOK_OPTS[k].length; d[k] = typeof l[k] === 'number' && l[k] >= 0 && l[k] < n ? l[k] : 0; }); return d; } // the face and body are fixed: changing them swapped the whole character, clothes included
   LOOK.current = defaultLook();
   const opt = (k, look) => LOOK_OPTS[k][look[k]][0];
 
@@ -3061,6 +3061,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const own = { hair: ch.meshes.find(m => m.name === 'Wolf3D_Hair'), beard: ch.meshes.find(m => m.name === 'Wolf3D_Beard') }; const faceRig = opt('face', look);
     (ch.parts || []).forEach(p => p.dispose()); ch.parts = [];
     ['hair', 'beard'].forEach(k => {
+      if (k === 'beard' && faceRig === 'rosa') { if (own.beard) own.beard.setEnabled(false); return; } // no facial hair on the woman's body
       const choice = opt(k, look); const useOwn = choice === 'own' || choice === faceRig; if (own[k]) own[k].setEnabled(useOwn);
       if (!useOwn && choice !== 'none' && containers[choice]) { const part = borrowPart(ch.meshes, containers[choice], k === 'hair' ? 'Wolf3D_Hair' : 'Wolf3D_Beard', ch.name); if (part) ch.parts.push(part); }
     });
@@ -3085,7 +3086,9 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   const creator = { engine: null, scene: null, root: null, rigs: {}, ch: null, dragging: false, lastX: 0, ready: false, pendingResume: false };
   function renderLookRows() {
     const box = $('styleChoices'); box.innerHTML = ''; box.className = 'lookRows';
-    LOOK_ROWS.forEach(r => {
+    const rows = (creator.pendingResume ? [] : [['face', 'Body']]).concat(LOOK_ROWS.filter(r => !(r[0] === 'beard' && opt('face', LOOK.current) === 'rosa')));
+    $('bodyNote').textContent = creator.pendingResume ? (opt('face', LOOK.current) === 'rosa' ? 'Woman' : 'Man') + ', chosen when this profile was created.' : 'Body is chosen once, now. Everything else can be changed whenever you continue.';
+    rows.forEach(r => {
       const k = r[0]; const opts = LOOK_OPTS[k]; const i = LOOK.current[k]; const sw = opts[i][0];
       const row = document.createElement('div'); row.className = 'lookRow';
       row.innerHTML = '<span class="lbl">' + r[1] + '</span><button type="button" class="arrow" data-k="' + k + '" data-d="-1" aria-label="Previous ' + r[1] + '">&lsaquo;</button><span class="val">' + (sw && /^#/.test(sw) ? '<i class="sw" style="background:' + sw + '"></i>' : '') + esc(opts[i][1]) + '<small>' + (i + 1) + '/' + opts.length + '</small></span><button type="button" class="arrow" data-k="' + k + '" data-d="1" aria-label="Next ' + r[1] + '">&rsaquo;</button>';
@@ -3093,7 +3096,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     });
     box.querySelectorAll('.arrow').forEach(b => b.addEventListener('click', () => { const k = b.dataset.k, n = LOOK_OPTS[k].length; LOOK.current[k] = (LOOK.current[k] + (+b.dataset.d) + n) % n; SFX.tick(); renderLookRows(); dressPreview(); }));
   }
-  function randomLook() { const l = {}; Object.keys(LOOK_OPTS).forEach(k => { l[k] = Math.floor(Math.random() * LOOK_OPTS[k].length); }); l.face = 0; LOOK.current = l; SFX.swish(); renderLookRows(); dressPreview(); }
+  function randomLook() { const l = {}; Object.keys(LOOK_OPTS).forEach(k => { l[k] = Math.floor(Math.random() * LOOK_OPTS[k].length); }); l.face = LOOK.current.face; /* the body is never randomised */ LOOK.current = l; SFX.swish(); renderLookRows(); dressPreview(); }
   async function initCreator() {
     if (creator.engine) return creator.readyP;
     const pc = $('characterPreviewCanvas'); creator.engine = new BABYLON.Engine(pc, true, { preserveDrawingBuffer: true, stencil: true }); const ps = creator.scene = new BABYLON.Scene(creator.engine); ps.clearColor = new BABYLON.Color4(.025, .035, .055, 1);
