@@ -2894,6 +2894,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       get musicOff() { return musicOff; },
       toggleMusic() { musicOff = !musicOff; try { localStorage.setItem('nz-music', musicOff ? 'off' : 'on'); } catch (e) { /* ignore */ } if (ctx && mix.music) mix.music.gain.setTargetAtTime(musicOff || musicSuspended ? 0 : vol.music / 100, ctx.currentTime, 0.1); if (mus.cur) { if (musicOff || musicSuspended) mus.cur.el.pause(); else mus.cur.el.play().catch(() => {}); } return musicOff; },
       suspendMusic(paused) { musicSuspended = !!paused; if (ctx && mix.music) mix.music.gain.setTargetAtTime(musicSuspended || musicOff ? 0 : vol.music / 100, ctx.currentTime, 0.05); if (mus.cur) { if (musicSuspended || musicOff) mus.cur.el.pause(); else mus.cur.el.play().catch(() => {}); } },
+      softMusic() { if (!ctx || musicOff) return; musicSuspended = false; if (mus.cur) { try { mus.cur.gain.gain.cancelScheduledValues(ctx.currentTime); mus.cur.gain.gain.setValueAtTime(0, ctx.currentTime); mus.cur.el.pause(); mus.cur.el.currentTime = 0; } catch (e) { /* gone */ } mus.cur = null; } mus.deck = []; mus.zone = null; playTrack('in'); },
       init() { if (ctx) { api.resume(); return; } const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; try { ctx = new AC(); } catch (e) { return; } const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4; master = g(muted ? 0 : vol.master / 100); master.connect(comp); comp.connect(ctx.destination); white = noiseBuf(false); brown = noiseBuf(true); build(); },
       resume() { if (ctx && ctx.state === 'suspended') ctx.resume(); api.retry(); },
       zone(name) { const bedName = name === 'out' ? 'out' : 'in'; music.zone = bedName; if (!ctx) return; const t = ctx.currentTime; Object.keys(bus).forEach(k => bus[k].gain.setTargetAtTime(k === bedName ? 1 : 0, t, 0.6)); setBeds(name); if (name !== mus.zone) playTrack(name); },
@@ -3057,7 +3058,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   $('journalBtn').addEventListener('click', () => { if (state.ui === 'journal') ui.closeAll(); else if (!state.ui) ui.openJournal(); });
   document.querySelectorAll('#jrHead .tab').forEach(b => b.addEventListener('click', () => { ui.jrTab = b.dataset.tab; ui.renderJournal(); }));
   canvas.addEventListener('pointerdown', () => { if (!state.ui) canvas.focus(); });
-  window.addEventListener('pointerdown', () => { SFX.init(); SFX.resume(); if (!state.playing && $('assessment').classList.contains('off')) SFX.title(); }, { capture: true });
+  window.addEventListener('pointerdown', (e) => { SFX.init(); SFX.resume(); if (!state.playing && $('assessment').classList.contains('off') && !e.target.closest('#enterBtn,#continueBtn')) SFX.title(); }, { capture: true });
   SFX.onTrack = (name) => { if (state.playing) ui.toast({ kind: '', title: 'Radio', text: name }); };
   $('soundBtn').addEventListener('click', () => ui.setSound(SFX.toggle()));
   $('musicBtn').addEventListener('click', () => ui.setMusic(SFX.toggleMusic()));
@@ -3171,7 +3172,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     dressLook(creator.ch, look, creator.rigs);
   }
   function openCustomizer(resume) {
-    creator.pendingResume = resume; if (resume) { const sv = loadSave(); if (sv && sv.appearance) LOOK.current = normalizeLook(sv.appearance); }
+    SFX.init(); SFX.softMusic(); creator.pendingResume = resume; if (resume) { const sv = loadSave(); if (sv && sv.appearance) LOOK.current = normalizeLook(sv.appearance); }
     const saved = resume ? loadSave() : null; const score = store.state.cyberScore != null ? store.state.cyberScore : saved && saved.save ? saved.save.cyberScore : null; const level = score != null ? cyberLevel(score) : null; $('customizeBrief').textContent = level ? 'Briefing level: ' + level.name + '. ' + level.label + ' Appearance is saved with your profile.' : 'Face, hair, facial hair, colours. Saved with your profile; change it whenever you continue.';
     $('start').classList.add('off'); $('customize').classList.remove('off'); renderLookRows(); initCreator().then(() => { creator.engine.resize(); dressPreview(); });
   }
@@ -3186,8 +3187,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     item.a.forEach((text, i) => { const label = document.createElement('label'); label.className = 'assessmentOption'; label.innerHTML = '<input type="radio" name="cyberAnswer" value="' + i + '"><span>' + esc(text) + '</span>'; label.querySelector('input').addEventListener('change', () => { assessment.answers[assessment.index] = i; SFX.tick(); $('assessmentNext').disabled = false; }); $('assessmentOptions').appendChild(label); });
     $('assessmentNext').disabled = assessment.answers[assessment.index] == null; $('assessmentNext').textContent = assessment.index === CYBER_ASSESSMENT.length - 1 ? 'Finish assessment' : 'Next question';
   }
-  function openAssessment(resume) { assessment.index = 0; assessment.answers = []; assessment.resume = resume; SFX.init(); SFX.suspendMusic(true); $('start').classList.add('off'); $('customize').classList.add('off'); $('assessment').classList.remove('off'); renderAssessment(); }
-  function finishAssessment() { const result = assessmentResult(assessment.answers); if (assessment.resume) pendingCyberResult = result; else { store.state.cyberScore = result.score; store.state.cyberLevel = result.level; } SFX.suspendMusic(false); $('assessment').classList.add('off'); $('assessmentNote').textContent = result.level + ' briefing selected.'; openCustomizer(assessment.resume); }
+  function openAssessment(resume) { assessment.index = 0; assessment.answers = []; assessment.resume = resume; SFX.init(); SFX.softMusic(); $('start').classList.add('off'); $('customize').classList.add('off'); $('assessment').classList.remove('off'); renderAssessment(); }
+  function finishAssessment() { const result = assessmentResult(assessment.answers); if (assessment.resume) pendingCyberResult = result; else { store.state.cyberScore = result.score; store.state.cyberLevel = result.level; } $('assessment').classList.add('off'); $('assessmentNote').textContent = result.level + ' briefing selected.'; openCustomizer(assessment.resume); }
   $('assessmentNext').addEventListener('click', () => { if (assessment.answers[assessment.index] == null) return; if (assessment.index === CYBER_ASSESSMENT.length - 1) finishAssessment(); else { assessment.index++; renderAssessment(); } });
 
   /* ---------- persistence ---------- */
