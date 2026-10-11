@@ -2315,11 +2315,11 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     room({ name: 'P', X0, X1, Z0, Z1, H, wallM, floorM, door: 0, windows: [[-6, 1.0, Z0 + 0.1, 2.7, 1.5, 0, 'front'], [X1 - 0.1, 1.0, 2, 2.2, 1.5, PI / 2, 'side']] });
     const navy = mat('policeNavy', '#202c4a', { spec: 0.3 }); const steel = mat('policeSteel', '#8d98a8', { spec: 0.45 }); const glass = mat('policeGlass', '#9ec9ed', { alpha: 0.28, spec: 0.8 });
     // Front desk at the civic lobby, facing south toward the entry.
-    desk(0, -0.8, PI, ['MERIDIAN PD', 'front desk', 'bell: ring once'], '#8fc5ff');
+    desk(0, -0.8, 0, ['MERIDIAN PD', 'front desk', 'bell: ring once'], '#8fc5ff');
     box(mat('bell', '#e8bd63', { emissive: '#6a4d1d' }), 0.12, 0.08, 0.12, 0.8, 1.08, -0.55, { cast: false, name: 'frontBell' });
     [[-7.7, -3.6], [-7.7, -1.4]].forEach(p => { box(mat('bench', '#34415b'), 1.8, 0.08, 0.45, p[0], 0.46, p[1], { collide: true }); box(steel, 0.05, 0.46, 0.05, p[0] - 0.7, 0, p[1], { cast: false }); box(steel, 0.05, 0.46, 0.05, p[0] + 0.7, 0, p[1], { cast: false }); });
     // Cybercrime desk and evidence side behind the glass partition.
-    desk(5.2, 4.0, PI, ['cybercrime desk', 'MP-2610-044', 'case: OKAFOR'], '#61a5ff');
+    desk(5.2, 4.0, 0, ['cybercrime desk', 'MP-2610-044', 'case: OKAFOR'], '#61a5ff');
     plane(texMat('policeBoard', textTex('CASE BOARD\nOKAFOR  ·  MP-2610-044\nPRESERVE LOGS  ·  NOTE TIME', { w: 768, h: 256, color: '#cfe0ff', bg: '#1b2440', font: '600 34px "JetBrains Mono", monospace', lineH: 54 }), { unlit: true, emissive: '#ffffff' }), 3.0, 1.4, 1.5, 5.98, { ry: 0, single: true });
     // Evidence lockers sit against the far wall; the cell block stays to the northwest.
     for (let i = 0; i < 3; i++) { box(steel, 0.9, 1.9, 0.52, -2.5 + i * 1.05, 0, 5.65, { collide: true }); box(mat('evidenceLabel' + i, i === 1 ? '#d4a64b' : '#566985'), 0.62, 0.18, 0.03, -2.5 + i * 1.05, 1.25, 5.35, { cast: false }); }
@@ -2328,7 +2328,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     box(mat('cellBench', '#68758b'), 1.6, 0.18, 0.45, -6.5, 0.45, 5.15, { collide: true });
     [[0.8, 4.9]].forEach(p => box(glass, 0.06, 2.4, 3.5, 3.5, 0, p[1], { collide: true, cast: false }));
     box(glass, 0.06, 2.4, 3.5, 3.5, 0, 0.8, { collide: true, cast: false }); box(steel, 0.08, 2.4, 0.08, 3.5, 0, 3.2, { cast: false }); box(steel, 0.08, 2.4, 0.08, 3.5, 0, 6.0, { cast: false });
-    [[-4, -3], [4, -3], [-4, 3.8], [4, 3.8]].forEach(p => box(mat('ceilingLight', '#e8f2ff', { emissive: '#b9d8ff', unlit: true }), 2.3, 0.04, 0.16, p[0], H - 0.2, p[1], { cast: false }));
+    [[-4, -3], [4, -3], [-4, 3.8], [4, 3.8]].forEach(p => { box(mat('ceilingFixture', '#7e8da3', { spec: 0.35 }), 0.42, 0.08, 0.42, p[0], H - 0.08, p[1], { cast: false }); box(mat('ceilingLight', '#e8f2ff', { emissive: '#b9d8ff', unlit: true }), 2.3, 0.04, 0.16, p[0], H - 0.2, p[1], { cast: false }); });
     pointLight(-4, 3.7, -3, '#d4e7ff', 0.7, 9); pointLight(4, 3.7, -2, '#d4e7ff', 0.7, 9); pointLight(4, 3.7, 4, '#9fc5ff', 0.55, 8);
   }
 
