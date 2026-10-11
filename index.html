@@ -93,10 +93,13 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 #sweep .sw-head .btn{flex:none}
 #sweep .sw-head kbd{font:600 10px var(--font-ui);color:var(--mute);margin-left:4px}
 #swPasses{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
-#swPasses span{font:600 10px/1.2 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;padding:4px 5px 3px;border:1px solid var(--line);border-radius:2px;color:var(--mute);display:flex;flex-direction:column;gap:1px}
-#swPasses span b{font:15px/1 var(--font-display);letter-spacing:.04em}
+#swPasses button{cursor:pointer;background:transparent;text-align:left;font:600 10px/1.2 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;padding:4px 5px 3px;border:1px solid var(--line);border-radius:2px;color:var(--mute);display:flex;flex-direction:column;gap:1px}
+#swPasses button:hover{border-color:#5a4f6b}
+#swPasses button[aria-pressed="true"]{border-color:currentColor;background:rgba(255,255,255,.06)}
+#swPasses button.th[aria-pressed="true"]{color:var(--warn)}#swPasses button.rf[aria-pressed="true"]{color:var(--cyan)}#swPasses button.net[aria-pressed="true"]{color:var(--cash)}#swPasses button.nj[aria-pressed="true"]{color:var(--ok)}
+#swPasses button b{font:15px/1 var(--font-display);letter-spacing:.04em}
 #swPasses .th b{color:var(--warn)}#swPasses .rf b{color:var(--cyan)}#swPasses .net b{color:var(--cash)}#swPasses .nj b{color:var(--ok)}
-#swPasses span.off{opacity:.55;border-style:dashed}
+#swPasses button.off{opacity:.55;border-style:dashed}
 #swMap{width:100%;display:block;background:#07090f;border:1px solid var(--line);border-radius:2px;image-rendering:auto}
 #swList{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;overflow:auto;min-height:60px;font-size:12px}
 #swList li{display:grid;grid-template-columns:12px 1fr auto;gap:2px 8px;align-items:baseline;padding:5px 6px;border:1px solid var(--line);border-radius:2px;background:rgba(255,255,255,.02)}
@@ -116,7 +119,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 #swList li.sec{border:0;background:none;padding:6px 0 0;display:block;font:600 10px var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
 #swTip{margin:0;font-size:12px;line-height:1.45;color:var(--mute);border-top:1px solid var(--line);padding-top:7px}
 #swTip b{color:var(--fg);font-weight:600}
-@media (max-width:640px){#sweep{max-height:calc(100% - 200px);width:calc(100vw - 32px)}#swPasses span{font-size:9px}}
+@media (max-width:640px){#sweep{max-height:calc(100% - 200px);width:calc(100vw - 32px)}#swPasses button{font-size:9px}}
 /* panels the player can switch off: Q mission card, V minimap, X key list, U all of them */
 #hud.no-quest #quest,#hud.no-map #map,#hud.no-hints #hints{display:none!important}
 #hudBar{position:absolute;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;max-width:min(330px,calc(100vw - 32px))}
@@ -3030,12 +3033,14 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (f.rf) return 'On the map: somewhere on the ring, ' + f.dist.toFixed(1) + ' m from where you took the reading. Walk a few metres for a second reading.';
     return 'No position yet.';
   }
+  const SWF = { th: 'Thermal: powered things, by their heat', rf: 'Radio: things heard on Wi-Fi or Bluetooth', net: 'Network: hosts on this LAN', nj: 'Junction: electronics found up close' };
+  function swFilter(k) { SW.filter = SW.filter === k ? null : k; SFX.tick(); listSweep(); drawSweep(); }
   function swSelect(id) { SW.sel = SW.sel === id ? null : id; SFX.tick(); listSweep(); drawSweep(); if (SW.sel) { const li = $('swList').querySelector('li[data-id="' + CSS.escape(SW.sel) + '"]'); if (li) li.scrollIntoView({ block: 'nearest' }); } }
   // clicking the map picks the nearest marker the scanner has placed (heat or junction spot, or a radio fix)
   function swMapClick(e) {
     const M = SW.map, room = swRoom(SW.zone); if (!M || !room) return; const rc = $('swMap').getBoundingClientRect(), px = e.clientX - rc.left, py = e.clientY - rc.top;
     let best = null, bd = 16; const F = SW.found[SW.zone] || {};
-    room.devs.forEach(d => { const f = F[d.id]; if (!f) return; const q = (f.th || f.nj) ? { x: d.x, z: d.z } : (f.rf && f.est) ? f.est : null; if (!q) return; const dd = Math.hypot(M.ox + (q.x - M.B.x0) * M.k - px, M.oy + (M.B.z1 - q.z) * M.k - py); if (dd < bd) { bd = dd; best = d.id; } });
+    room.devs.forEach(d => { const f = F[d.id]; if (!f || (SW.filter && !f[SW.filter])) return; const q = (f.th || f.nj) ? { x: d.x, z: d.z } : (f.rf && f.est) ? f.est : null; if (!q) return; const dd = Math.hypot(M.ox + (q.x - M.B.x0) * M.k - px, M.oy + (M.B.z1 - q.z) * M.k - py); if (dd < bd) { bd = dd; best = d.id; } });
     if (best) swSelect(best); else if (SW.sel) swSelect(SW.sel);
   }
   function drawSweep() {
@@ -3053,7 +3058,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     c.strokeStyle = 'rgba(140,242,140,.45)'; c.setLineDash([3, 3]); c.beginPath(); c.arc(X(p.x), Y(p.z), NJ_RANGE * k, 0, PI * 2); c.stroke(); c.setLineDash([]);
     c.font = '600 10px Oswald, "Arial Narrow", sans-serif'; c.textAlign = 'center';
     room.devs.forEach(d => {
-      const f = (SW.found[SW.zone] || {})[d.id]; if (!f) return; const up = (d.y || 0) > 2, x = X(d.x), y = Y(d.z);
+      const f0 = (SW.found[SW.zone] || {})[d.id]; if (!f0 || (SW.filter && !f0[SW.filter] && SW.sel !== d.id)) return; const up = (d.y || 0) > 2, x = X(d.x), y = Y(d.z);
+      const f = SW.filter && SW.sel !== d.id ? { th: SW.filter === 'th' && f0.th, nj: SW.filter === 'nj' && f0.nj, rf: SW.filter === 'rf' && f0.rf, net: f0.net, samples: f0.samples, est: f0.est, err: f0.err } : f0; // filtered: draw only that pass's mark
       if (f.rf && d.radio) {
         if (f.est) { c.strokeStyle = SWC.rf; c.globalAlpha = 0.85; c.setLineDash([4, 3]); c.beginPath(); c.arc(X(f.est.x), Y(f.est.z), Math.max(4, f.err * k), 0, PI * 2); c.stroke(); c.setLineDash([]); c.globalAlpha = 1; }
         else if (f.samples.length) { const q = f.samples[f.samples.length - 1]; c.strokeStyle = 'rgba(62,232,240,.35)'; c.beginPath(); c.arc(X(q.x), Y(q.z), q.d * k, 0, PI * 2); c.stroke(); } // one reading: a ring, not a point
@@ -3087,9 +3093,9 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const room = swRoom(SW.zone); if (!room) return; const F = SW.found[SW.zone] || {}, N = room.R.net;
     const cnt = { th: 0, rf: 0, net: 0, nj: 0 }; room.devs.forEach(d => { const f = F[d.id]; if (f) ['th', 'rf', 'net', 'nj'].forEach(t => { if (f[t]) cnt[t]++; }); });
     const passes = [['th', 'Thermal', SW.passTh ? cnt.th + ' warm' : 'settling'], ['rf', 'Radio', cnt.rf + ' heard'], ['net', 'Network', !SW.passNet ? 'sweeping' : N.closed ? 'no access' : cnt.net + (room.R.others ? ' + ' + room.R.others.length : '') + ' hosts'], ['nj', 'Junction', cnt.nj + ' up close']];
-    $('swPasses').innerHTML = passes.map(q => '<span class="' + q[0] + (q[0] === 'net' && SW.passNet && N.closed ? ' off' : '') + '">' + q[1] + '<b>' + esc(q[2]) + '</b></span>').join('');
+    $('swPasses').innerHTML = passes.map(q => '<button type="button" data-pass="' + q[0] + '" aria-pressed="' + (SW.filter === q[0]) + '" title="Show only what the ' + q[1].toLowerCase() + ' pass found" class="' + q[0] + (q[0] === 'net' && SW.passNet && N.closed ? ' off' : '') + '">' + q[1] + '<b>' + esc(q[2]) + '</b></button>').join('');
     const rows = [], tag = (f) => (f.th ? '<i class="th">TH</i>' : '') + (f.rf ? '<i class="rf">RF</i>' : '') + (f.net ? '<i class="net">NET</i>' : '') + (f.nj ? '<i class="nj">NJ</i>' : '');
-    const items = room.devs.map(d => ({ d, f: F[d.id] })).filter(o => o.f && swLabel(o.d, o.f)).sort((a, b) => (swLabel(b.d, b.f).known - swLabel(a.d, a.f).known) || (a.d.metal ? 1 : 0) - (b.d.metal ? 1 : 0));
+    const items = room.devs.map(d => ({ d, f: F[d.id] })).filter(o => o.f && swLabel(o.d, o.f) && (!SW.filter || o.f[SW.filter])).sort((a, b) => (swLabel(b.d, b.f).known - swLabel(a.d, a.f).known) || (a.d.metal ? 1 : 0) - (b.d.metal ? 1 : 0));
     items.forEach(({ d, f }) => {
       const L = swLabel(d, f), det = [];
       if (f.rf && d.radio) det.push((d.radio.type === 'wifi' ? 'Wi-Fi ' : 'BLE ') + d.radio.mac + ' · ' + f.rssi + ' dBm ≈ ' + f.dist.toFixed(1) + ' m' + (f.est ? ' · fix ±' + f.err.toFixed(1) + ' m' : ' · walk to fix'));
@@ -3100,11 +3106,13 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       const sel = SW.sel === d.id;
       rows.push('<li data-id="' + esc(d.id) + '" tabindex="0" role="button" aria-pressed="' + sel + '" class="' + (d.metal ? 'metal' : '') + (sel ? ' sel' : '') + '"><span class="dot" style="background:' + col + '"></span><span class="nm">' + esc(L.text) + ((d.y || 0) > 2 ? ' (upstairs)' : '') + '</span><span class="tags">' + tag(f) + '</span><span class="det">' + det.map(esc).join('<br>') + '</span>' + (L.known ? '<span class="sw-note">' + esc(d.note || '') + '</span>' : '') + (sel ? '<span class="where">' + esc(swWhere(d, f)) + '</span>' : '') + '</li>');
     });
-    if (SW.passNet && !N.closed && room.R.others && room.R.others.length) {
+    if (SW.passNet && !N.closed && room.R.others && room.R.others.length && (!SW.filter || SW.filter === 'net')) {
       rows.push('<li class="sec">On ' + esc(N.cidr) + ', location unknown</li>');
       room.R.others.forEach(o => { const id = 'o:' + o[0], sel = SW.sel === id; rows.push('<li data-id="' + esc(id) + '" tabindex="0" role="button" aria-pressed="' + sel + '"' + (sel ? ' class="sel"' : '') + '><span class="dot" style="background:' + SWC.net + '"></span><span class="nm">' + esc(o[2] || o[0]) + '</span><span class="tags"><i class="net">NET</i></span><span class="det">' + esc(o[0] + ' · ' + o[1] + ' · ' + vendorOf(o[1])) + '</span>' + (sel ? '<span class="where">' + esc(swWhere(null)) + '</span>' : '') + '</li>'); });
     }
+    if (SW.filter) rows.unshift('<li class="sec">' + esc(SWF[SW.filter]) + ' · click it again to show everything</li>');
     $('swList').innerHTML = rows.join('') || '<li class="sec">Listening…</li>';
+    if (SW.filter && !items.length && !(SW.filter === 'net' && SW.passNet && !N.closed && room.R.others && room.R.others.length)) $('swList').insertAdjacentHTML('beforeend', '<li class="sec">' + esc(SW.filter === 'net' && SW.passNet && N.closed ? 'Nothing: no access to this network' : SW.filter === 'nj' ? 'Nothing yet: walk close to things' : 'Nothing found by this pass yet') + '</li>');
     // one line on what the scanner cannot tell yet
     const unknownRF = room.devs.some(d => d.radio && F[d.id] && F[d.id].rf && !F[d.id].est), anyNJ = cnt.nj > 0;
     let tip;
@@ -3885,6 +3893,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   $('swList').addEventListener('click', e => { const li = e.target.closest('li[data-id]'); if (li) swSelect(li.dataset.id); });
   $('swList').addEventListener('keydown', e => { const li = e.target.closest('li[data-id]'); if (li && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); swSelect(li.dataset.id); } });
   $('swMap').addEventListener('click', swMapClick);
+  $('swPasses').addEventListener('click', e => { const b = e.target.closest('button[data-pass]'); if (b) { swFilter(b.dataset.pass); if (e.detail) { b.blur(); canvas.focus(); } } }); // mouse clicks hand the keyboard back to the game
   $('togQuest').addEventListener('click', () => ui.togglePanel('quest')); $('togMap').addEventListener('click', () => ui.togglePanel('map')); $('togHints').addEventListener('click', () => ui.togglePanel('hints'));
   try { const sv = JSON.parse(localStorage.getItem('nz-panels') || 'null'); if (sv) ['quest', 'map', 'hints'].forEach(k => { if (sv[k] === false) ui.setPanel(k, false); }); } catch (e) { /* no storage */ }
   $('musicOn').addEventListener('change', (e) => { if (e.target.checked === SFX.musicOff) ui.setMusic(SFX.toggleMusic()); });
