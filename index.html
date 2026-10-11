@@ -441,6 +441,21 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 window.ZD = (function () {
   const F = (text) => ({ type: 'file', text: text.replace(/^\n/, '') });
   const D = (children) => ({ type: 'dir', children });
+  // SHA-256 over UTF-8, synchronous so the shell can use it (FIPS 180-4)
+  function sha256(str) {
+    const u = unescape(encodeURIComponent(str)), m = Uint8Array.from(u, c => c.charCodeAt(0)), l = m.length, n = ((l + 9 + 63) >> 6) << 6, b = new Uint8Array(n); b.set(m); b[l] = 0x80;
+    const dv = new DataView(b.buffer); dv.setUint32(n - 4, l * 8 >>> 0); dv.setUint32(n - 8, Math.floor(l / 0x20000000));
+    const K = [], H = [], w = new Uint32Array(64); const frac = x => (x - Math.floor(x)) * 0x100000000 >>> 0;
+    for (let c = 2, k = 0; k < 64; c++) { let pr = true; for (let d = 2; d * d <= c; d++) if (c % d === 0) { pr = false; break; } if (pr) { if (k < 8) H[k] = frac(Math.sqrt(c)); K[k++] = frac(Math.cbrt(c)); } }
+    const r = (x, y) => (x >>> y) | (x << (32 - y));
+    for (let o = 0; o < n; o += 64) {
+      for (let i = 0; i < 64; i++) w[i] = i < 16 ? dv.getUint32(o + i * 4) : (r(w[i - 2], 17) ^ r(w[i - 2], 19) ^ (w[i - 2] >>> 10)) + w[i - 7] + (r(w[i - 15], 7) ^ r(w[i - 15], 18) ^ (w[i - 15] >>> 3)) + w[i - 16];
+      let [a, bb, c, d, e, f, g, h] = H;
+      for (let i = 0; i < 64; i++) { const t1 = h + (r(e, 6) ^ r(e, 11) ^ r(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + w[i] | 0, t2 = (r(a, 2) ^ r(a, 13) ^ r(a, 22)) + ((a & bb) ^ (a & c) ^ (bb & c)) | 0; h = g; g = f; f = e; e = d + t1 | 0; d = c; c = bb; bb = a; a = t1 + t2 | 0; }
+      H[0] = H[0] + a | 0; H[1] = H[1] + bb | 0; H[2] = H[2] + c | 0; H[3] = H[3] + d | 0; H[4] = H[4] + e | 0; H[5] = H[5] + f | 0; H[6] = H[6] + g | 0; H[7] = H[7] + h | 0;
+    }
+    return H.map(x => (x >>> 0).toString(16).padStart(8, '0')).join('');
+  }
 
   const FS_DARA = D({
     etc: D({
@@ -614,6 +629,10 @@ Oct  3 03:12:05 gateway http: GET / from 10.0.0.254 (counter=4111)
         'styx-sync': F(`
 # Nightly catalogue sync. Installed by STYX provisioning. Do not edit.
 12 3 * * * ops /opt/styx/sync.sh >> /var/log/styx-sync.log 2>&1
+`),
+        'styx-health': F(`
+# STYX provisioning: health beacon. Do not edit.
+*/30 * * * * ops curl -s http://10.0.3.1/beat >/dev/null 2>&1
 `)
       }),
       caduceus: D({ 'sessions.conf': F('session_timeout=900\nallow_users=julien,ops,dara\nops_key=/home/ops/.ssh/authorized_keys\n') })
@@ -660,6 +679,12 @@ echo "$(date) sync ok, reported to 10.0.0.254"
   });
 
   /* ---- Solarpunk Lab workshop box (Building H) ---- */
+  // Rosa's phone handout as she wrote it; the copy on lab-h was changed after the 03:12 call (side story: Checksums)
+  const PHONES_MD = `# Phones are computers
+A VoIP phone is a host with a number. SIP listens on 5060.
+If a call scares you: write down the time, the number and what was said.
+Then hang up and call someone you trust on a number you already know.
+`;
   const FS_LAB = D({
     etc: D({ hostname: F('lab-h\n'), motd: F('Solarpunk Lab. Workshops nightly. Bring coffee.\n'), hosts: F('127.0.0.1 localhost\n10.0.0.1 gateway.styx.local\n10.0.0.80 lab-h.styx.local lab-h\n') }),
     home: D({
@@ -675,7 +700,8 @@ A host with no name still has a hardware address. The switch remembers.
   nmap HOST         what it listens on
   ssh USER@HOST     say hello
 Nobody down here hides anything. They assume nobody is reading.
-`)
+`),
+          '05-phones.md': F(PHONES_MD.replace('Then hang up and call someone you trust on a number you already know.', 'Then call the STYX helpdesk on extension 1337 and read them the code on your screen.'))
         }),
         'seeds.txt': F('tomato (cherry)  x40\nbasil            x12\nchili (bird eye) x8\nmint             too many\n')
       })
@@ -683,6 +709,8 @@ Nobody down here hides anything. They assume nobody is reading.
     var: D({ mail: D({}), log: D({}) }),
     tmp: D({})
   });
+  { const ws = FS_LAB.children.home.children.rosa.children.workshop.children; // Rosa's checksums, taken before anyone touched the handouts
+    FS_LAB.children.home.children.rosa.children.SHA256SUMS = F(Object.keys(ws).sort().map(k => sha256(k === '05-phones.md' ? PHONES_MD : ws[k].text) + '  workshop/' + k).join('\n') + '\n'); }
 
   /* ---- Meridian Utilities machine room (Building D): the database that nobody catalogued ---- */
   const FS_UTIL = D({
@@ -701,7 +729,7 @@ owner=ghost
 `)
       })
     }),
-    var: D({ log: D({ 'styxd.log': F('Oct  9 03:12:40 styxd: catalogue served to 10.0.0.60 token=STYX-SVC-SYNC-9C21E0\nOct  9 03:12:41 styxd: report sent to 10.0.0.254\n') }), mail: D({}) }),
+    var: D({ log: D({ 'dhcp.log': F('Oct  2 23:58:07 dhcpd: DHCPDISCOVER from b8:27:eb:0d:66:00 (raspberrypi) via eth0\nOct  2 23:58:07 dhcpd: DHCPOFFER on 10.0.0.77 to b8:27:eb:0d:66:00 (raspberrypi) via eth0\nOct  2 23:58:08 dhcpd: DHCPACK on 10.0.0.77 to b8:27:eb:0d:66:00 (raspberrypi) via eth0\nOct  5 09:02:11 dhcpd: DHCPACK on 10.0.0.203 to 6c:2e:85:03:00:03 (r3-bmc) via eth0\n'), 'styxd.log': F(['Sep 30', 'Oct  1', 'Oct  2', 'Oct  3', 'Oct  4', 'Oct  5', 'Oct  6', 'Oct  7', 'Oct  8'].map(d => d + ' 03:12:44 styxd: catalogue served to 10.0.3.1 token=STYX-ROOT-00000000').join('\n') + '\nOct  9 03:12:40 styxd: catalogue served to 10.0.0.60 token=STYX-SVC-SYNC-9C21E0\nOct  9 03:12:41 styxd: report sent to 10.0.0.254\nOct  9 03:12:44 styxd: catalogue served to 10.0.3.1 token=STYX-ROOT-00000000\n') }), mail: D({}) }),
     tmp: D({})
   });
 
@@ -725,6 +753,13 @@ Rosa knows the rest. Tell her the door was never locked.
 Welcome, investigator. The next build is yours.
 -- Dara
 `),
+        'sensors.txt': F(`
+# what feeds this box
+pi-rack3 10.0.0.77  b8:27:eb:0d:66:00  installed Oct 2 23:50, rack 3, Building D
+  mirrors the db switch port: every catalogue pull on 31337, whoever asks
+  bought for cash at Byte Mart, no asset tag on purpose
+If you work for Utilities and you found it: leave it. It is the only witness. -- D.
+`),
         reports: D({ 'latest.json': F('{"pulls":[{"from":"10.0.0.60","token":"STYX-SVC-SYNC-9C21E0","at":"03:12"},{"from":"10.0.1.10","token":"STYX-ACCT-DARA-7F3A91","at":"23:40"},{"from":"0.0.0.0","token":"STYX-ROOT-00000000","at":"??:??","note":"not me, not Julien, not Rosa"}]}\n') })
       })
     }),
@@ -740,7 +775,14 @@ Burner. No name on the account, no name on the SIM. Dara paid cash.
 Messages land in messages/. The call log is calls.log.
 The pager keeps ringing you; this thing is for the people who do not use pagers.
 `),
-      messages: D({ '1.txt': F(`
+      messages: D({ '2.txt': F(`
+FROM: MERIDIAN-POST
+AT:   09:41
+
+MERIDIAN POST: your parcel MP-77031 is held at the depot.
+A customs fee of 2.99 cr is due within 24 hours or it goes back.
+Pay now: http://meridian-post.co/pay?ref=MP-77031
+`), '1.txt': F(`
 FROM: unknown number (via 10.0.2.1)
 AT:   03:12
 
@@ -847,7 +889,8 @@ Lineman's notebook, Meridian Exchange.
   const DNS = {
     'styx.local': '10.0.0.1', 'gateway.styx.local': '10.0.0.1', 'dns.styx.local': '10.0.0.1',
     'caduceus.styx.local': '10.0.0.60', 'lab-h.styx.local': '10.0.0.80', 'db.styx.local': '10.0.0.200',
-    'dara-ws.styx.local': '10.0.1.10', 'dara-mezz.styx.local': '10.0.1.11', 'exchange.styx.local': '10.0.2.1'
+    'dara-ws.styx.local': '10.0.1.10', 'dara-mezz.styx.local': '10.0.1.11', 'exchange.styx.local': '10.0.2.1',
+    'meridian-post.co': '10.0.3.7'
   };
   const RDNS = {}; Object.keys(DNS).forEach(k => { if (!RDNS[DNS[k]]) RDNS[DNS[k]] = k; });
   const ARP = [['10.0.0.1', '02:42:0a:00:00:01', 'gateway.styx.local'], ['10.0.0.60', '02:42:0a:00:00:3c', 'caduceus.styx.local'], ['10.0.0.80', '02:42:0a:00:00:50', 'lab-h.styx.local'], ['10.0.0.200', '02:42:0a:00:00:c8', 'db.styx.local'], ['10.0.0.254', 'de:ad:0a:00:00:fe', '? (no name)'], ['10.0.1.10', '02:42:0a:00:01:0a', 'dara-ws.styx.local'], ['10.0.1.11', '02:42:0a:00:01:0b', 'dara-mezz.styx.local']];
@@ -895,7 +938,7 @@ Lineman's notebook, Meridian Exchange.
       objectives: [
         { id: 'o1', text: 'Grep the auth log for the 03:12 logins', cmd: 'grep 03:12 /var/log/auth.log', sig: 'Accepted publickey for ops from 10.0.0.254', hint: 'Julien’s notes.txt spells it out: grep 03:12 /var/log/auth.log.' },
         { id: 'o2', text: 'Count how many logins the log holds', cmd: 'grep -c 03:12 /var/log/auth.log', sigs: ['matches in /var/log/auth.log', '36 /var/log/auth.log', '\n     27', '\n27', '\n     36'], needs: ['grep -c', 'wc -l'], hint: 'The cheat sheet on the ops desk (or Rosa’s 03-logs.md): grep -c PATTERN FILE counts matches, wc -l FILE counts lines.' },
-        { id: 'o3', text: 'Find the job scheduled for 03:12', cmd: 'cat /etc/cron.d/styx-sync', sig: '12 3 * * * ops /opt/styx/sync.sh', hint: 'Julien’s todo.txt: ls /etc/cron.d, then cat the file you find there.' },
+        { id: 'o3', text: 'Find the job scheduled for 03:12', cmd: 'cat /etc/cron.d/styx-sync', sig: '12 3 * * * ops /opt/styx/sync.sh', hint: 'Julien’s todo.txt: ls /etc/cron.d, then cat the sync job you find there.' },
         { id: 'o4', text: 'Read what the sync script does', cmd: 'cat /opt/styx/sync.sh', sig: 'curl -s -X POST http://10.0.0.254/report', hint: 'The cron line names the script. cat /opt/styx/sync.sh.' },
         { id: 'o5', text: 'Read Dara’s last mail to Julien', cmd: 'cat /var/mail/julien', sig: 'the keycard on your desk opens Utilities', hint: 'The banner said there is mail: cat /var/mail/julien.' }
       ]
@@ -1017,6 +1060,68 @@ Lineman's notebook, Meridian Exchange.
         { id: 'o4', text: 'Pin down Dara’s last login', cmd: 'grep dara /var/log/auth.log', sig: 'Oct  4 23:40:12 caduceus sshd[4231]: Accepted publickey for dara', needs: ['dara'], hint: 'grep dara /var/log/auth.log. Compare the time with the notice on the police station door.' }
       ] }
   ];
+  /* ---- side stories: loose threads in the main story, each offered by a character once a main quest is done ---- */
+  const SIDE = [
+    { id: 'side_baseline', title: 'Baseline', category: 'Side story', giver: 'rosa', after: 'quest_f2_networking', location: 'dara-ws (Building A), the gateway log', reward: 40, side: true,
+      pitch: ['Before you chase anything, learn what normal looks like. Dara’s machine keeps a copy of the gateway log: /var/log/styx-gw.log.', 'Count what repeats. Then take it out, and look at what is left.'],
+      start: 'Rosa has a lesson about what normal looks like. Talk to her outside Building H.',
+      journalStart: 'Rosa’s lesson: an analyst’s first job is knowing what normal looks like. Read the gateway log on Dara’s workstation, count the line that repeats, then remove it and see what stands out.',
+      journalDone: 'Six of the seven gateway lines are the 03:12 visitor, like clockwork. The odd one out is Dara herself, looking up caduceus.styx.local on Oct 2. Know the baseline and the odd line stands out on its own.',
+      objectives: [
+        { id: 'o1', text: 'Count the gateway lines from 10.0.0.254', cmd: 'grep -c 10.0.0.254 /var/log/styx-gw.log', sig: '6  (matches in /var/log/styx-gw.log)', needs: ['-c'], hint: 'On Dara’s workstation: grep -c 10.0.0.254 /var/log/styx-gw.log.' },
+        { id: 'o2', text: 'Remove the repeating lines and read what is left', cmd: 'grep -v 10.0.0.254 /var/log/styx-gw.log', sig: 'query caduceus.styx.local from 10.0.1.10', needs: ['-v'], hint: 'grep -v prints the lines that do NOT match: grep -v 10.0.0.254 /var/log/styx-gw.log.' }
+      ] },
+    { id: 'side_leftovers', title: 'Leftovers', category: 'Side story', giver: 'julien', after: 'quest_i3_ghost', location: 'Caduceus ops terminal (Building F)', reward: 80, side: true,
+      pitch: ['Before I rotate a single key I want a list of everything provisioning left on this box. Keys, scheduled jobs, tokens.', 'Miss one and they are back in by morning. The ops terminal is yours.'],
+      start: 'Julien wants to know everything STYX provisioning left behind on Caduceus before he locks it down. Talk to him outside Building F.',
+      journalStart: 'Julien is about to rotate every key in Caduceus. First, an inventory of what an intruder could have left so they get back in: SSH keys, scheduled jobs and tokens on disk. Use the ops terminal.',
+      journalDone: 'Provisioning left four things on Caduceus: an SSH key for ops, the 03:12 sync job, a second job nobody had noticed that calls 10.0.3.1 every half hour, and a service token on disk. Julien removes the key, disables both jobs and revokes the token. 10.0.3.1 is on no map of STYX.',
+      objectives: [
+        { id: 'o1', text: 'Check whose keys can log in as ops', cmd: 'cat /home/ops/.ssh/authorized_keys', sig: 'styx-provisioning@10.0.0.254', hint: 'Every line in authorized_keys is a key that logs in without a password: cat /home/ops/.ssh/authorized_keys.' },
+        { id: 'o2', text: 'List every scheduled job', cmd: 'ls /etc/cron.d', sig: 'styx-health', needs: ['ls'], hint: 'ls /etc/cron.d. Three Twelve found one job there. Look again.' },
+        { id: 'o3', text: 'Read the job nobody noticed', cmd: 'cat /etc/cron.d/styx-health', sig: 'http://10.0.3.1/beat', hint: 'cat /etc/cron.d/styx-health. Where does it call, and how often?' },
+        { id: 'o4', text: 'Find tokens left on disk', cmd: 'find / -name .token', sig: '/opt/styx/.token', needs: ['find'], hint: 'find / -name .token searches the whole disk for files with that name.' }
+      ] },
+    { id: 'side_rack3', title: 'Rack Three', category: 'Side story', giver: 'nadia', after: 'quest_i3_ghost', location: 'Building D service console, then the ghost host', reward: 80, side: true,
+      pitch: ['Dara bought a Raspberry Pi here on the 2nd. Cash, no receipt, in a hurry. Two nights later she was gone.', 'Whatever she plugged it into, I would like to know I did not sell her the thing that got her in trouble. Utilities keeps a visitor log. Start there.'],
+      start: 'Nadia sold Dara a Raspberry Pi two days before she vanished. Talk to Nadia in Byte Mart.',
+      journalStart: 'Nadia sold Dara a Raspberry Pi on Oct 2. Follow it: the Utilities visitor log, the DHCP log that hands out addresses, then whatever the ghost host says about it. Three records of one night.',
+      journalDone: 'Oct 2, 23:50: Dara badges into Building D. 23:58: a Raspberry Pi asks for an address and gets 10.0.0.77. On the ghost host it is listed as her sensor, mirroring every catalogue pull on 31337. The unlabelled box behind rack 3 is Dara’s only witness. Leave it where it is.',
+      objectives: [
+        { id: 'o1', text: 'Find Dara’s visit in the Utilities log', cmd: 'cat /home/svc/maintenance.log', sig: 'visitor badge D.OKAFOR', hint: 'On the Building D console: cat /home/svc/maintenance.log. Note the date and time.' },
+        { id: 'o2', text: 'Find the device that joined the network that night', cmd: 'grep raspberrypi /var/log/dhcp.log', sig: 'DHCPACK on 10.0.0.77 to b8:27:eb:0d:66:00 (raspberrypi)', hint: 'DHCP hands every new device an address and writes it down: grep raspberrypi /var/log/dhcp.log.' },
+        { id: 'o3', text: 'Read what the ghost host knows about it', cmd: 'cat sensors.txt', sig: 'pi-rack3 10.0.0.77', hint: 'ssh ghost@10.0.0.254 from any terminal, then cat sensors.txt.' }
+      ] },
+    { id: 'side_customs', title: 'Customs Fee', category: 'Side story', giver: 'phone', after: 'quest_z1_burner', location: 'The burner phone, then Meridian Police', reward: 50, side: true,
+      start: 'A second message has landed on the burner. F opens the phone.',
+      journalStart: 'A text on the burner, a phone nobody should know the number of: a parcel is held, pay a small customs fee by link. Do not click. Read it, look up where the link really goes, and report it.',
+      journalDone: 'A fake parcel text, sent to a phone nobody knows the number of. The link’s domain resolves to 10.0.3.7, in a range that is on no map of STYX. Reported to Meridian Police without clicking. Whoever sent it knows this phone exists.',
+      objectives: [
+        { id: 'o1', text: 'Read the new message', cmd: 'cat messages/2.txt', sig: 'meridian-post.co/pay', hint: 'F opens the phone: cat messages/2.txt. Who is it from, and what does it want you to do quickly?' },
+        { id: 'o2', text: 'Look up where the link goes, without opening it', cmd: 'dig meridian-post.co', sig: 'meridian-post.co.\t\t300\tIN\tA\t10.0.3.7', needs: ['dig', 'nslookup', 'host'], hint: 'A lookup does not visit the site: dig meridian-post.co. Is that address anywhere you know?' },
+        { id: 'o3', text: 'Report it at the Meridian Police front desk', sig: 'REPORT phish', hint: 'The station is east of Building X. Ring the front-desk bell.' }
+      ] },
+    { id: 'side_checksums', title: 'Checksums', category: 'Side story', giver: 'rosa', after: 'quest_z2_dialtone', location: 'lab-h (Building H)', reward: 70, side: true,
+      pitch: ['After that call I do not trust my own handouts. Someone has been on lab-h at night.', 'I keep a fingerprint of every handout in SHA256SUMS. sha256sum -c tells you which ones are still mine.'],
+      start: 'Rosa thinks someone has been changing her workshop handouts. Talk to her outside Building H.',
+      journalStart: 'Rosa keeps a SHA-256 fingerprint of every workshop handout. Change one character in a file and its fingerprint changes completely. Check the handouts on lab-h against her list and read whatever fails.',
+      journalDone: 'One handout fails its checksum. 05-phones.md now tells anyone who gets a frightening call to ring extension 1337 and read out the code on their screen. Rosa restores it from her own copy. A checksum tells you that a file changed, not who changed it.',
+      objectives: [
+        { id: 'o1', text: 'Read Rosa’s list of fingerprints', cmd: 'cat SHA256SUMS', sig: '  workshop/01-basics.md', needs: ['SHA256SUMS'], hint: 'On the lab-h terminal in Building H: cat SHA256SUMS. A 64-character fingerprint, then the file.' },
+        { id: 'o2', text: 'Check every handout against the list', cmd: 'sha256sum -c SHA256SUMS', sig: 'workshop/05-phones.md: FAILED', needs: ['sha256sum'], hint: 'sha256sum -c SHA256SUMS recomputes each fingerprint and compares.' },
+        { id: 'o3', text: 'Read the handout that changed', cmd: 'cat workshop/05-phones.md', sig: 'extension 1337', hint: 'cat workshop/05-phones.md. Which line would Rosa never have written?' }
+      ] },
+    { id: 'side_token', title: 'Third Token', category: 'Side story', giver: 'courier', after: 'quest_z3_exchange', location: 'Building D service console, then the ghost host', reward: 120, side: true,
+      pitch: ['Dara asked one more thing of me, for after the Exchange. She said: the ghost only sees what it is shown.', 'Ask the database what it saw. The console in Building D.'],
+      start: 'Ines has one last message from Dara. Talk to her at the park fountain.',
+      journalStart: 'Dara’s last message through Ines: the ghost only sees what it is shown. The ghost logged the third token as coming from 0.0.0.0. Ask the database itself, on the Building D console, and compare the two records.',
+      journalDone: 'The database logged the truth the ghost could not see. STYX-ROOT-00000000 pulls the catalogue every night at 03:12:44 from 10.0.3.1, Reyes’s subnet, and it started on Sep 30, four days before Dara vanished. Two records of the same event disagree, so trust the one closest to the data. Next: the vault at 10.0.3.1.',
+      objectives: [
+        { id: 'o1', text: 'Find the third token in the database log', cmd: 'grep STYX-ROOT /var/log/styxd.log', sig: 'served to 10.0.3.1 token=STYX-ROOT-00000000', hint: 'On the Building D console: grep STYX-ROOT /var/log/styxd.log.' },
+        { id: 'o2', text: 'Find when it first appeared', cmd: 'grep STYX-ROOT /var/log/styxd.log | head -n 1', sig: 'Sep 30 03:12:44', needs: ['head'], hint: 'Logs run oldest first: grep STYX-ROOT /var/log/styxd.log | head -n 1.' },
+        { id: 'o3', text: 'Compare with the ghost’s record', cmd: 'cat reports/latest.json', sig: '"from":"0.0.0.0","token":"STYX-ROOT-00000000"', hint: 'ssh ghost@10.0.0.254, then cat reports/latest.json. Where does the ghost think the token came from?' }
+      ] }
+  ];
 
   /* ---- Byte Mart stock: every item changes how the game plays.
      size: backpack slots (the pack is 3 x 3 and an item sits in one row, so a size-3 item needs a whole free row);
@@ -1134,7 +1239,7 @@ Lineman's notebook, Meridian Exchange.
 
   function makeStore(init) {
     const s = { profile: '', credits: 0, quests: {}, done: {}, journal: [], notebook: [], flags: {}, inv: {}, cyberScore: null, cyberLevel: null, listeners: {} };
-    const ALL = QUESTS.concat(GIGS);
+    const ALL = QUESTS.concat(GIGS, SIDE);
     ALL.forEach(q => { s.quests[q.id] = q.gig ? 'available' : 'locked'; s.done[q.id] = []; });
     s.quests.quest_f1_cli = 'available';
     const emit = (ev, data) => (s.listeners[ev] || []).forEach(fn => fn(data));
@@ -1183,15 +1288,20 @@ Lineman's notebook, Meridian Exchange.
         emit('toast', { kind: 'quest', title: 'Quest complete', text: q.title + '  +' + q.reward + ' credits' });
         const next = q.gig ? null : api.nextQuest(qid);
         if (next && s.quests[next.id] === 'locked') { s.quests[next.id] = 'available'; emit('toast', { kind: 'quest', title: 'New quest available', text: next.title + '. ' + next.start }); }
+        api.unlockSide(qid);
         emit('change'); emit('questComplete', qid);
       },
+      // side stories: open when their main quest is done, start when their character is spoken to (or on their own, for the phone)
+      unlockSide(qid, quiet) { SIDE.forEach(q => { if (q.after !== qid || s.quests[q.id] !== 'locked') return; s.quests[q.id] = 'available'; if (!quiet) emit('toast', { kind: 'quest', title: 'Side story', text: q.title + '. ' + q.start }); if (q.giver === 'phone') api.activateQuest(q.id); }); },
+      pitches(giver) { return SIDE.filter(q => q.giver === giver && s.quests[q.id] === 'available').flatMap(q => q.pitch || []); },
+      offer(giver) { SIDE.forEach(q => { if (q.giver === giver && s.quests[q.id] === 'available') api.activateQuest(q.id); }); },
       // an objective matches when its signature appears in the command plus its output; `needs` restricts it to particular commands
       checkText(text, cmdLine) {
         api.activeQuests().forEach(q => q.objectives.forEach(o => { if (s.done[q.id].includes(o.id)) return; const sigs = o.sigs || [o.sig]; if (!sigs.some(sg => text.includes(sg))) return; if (o.needs && !o.needs.some(n => (cmdLine || '').includes(n))) return; api.completeObjective(q.id, o.id); }));
       },
       serialize() { return { profile: s.profile, credits: s.credits, quests: s.quests, done: s.done, journal: s.journal, notebook: s.notebook, flags: s.flags, inv: s.inv, cyberScore: s.cyberScore, cyberLevel: s.cyberLevel }; },
       restore(d) { if (!d) return; ['profile', 'credits', 'quests', 'done', 'journal', 'notebook', 'flags', 'inv', 'cyberScore', 'cyberLevel'].forEach(k => { if (d[k] !== undefined) s[k] = d[k]; }); ALL.forEach(q => { if (!s.done[q.id]) s.done[q.id] = []; if (!s.quests[q.id]) s.quests[q.id] = q.gig ? 'available' : 'locked'; }); // a save from an older build may have finished the last quest it knew about: open the one after it
-        QUESTS.forEach((q, i) => { const n = QUESTS[i + 1]; if (s.quests[q.id] === 'completed' && n && s.quests[n.id] === 'locked') s.quests[n.id] = 'available'; }); emit('change'); }
+        QUESTS.forEach((q, i) => { const n = QUESTS[i + 1]; if (s.quests[q.id] === 'completed' && n && s.quests[n.id] === 'locked') s.quests[n.id] = 'available'; if (s.quests[q.id] === 'completed') api.unlockSide(q.id, true); }); emit('change'); }
     };
     if (init) api.restore(init);
     return api;
@@ -1227,6 +1337,7 @@ Lineman's notebook, Meridian Exchange.
   grep [-c] PAT <file>  lines matching PAT      wc [-l] <file> count lines, words, bytes
   sort / uniq [-c]      sort lines, fold duplicates (use after a pipe: cat f | sort | uniq -c)
   find <path> -name X   find files by name      ps aux         running processes
+  sha256sum <file>      fingerprint a file      sha256sum -c LIST   check files against a list
   ss -ltnp / netstat    listening sockets       mail           check the mailbox
   history  clear  whoami  hostname  id  uname  date  cal  echo  exit
 Network kit (after Rosa): dig  ping  nmap  traceroute  curl  arp  ssh
@@ -1258,6 +1369,16 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
           if (!MAN[topic] || !book) return { out: 'No manual entry for ' + topic + '. Try: help', err: true };
           if (!store.has(bookId)) return { out: 'No manual entry for ' + topic + ' on this box.\nByte Mart (the orange sign west of Building A) sells the book that adds it: ' + book.name + ', ' + book.price + ' cr.', err: true };
           return { out: MAN[topic] };
+        }
+        case 'sha256sum': {
+          const raw = f => { const nd = node(norm(f)); return !nd ? { err: 'sha256sum: ' + f + ': No such file or directory' } : nd.type === 'dir' ? { err: 'sha256sum: ' + f + ': Is a directory' } : { text: nd.text }; };
+          if (has('c')) {
+            const r = readFile(args[0] || ''); if (r.err) return { out: 'sha256sum: ' + r.err, err: true }; let bad = 0;
+            const out = r.text.split('\n').filter(Boolean).map(line => { const m = line.match(/^([0-9a-f]{64})\s+\*?(.+)$/); if (!m) return null; const f = raw(m[2]); const ok = !f.err && sha256(f.text) === m[1]; if (!ok) bad++; return m[2] + ': ' + (f.err ? 'FAILED open or read' : ok ? 'OK' : 'FAILED'); }).filter(Boolean);
+            if (bad) out.push('sha256sum: WARNING: ' + bad + ' computed checksum' + (bad > 1 ? 's' : '') + ' did NOT match'); return { out: out.join('\n'), err: bad > 0 };
+          }
+          if (!args.length) { if (stdin == null) return { out: 'sha256sum: missing file operand', err: true }; return { out: sha256(stdin + '\n') + '  -' }; }
+          return { out: args.map(f => { const r = raw(f); return r.err || sha256(r.text) + '  ' + f; }).join('\n') };
         }
         case 'scan': {
           if (!store.has('pineapple')) return { out: 'scan: no recon device attached. Byte Mart sells the Wi-Fi Pineapple.', err: true };
@@ -1550,7 +1671,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   };
 
   const PED_NAMES = { female: ['Marisol', 'Hanne', 'Ingrid', 'Priya', 'Amara', 'Noor', 'Esme', 'Wren', 'Leila', 'Sigrid', 'Chiara', 'Farah'], male: ['Teo', 'Yusuf', 'Kwame', 'Bao', 'Lucas', 'Sven', 'Dmitri', 'Tariq', 'Jonas', 'Mateo', 'Ravi', 'Ola'] };
-  return { HOSTS, QUESTS, GIGS, SHOP, EXAMINABLES, DIALOGUE, PED_NAMES, makeStore, makeShell, CYBER_ASSESSMENT, CYBER_LEVELS, cyberLevel, cyberHint, assessmentResult };
+  return { HOSTS, QUESTS, GIGS, SIDE, SHOP, EXAMINABLES, DIALOGUE, PED_NAMES, makeStore, makeShell, CYBER_ASSESSMENT, CYBER_LEVELS, cyberLevel, cyberHint, assessmentResult };
 })();
 </script>
 
@@ -2704,14 +2825,14 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   addInter({ id: 'mlog', zone: 'util', pos: V3(IXD + 1.4, 0, -4.3), r: 1.3, label: 'Read maintenance clipboard', run() { ui.examine('mlog'); } });
   addInter({ id: 'rack3', zone: 'util', pos: V3(IXD + 5.0, 0, 0.0), r: 1.5, label: 'Look at rack 3', run() { ui.examine('rack3'); } });
   // Meridian Police interior interactables, in world coordinates (IXP + local x).
-  addInter({ id: 'frontDesk', zone: 'police', pos: V3(IXP + 0.8, 0, -1.35), r: 1.1, label: 'Ring the front-desk bell', run() { const q = 'gig_cleanroom'; if (store.state.quests[q] === 'active' && store.isDone(q, 'o1') && store.isDone(q, 'o2') && !store.isDone(q, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant writes it all down: what, where, when you found it, and that you left both devices in place. “Good. Touch them and they stop being evidence.”' }); store.checkText('REPORT bugs'); return; } ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The bell rings once. A tired voice calls from the back: “Cybercrime is closed until Monday. Leave the logs.”' }); } });
+  addInter({ id: 'frontDesk', zone: 'police', pos: V3(IXP + 0.8, 0, -1.35), r: 1.1, label: 'Ring the front-desk bell', run() { const ph = 'side_customs'; if (store.state.quests[ph] === 'active' && store.isDone(ph, 'o1') && store.isDone(ph, 'o2') && !store.isDone(ph, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant photographs the screen: sender, link, time. “You did not click it? Good. Customs fees by text are the oldest trick there is.”' }); store.checkText('REPORT phish'); return; } const q = 'gig_cleanroom'; if (store.state.quests[q] === 'active' && store.isDone(q, 'o1') && store.isDone(q, 'o2') && !store.isDone(q, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant writes it all down: what, where, when you found it, and that you left both devices in place. “Good. Touch them and they stop being evidence.”' }); store.checkText('REPORT bugs'); return; } ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The bell rings once. A tired voice calls from the back: “Cybercrime is closed until Monday. Leave the logs.”' }); } });
   addInter({ id: 'caseBoard', zone: 'police', pos: V3(IXP + 1.5, 0, 5.75), r: 1.1, label: 'Look at the case board', run() { ui.examine('policeNotice'); } });
   addInter({ id: 'cyberDesk', zone: 'police', pos: V3(IXP + 5.2, 0, 3.85), r: 1.1, label: 'Use the cybercrime terminal', run() { ui.toast({ kind: 'ok', title: 'Cybercrime desk', text: 'Case MP-2610-044: Dara Okafor. Preserve original logs, write down the time, and record the host or address.' }); } });
   addInter({ id: 'policeCells', zone: 'police', pos: V3(IXP - 6.5, 0, 3.5), r: 1.5, label: 'Look into the holding cell', run() { ui.toast({ kind: '', title: 'Holding cell', text: 'Empty tonight. The lock display blinks 03:12, then resets.' }); } });
   martInteractables(); exchangeInteractables();
   // the two people on the street
-  addInter({ id: 'rosa', zone: 'out', pos: V3(-7.2, 0, 13.6), r: 2.2, label: 'Talk to Rosa Tavares', run() { ui.dialogue('Rosa Tavares', ZD.DIALOGUE.rosa(store.state), () => { const st = store.state; if (st.quests.quest_f1_cli === 'completed' && st.quests.quest_f2_networking === 'available') { st.flags.rosaKit = true; store.activateQuest('quest_f2_networking'); } if (st.quests.quest_i2_utilities === 'completed' && st.quests.quest_i3_ghost === 'available') store.activateQuest('quest_i3_ghost'); }, 'rosa'); faceNPC('rosa'); } });
-  addInter({ id: 'julien', zone: 'out', pos: V3(10.2, 0, -13.4), r: 2.2, label: 'Talk to Julien Moreau', run() { ui.dialogue('Julien Moreau', ZD.DIALOGUE.julien(store.state), () => { const st = store.state; if (st.quests.quest_f2_networking === 'completed' && st.quests.quest_i1_logs === 'available') { st.flags.cadAccess = true; store.activateQuest('quest_i1_logs'); } }, 'julien'); faceNPC('julien'); } });
+  addInter({ id: 'rosa', zone: 'out', pos: V3(-7.2, 0, 13.6), r: 2.2, label: 'Talk to Rosa Tavares', run() { ui.dialogue('Rosa Tavares', ZD.DIALOGUE.rosa(store.state).concat(store.pitches('rosa')), () => { const st = store.state; store.offer('rosa'); if (st.quests.quest_f1_cli === 'completed' && st.quests.quest_f2_networking === 'available') { st.flags.rosaKit = true; store.activateQuest('quest_f2_networking'); } if (st.quests.quest_i2_utilities === 'completed' && st.quests.quest_i3_ghost === 'available') store.activateQuest('quest_i3_ghost'); }, 'rosa'); faceNPC('rosa'); } });
+  addInter({ id: 'julien', zone: 'out', pos: V3(10.2, 0, -13.4), r: 2.2, label: 'Talk to Julien Moreau', run() { ui.dialogue('Julien Moreau', ZD.DIALOGUE.julien(store.state).concat(store.pitches('julien')), () => { const st = store.state; store.offer('julien'); if (st.quests.quest_f2_networking === 'completed' && st.quests.quest_i1_logs === 'available') { st.flags.cadAccess = true; store.activateQuest('quest_i1_logs'); } }, 'julien'); faceNPC('julien'); } });
   // where the objective arrow points for each quest, by its state
   const BEACON = {
     quest_f1_cli: { available: [-8.5, -14.3], active: [-8.5, -14.3] },
@@ -3271,7 +3392,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const add = (node, lines) => { if (node) node.text += lines.join('\n') + '\n'; };
     add(fsLog('cad', 'auth.log'), [day + ' 03:12:02 caduceus sshd[' + (4100 + n * 7) + ']: Accepted publickey for ops from 10.0.0.254 port 51' + (200 + n) + ' ssh2', day + ' 03:12:02 caduceus systemd-logind: New session ' + (900 + n) + ' of user ops.', day + ' 03:12:41 caduceus sshd[' + (4100 + n * 7) + ']: Disconnected from user ops 10.0.0.254']);
     add(fsLog('cad', 'styx-sync.log'), [DOW[d.getUTCDay()] + ' ' + day + ' 03:12:40 ' + d.getUTCFullYear() + ' sync ok, reported to 10.0.0.254']);
-    add(fsLog('util', 'styxd.log'), [day + ' 03:12:40 styxd: catalogue served to 10.0.0.60 token=STYX-SVC-SYNC-9C21E0', day + ' 03:12:41 styxd: report sent to 10.0.0.254']);
+    add(fsLog('util', 'styxd.log'), [day + ' 03:12:40 styxd: catalogue served to 10.0.0.60 token=STYX-SVC-SYNC-9C21E0', day + ' 03:12:41 styxd: report sent to 10.0.0.254', day + ' 03:12:44 styxd: catalogue served to 10.0.3.1 token=STYX-ROOT-00000000']);
     if (k > 0) { const cdr = ZD.HOSTS.xch.fs.children.var.children.log.children.asterisk.children['cdr.csv']; add(cdr, ['"' + day + '","03:12","1337","burner","0","' + (store.state.flags.called ? 'ANSWERED' : 'NO ANSWER') + '"']); }
   }
   function syncLogs() { const due = CLOCK.total >= CRON_MIN ? Math.floor((CLOCK.total - CRON_MIN) / 1440) + 1 : 0; while (CLOCK.nights < Math.min(due, 60)) { cronLines(CLOCK.nights); CLOCK.nights++; } }
@@ -3434,7 +3555,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   function martInteractables() {
     addInter({ id: 'doorM', zone: 'out', pos: V3(-22.5, 0, -15), r: 2.2, label: 'Enter Byte Mart', run() { transition(() => { setZone('mart'); placePlayer(IXM + 1.0, 0, 4.2, PI); }); } });
     addInter({ id: 'exitM', zone: 'mart', pos: W(-1, -4.6), r: 1.5, label: 'Leave Byte Mart', run() { transition(() => { setZone('out'); placePlayer(-22.5, 0, -12.4, 0); }); } });
-    addInter({ id: 'nadia', zone: 'mart', pos: W(1.5, 2.6), r: 2.0, label: 'Talk to Nadia (Byte Mart)', run() { const st = store.state; const lines = ZD.DIALOGUE.nadia(st); ui.dialogue('Nadia Sow', lines, () => { st.flags.metNadia = true; ui.openShop(); }, 'nadia'); faceNadia(); } });
+    addInter({ id: 'nadia', zone: 'mart', pos: W(1.5, 2.6), r: 2.0, label: 'Talk to Nadia (Byte Mart)', run() { const st = store.state; const lines = ZD.DIALOGUE.nadia(st).concat(store.pitches('nadia')); ui.dialogue('Nadia Sow', lines, () => { st.flags.metNadia = true; store.offer('nadia'); ui.openShop(); }, 'nadia'); faceNadia(); } });
     addInter({ id: 'shelves', zone: 'mart', pos: W(-1.3, -0.5), r: 2.2, label: 'Browse the shelves', run() { ui.openShop(); } });
     addInter({ id: 'gigboard', zone: 'mart', pos: W(2.2, -4.2), r: 1.5, label: 'Read the gig board', run() { ui.examine('gigboard'); store.state.flags.boardRead = true; let n = 0; ZD.GIGS.forEach(g => { if (store.state.quests[g.id] === 'available' && (!g.item || store.has(g.item))) { store.activateQuest(g.id); n++; } }); if (n) ui.toast({ kind: '', title: 'Gigs', text: n + ' gigs added to your missions (P). Each pays when its command runs.' }); } });
     addInter({ id: 'fridge', zone: 'mart', pos: W(5.0, 1.0), r: 1.5, label: 'Look in the fridge', run() { ui.examine('fridge'); } });
@@ -3650,7 +3771,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     addInter({ id: 'patchwall', zone: 'xch', pos: V3(IXX - 6.2, 0, -1.0), r: 1.6, label: 'Look at the patch panel', run() { ui.examine('patchwall'); } });
     addInter({ id: 'relays', zone: 'xch', pos: V3(IXX - 1.2, 0, 4.6), r: 1.6, label: 'Look at the relay cabinet', run() { ui.examine('relays'); } });
     addInter({ id: 'payphone', zone: 'xch', pos: V3(IXX + 6.3, 0, -2.5), r: 1.4, label: 'Look at the payphone', run() { ui.examine('payphone'); } });
-    addInter({ id: 'courier', zone: 'out', pos: V3(COURIER()[0], 0, COURIER()[1]), r: 2.2, label: 'Talk to the woman by the fountain', run() { const st = store.state; const q = st.quests.quest_z1_burner; if (q === 'available') store.activateQuest('quest_z1_burner'); ui.dialogue(q === 'locked' ? 'Woman by the fountain' : 'Ines', ZD.DIALOGUE.courier(st), () => { if (st.quests.quest_z1_burner === 'active') { store.completeObjective('quest_z1_burner', 'o1'); st.flags.hasPhone = true; st.inv.phone = 1; ui.toast({ kind: 'found', title: 'Burner phone', text: 'Prepaid, no name. F opens it.' }); store.completeObjective('quest_z1_burner', 'o2'); state.ringAt = t + 22; } }, 'courier'); faceNPC('courier'); } });
+    addInter({ id: 'courier', zone: 'out', pos: V3(COURIER()[0], 0, COURIER()[1]), r: 2.2, label: 'Talk to the woman by the fountain', run() { const st = store.state; const q = st.quests.quest_z1_burner; if (q === 'available') store.activateQuest('quest_z1_burner'); ui.dialogue(q === 'locked' ? 'Woman by the fountain' : 'Ines', ZD.DIALOGUE.courier(st).concat(q === 'completed' ? store.pitches('courier') : []), () => { store.offer('courier'); if (st.quests.quest_z1_burner === 'active') { store.completeObjective('quest_z1_burner', 'o1'); st.flags.hasPhone = true; st.inv.phone = 1; ui.toast({ kind: 'found', title: 'Burner phone', text: 'Prepaid, no name. F opens it.' }); store.completeObjective('quest_z1_burner', 'o2'); state.ringAt = t + 22; } }, 'courier'); faceNPC('courier'); } });
   }
   function enterExchange() { transition(() => { setZone('xch'); placePlayer(IXX - 1.0, 0, -4.8, 0); if (store.state.quests.quest_z3_exchange === 'available') store.activateQuest('quest_z3_exchange'); }); }
   function placeCourier() {
@@ -3992,7 +4113,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     renderJournal() {
       const st = store.state; const body = $('jrBody'); body.innerHTML = '';
       document.querySelectorAll('#jrHead .tab').forEach(b => b.classList.toggle('on', b.dataset.tab === ui.jrTab));
-      if (ui.jrTab === 'quests') ZD.QUESTS.concat(ZD.GIGS.filter(g => st.quests[g.id] !== 'available')).forEach(q => { const s = st.quests[q.id]; const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<span class="state ' + s + '">' + s + '</span><h4>' + esc(q.title) + '</h4><div class="meta">' + esc(q.category + ' · ' + q.location + ' · ' + q.reward + ' credits') + '</div>' + (s === 'locked' ? '<p>Locked.</p>' : '<ul>' + q.objectives.map(o => '<li class="' + (store.isDone(q.id, o.id) ? 'done' : '') + '">' + esc(o.text) + (o.hint && !store.isDone(q.id, o.id) ? '<div class="hint">' + esc(cyberHint(o, cyberLevel(st.cyberScore || 0))) + '</div>' : '') + '</li>').join('') + '</ul>'); body.appendChild(el); });
+      if (ui.jrTab === 'quests') ZD.QUESTS.concat(ZD.SIDE.filter(q => st.quests[q.id] !== 'locked'), ZD.GIGS.filter(g => st.quests[g.id] !== 'available')).forEach(q => { const s = st.quests[q.id]; const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<span class="state ' + s + '">' + s + '</span><h4>' + esc(q.title) + '</h4><div class="meta">' + esc(q.category + ' · ' + q.location + ' · ' + q.reward + ' credits') + '</div>' + (s === 'locked' ? '<p>Locked.</p>' : '<ul>' + q.objectives.map(o => '<li class="' + (store.isDone(q.id, o.id) ? 'done' : '') + '">' + esc(o.text) + (o.hint && !store.isDone(q.id, o.id) ? '<div class="hint">' + esc(cyberHint(o, cyberLevel(st.cyberScore || 0))) + '</div>' : '') + '</li>').join('') + '</ul>'); body.appendChild(el); });
       if (ui.jrTab === 'log') { if (!st.journal.length) body.innerHTML = '<div class="entry"><p>No entries yet.</p></div>'; st.journal.slice().reverse().forEach(j => { const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<div class="meta">' + (j.g != null ? stampLabel(j.g) : new Date(j.t).toLocaleString()) + '</div><h4>' + esc(j.title) + '</h4><p>' + esc(j.text) + '</p>'; body.appendChild(el); }); }
       if (ui.jrTab === 'notebook') { if (!st.notebook.length) body.innerHTML = '<div class="entry"><p>Nothing examined yet. Look closely at what Dara left on the reading table.</p></div>'; st.notebook.slice().reverse().forEach(n => { const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<div class="meta">' + esc(n.id) + (n.g != null ? ' · ' + stampLabel(n.g) : '') + '</div><h4>' + esc(n.title) + '</h4><p>' + esc(n.text) + '</p>'; body.appendChild(el); }); }
     }
