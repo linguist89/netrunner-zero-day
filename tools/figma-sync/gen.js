@@ -111,10 +111,11 @@ out.city = cityLayer([-90, 90, -100, 100], 7, true);
 out.row = cityLayer([-32, 64, -34, 34], 14, false);
 
 /* street checks: hero footprints that intersect, exit spawns inside an Enter prompt or a footprint */
-const street = [];
-for (let a = 0; a < HERO.length; a++) for (let b = a + 1; b < HERO.length; b++) { const A = HERO[a], B = HERO[b]; const ox = Math.min(A.x + A.w / 2, B.x + B.w / 2) - Math.max(A.x - A.w / 2, B.x - B.w / 2), oz = Math.min(A.z + A.d / 2, B.z + B.d / 2) - Math.max(A.z - A.d / 2, B.z - B.d / 2); if (ox > 0 && oz > 0) street.push(`Buildings ${A.name} and ${B.name} intersect by ${r1(Math.min(ox, oz))} m.`); }
+const street = [], clash = [];
+for (let a = 0; a < HERO.length; a++) for (let b = a + 1; b < HERO.length; b++) { const A = HERO[a], B = HERO[b]; const ox = Math.min(A.x + A.w / 2, B.x + B.w / 2) - Math.max(A.x - A.w / 2, B.x - B.w / 2), oz = Math.min(A.z + A.d / 2, B.z + B.d / 2) - Math.max(A.z - A.d / 2, B.z - B.d / 2); if (ox > 0 && oz > 0) { street.push(`Buildings ${A.name} and ${B.name} intersect by ${r1(Math.min(ox, oz))} m.`); clash.push([Math.max(A.x - A.w / 2, B.x - B.w / 2), Math.min(A.x + A.w / 2, B.x + B.w / 2), Math.max(A.z - A.d / 2, B.z - B.d / 2), Math.min(A.z + A.d / 2, B.z + B.d / 2)]); } }
 out.row.spawns.forEach(s => { if (s.ex && s.ex.x != null && Math.hypot(s.x - s.ex.x, s.z - s.ex.z) <= s.r) street.push(`${s.id}: Leave puts you inside the Enter prompt.`); });
 HERO.forEach(h => { const s = h.door.outSpawn; if (s && Math.abs(s.x - h.x) < h.w / 2 && Math.abs(s.z - h.z) < h.d / 2) street.push(`${h.name}: Leave puts you inside the building footprint.`); });
 out.street = street;
+out.clash = clash;
 out.cityGrid = C;
 fs.writeFileSync(__dirname + '/out/specs.json', JSON.stringify(out));
