@@ -77,13 +77,41 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 #hints b{color:var(--fg);font-weight:600}
 /* notices: a short stack in the top-right corner under the score, clear of the player and the E prompts in the middle of the screen */
 #notes{position:absolute;right:16px;top:calc(150px + env(safe-area-inset-top,0px));width:min(300px,calc(100vw - 32px));display:flex;flex-direction:column;gap:6px;pointer-events:none}
-.note{pointer-events:auto;cursor:pointer;display:grid;grid-template-columns:auto 1fr;gap:2px 8px;align-items:baseline;padding:7px 10px 8px;font-size:12.5px;line-height:1.35;color:var(--fg);opacity:0;transform:translateX(12px);transition:opacity .2s,transform .2s}
-.note.on{opacity:1;transform:none}
-.note .t{grid-column:1/-1;display:flex;justify-content:space-between;gap:8px;font:16px/1.1 var(--font-display);letter-spacing:.05em;color:var(--cash)}
-.note .t time{font:600 10px var(--font-ui);letter-spacing:.14em;color:var(--mute);font-variant-numeric:tabular-nums}
-.note.ok .t{color:var(--ok)}
-.note .x{grid-column:1/-1;min-width:0;overflow-wrap:anywhere}
-@media (prefers-reduced-motion:reduce){.note{transition:none}}
+.notice{pointer-events:auto;cursor:pointer;display:grid;grid-template-columns:auto 1fr;gap:2px 8px;align-items:baseline;padding:7px 10px 8px;font-size:12.5px;line-height:1.35;color:var(--fg);opacity:0;transform:translateX(12px);transition:opacity .2s,transform .2s}
+.notice.on{opacity:1;transform:none}
+.notice .t{grid-column:1/-1;display:flex;justify-content:space-between;gap:8px;font:16px/1.1 var(--font-display);letter-spacing:.05em;color:var(--cash)}
+.notice .t time{font:600 10px var(--font-ui);letter-spacing:.14em;color:var(--mute);font-variant-numeric:tabular-nums}
+.notice.ok .t{color:var(--ok)}
+.notice .x{grid-column:1/-1;min-width:0;overflow-wrap:anywhere}
+@media (prefers-reduced-motion:reduce){.notice{transition:none}}
+/* SWEEP-4: the room scanner sits where the mission card was (top left) while it is open, so the middle of the screen stays clear */
+#hud.sweeping #quest,#hud.sweeping #map{display:none!important}
+#sweep{position:absolute;left:16px;top:calc(16px + env(safe-area-inset-top,0px));width:min(372px,calc(100vw - 32px));max-height:calc(100% - 80px - env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:8px;padding:10px 12px 12px;min-height:0}
+#sweep .sw-head{display:flex;align-items:baseline;gap:10px}
+#sweep .sw-title{font:24px/1 var(--font-display);letter-spacing:.06em;color:var(--cyan);text-shadow:2px 2px 0 #000}
+#sweep .sw-room{flex:1;min-width:0;font:600 10px var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sweep .sw-head .btn{flex:none}
+#sweep .sw-head kbd{font:600 10px var(--font-ui);color:var(--mute);margin-left:4px}
+#swPasses{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+#swPasses span{font:600 10px/1.2 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;padding:4px 5px 3px;border:1px solid var(--line);border-radius:2px;color:var(--mute);display:flex;flex-direction:column;gap:1px}
+#swPasses span b{font:15px/1 var(--font-display);letter-spacing:.04em}
+#swPasses .th b{color:var(--warn)}#swPasses .rf b{color:var(--cyan)}#swPasses .net b{color:var(--cash)}#swPasses .nj b{color:var(--ok)}
+#swPasses span.off{opacity:.55;border-style:dashed}
+#swMap{width:100%;display:block;background:#07090f;border:1px solid var(--line);border-radius:2px;image-rendering:auto}
+#swList{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;overflow:auto;min-height:60px;font-size:12px}
+#swList li{display:grid;grid-template-columns:12px 1fr auto;gap:2px 8px;align-items:baseline;padding:5px 6px;border:1px solid var(--line);border-radius:2px;background:rgba(255,255,255,.02)}
+#swList li .dot{width:9px;height:9px;border-radius:50%;margin-top:3px;background:var(--mute)}
+#swList li .nm{font:600 13px/1.25 var(--font-ui);letter-spacing:.02em;color:var(--fg);min-width:0;overflow-wrap:anywhere}
+#swList li .tags{display:flex;gap:3px}
+#swList li .tags i{font:600 9px/1 var(--font-ui);font-style:normal;letter-spacing:.06em;padding:3px 4px 2px;border-radius:2px;color:#0a0b10}
+#swList li .tags .th{background:var(--warn)}#swList li .tags .rf{background:var(--cyan)}#swList li .tags .net{background:var(--cash)}#swList li .tags .nj{background:var(--ok)}
+#swList li .det{grid-column:2/-1;color:#cfc8ba;font:11.5px/1.4 var(--font-mono);overflow-wrap:anywhere}
+#swList li .sw-note{grid-column:2/-1;color:var(--mute);font-size:12px;line-height:1.4}
+#swList li.metal .nm{color:var(--mute)}
+#swList li.sec{border:0;background:none;padding:6px 0 0;display:block;font:600 10px var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+#swTip{margin:0;font-size:12px;line-height:1.45;color:var(--mute);border-top:1px solid var(--line);padding-top:7px}
+#swTip b{color:var(--fg);font-weight:600}
+@media (max-width:640px){#sweep{max-height:calc(100% - 200px);width:calc(100vw - 32px)}#swPasses span{font-size:9px}}
 /* panels the player can switch off: Q mission card, V minimap, X key list, U all of them */
 #hud.no-quest #quest,#hud.no-map #map,#hud.no-hints #hints{display:none!important}
 #hudBar{position:absolute;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;max-width:min(330px,calc(100vw - 32px))}
@@ -261,10 +289,18 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
     <div id="cash"><div id="cashPop"></div><div class="num" id="hudCredits">000000</div><div class="name" id="hudName">...</div><div id="boost" hidden></div></div>
     <div id="carName"></div>
     <div id="prompt" class="card" hidden><kbd>E</kbd><span id="promptText"></span></div>
-    <div id="hints"><span><b>W S</b> run</span><span><b>A D</b> turn</span><span><b>Shift</b> stroll / run inside</span><span><b>E</b> interact / car</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> camera</span><span><b>B</b> drink</span><span><b>K</b> whistle car</span><span><b>F</b> phone</span><span><b>T</b> clock</span><span><b>P</b> missions</span><span><b>Q V X</b> mission card / map / keys</span><span><b>U</b> hide panels</span><span><b>L</b> settings</span><span><b>M</b> sound</span><span><b>N</b> music</span><span><b>wheel</b> zoom</span></div>
+    <div id="hints"><span><b>W S</b> run</span><span><b>A D</b> turn</span><span><b>Shift</b> stroll / run inside</span><span><b>E</b> interact / car</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> camera</span><span><b>B</b> drink</span><span><b>K</b> whistle car</span><span><b>F</b> phone</span><span><b>T</b> clock</span><span><b>P</b> missions</span><span><b>Q V X</b> mission card / map / keys</span><span><b>U</b> hide panels</span><span><b>G</b> room sweep</span><span><b>L</b> settings</span><span><b>M</b> sound</span><span><b>N</b> music</span><span><b>wheel</b> zoom</span></div>
     <canvas id="map" width="170" height="186" aria-label="Minimap"></canvas>
     <div id="notes" aria-live="polite"></div>
+    <section id="sweep" class="card" hidden aria-label="SWEEP-4 room scanner">
+      <div class="sw-head"><span class="sw-title">SWEEP-4</span><span class="sw-room" id="swRoom"></span><button id="swClose" class="btn ghost small" type="button">Close<kbd>G</kbd></button></div>
+      <div id="swPasses"></div>
+      <canvas id="swMap" width="348" height="240" aria-label="Map of the devices in this room"></canvas>
+      <ul id="swList"></ul>
+      <p id="swTip"></p>
+    </section>
     <div id="hudBar">
+      <button id="sweepBtn" class="btn ghost tog" type="button" hidden>Sweep<kbd>G</kbd></button>
       <button id="togQuest" class="btn ghost tog" type="button" aria-pressed="true">Mission card<kbd>Q</kbd></button>
       <button id="togMap" class="btn ghost tog" type="button" aria-pressed="true">Map<kbd>V</kbd></button>
       <button id="togHints" class="btn ghost tog" type="button" aria-pressed="true">Keys<kbd>X</kbd></button>
@@ -919,6 +955,7 @@ Lineman's notebook, Meridian Exchange.
     { id: 'pineapple', name: 'Wi-Fi Pineapple', price: 90, kind: 'gear', tag: 'Network', desc: 'Rogue access point and recon kit in a yellow box. Adds the scan command: one sweep of 10.0.0.0/24 with every name, port and service, no DNS kit needed.' },
     { id: 'cloner', name: 'Proxmark RFID cloner', price: 120, kind: 'gear', tag: 'Physical', desc: 'Reads a badge from across a lobby and writes a copy. The readers on Buildings F and D accept the clone, appointment or no appointment, keycard or no keycard.' },
     { id: 'scanner', name: 'STYX scanner app', price: 60, kind: 'gear', tag: 'Map', desc: 'Side-loaded onto the pager. Every credit chip lying around the nine blocks shows on the minimap, so the street pays for the next purchase.' },
+    { id: 'sweep', name: 'SWEEP-4 room scanner', price: 120, kind: 'gear', tag: 'Sweep', desc: 'A counter-surveillance case with four tools: a thermal camera, a Wi-Fi and Bluetooth listener, an ARP sweeper and a junction detector. Press G inside any building for a map of every device in the room, and see what each tool can and cannot find.' },
     { id: 'keys', name: 'Car keys: Caduceus Coupe', price: 220, kind: 'gear', tag: 'Wheels', desc: 'The fastest car on Meridian Row, in orange, parked outside Byte Mart. Lose it or wreck it and K whistles it back to the mart.' },
     { id: 'book_grep', name: 'Book: grep, pipes and wc', price: 35, kind: 'book', tag: 'Manual', desc: 'A thin, well-thumbed paperback. Adds man grep, wc, sort, uniq, cat, head, tail and pipes to every terminal.' },
     { id: 'book_net', name: 'Book: the Knock Knock set', price: 45, kind: 'book', tag: 'Manual', desc: 'Rosa’s workshop notes, bound. Adds man dig, ping, nmap, traceroute, curl, arp and ssh.' },
@@ -2687,6 +2724,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (k === 'f' && !e.repeat) openPhone();
     if (k === 'k' && !e.repeat) whistleCar();
     if (k === 't' && !e.repeat) toggleClock();
+    if (k === 'g' && !e.repeat) toggleSweep();
     if (!e.repeat) { if (k === 'q') ui.togglePanel('quest'); if (k === 'v') ui.togglePanel('map'); if (k === 'x') ui.togglePanel('hints'); if (k === 'u') ui.toggleAllPanels(); }
     if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
   });
@@ -2836,10 +2874,212 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     }
   }
 
+  /* ---------- SWEEP-4 room scanner (Byte Mart, 120 cr): four passes, each with the strengths and blind spots of the real tool
+     thermal   anything powered shows as heat; exact spot, no name; switched-off or very low-power things stay cold
+     rf        listens for Wi-Fi and Bluetooth: names and MACs, but position only from signal strength. One reading is a
+               distance, not a direction (a ring); readings from several spots narrow it down (trilateration)
+     network   an ARP sweep of the room's LAN: IP, MAC, vendor and hostname for every host on the subnet, in this room or
+               not, and no position at all. Needs to be on the network, and it is loud
+     junction  a non-linear junction detector: any electronics, powered or not, but only within 1.6 m, and rusty metal
+               answers too (louder on the 3rd harmonic than the 2nd)
+     Device positions are world coordinates; entries with snap: true move onto the nearest monitor screen in the room. ---------- */
+  const OUI = { // vendor lookup by the first three bytes of a MAC; b8:27:eb and 24:0a:c4 are the real prefixes, the rest are Meridian's own
+    '02:42:0a': 'none: locally administered (virtual)', 'b8:27:eb': 'Raspberry Pi Foundation', '24:0a:c4': 'Espressif Inc.',
+    '3c:9a:11': 'Kestrel Networks', '7c:41:a2': 'Hawkeye Vision', 'f4:0b:3e': 'Ardent Card Systems', '5c:0f:6b': 'Paybridge', '6c:2e:85': 'Northgate Systems', '90:2b:d4': 'Meridian Telecom', 'de:ad:5f': 'none: locally administered (randomised)' };
+  const vendorOf = mac => { const k = (mac || '').slice(0, 8).toLowerCase(); if (OUI[k]) return OUI[k]; return (parseInt(k.slice(0, 2), 16) & 2) ? 'none: locally administered' : 'unknown vendor'; };
+  const SWEEP_ROOMS = {
+    in: { name: 'Building A · Dara’s studio', net: { cidr: '10.0.1.0/24' }, devs: [
+      { id: 'ws', name: 'dara-ws workstation', short: 'dara-ws', kind: 'pc', x: IX - 7.9, z: 3.5, snap: true, powered: true, heat: 9, net: { ip: '10.0.1.10', mac: '02:42:0a:00:01:0a', host: 'dara-ws.styx.local' }, note: 'Dara’s main machine. Wired, so it never shows up on the air.' },
+      { id: 'mezz', name: 'dara-mezz terminal', short: 'dara-mezz', kind: 'pc', x: IX + 2.4, y: 3.1, z: -6.6, snap: true, powered: true, heat: 7, net: { ip: '10.0.1.11', mac: '02:42:0a:00:01:0b', host: 'dara-mezz.styx.local' }, note: 'Upstairs on the mezzanine. Walk up there for the junction detector to reach it.' },
+      { id: 'rtr', name: 'Router and access point', short: 'router', kind: 'ap', x: IX - 8.7, z: 4.6, powered: true, heat: 6, radio: { type: 'wifi', name: 'dara-5g', mac: '3c:9a:11:52:0e:01', m1: -38 }, net: { ip: '10.0.1.1', mac: '3c:9a:11:52:0e:01', host: 'gw.dara.lan' }, note: 'In the server case. The same MAC answers on the air and on the wire, which is how the scanner ties the two together.' },
+      { id: 'coffee', name: 'Smart coffee machine', short: 'coffee', kind: 'iot', x: IX + 4.5, z: -7.1, powered: true, heat: 14, radio: { type: 'wifi', name: 'coffee-7f3a', mac: '24:0a:c4:3b:7f:3a', m1: -52 }, net: { ip: '10.0.1.42', mac: '24:0a:c4:3b:7f:3a', host: 'coffee-7f3a' }, note: 'An Espressif Wi-Fi chip in a kitchen appliance, on the same network as the workstation and never updated. Classic IoT.' },
+      { id: 'bug', name: 'Dead listening device', short: 'bug?', kind: 'bug', x: IX - 2.3, z: -5.3, powered: false, note: 'A thumbnail-sized board with a microphone and a flat coin cell, taped under the desk. The battery is dead: no heat, no signal. Only the junction detector finds it.' },
+      { id: 'rad', name: 'Radiator valve', kind: 'metal', x: IX + 5.8, z: 1.8, metal: true, note: 'Corroded brass and steel. Rusty metal junctions answer the detector too.' }] },
+    cad: { name: 'Building F · Caduceus ops', net: { cidr: '10.0.0.0/24', ids: true }, devs: [
+      { id: 'ops', name: 'caduceus ops terminal', short: 'caduceus', kind: 'pc', x: IXF - 6.9, z: -3.0, snap: true, powered: true, heat: 9, net: { ip: '10.0.0.60', mac: '02:42:0a:00:00:3c', host: 'caduceus.styx.local' }, note: 'Julien’s ops box, the one with the logs.' },
+      { id: 'ap', name: 'Ceiling access point', short: 'ap', kind: 'ap', x: IXF, z: 0.5, powered: true, heat: 6, radio: { type: 'wifi', name: 'CADUCEUS-CORP', mac: '3c:9a:11:7a:00:10', m1: -38 }, net: { ip: '10.0.0.2', mac: '3c:9a:11:7a:00:10', host: 'ap-ops' }, note: 'WPA2-Enterprise: it wants a staff login, not a shared password.' },
+      { id: 'cam', name: 'Lobby camera', short: 'camera', kind: 'cam', x: IXF + 2.8, z: 5.7, powered: true, heat: 8, radio: { type: 'wifi', name: 'cam-lobby', mac: '7c:41:a2:19:aa:02', m1: -48 }, net: { ip: '10.0.0.66', mac: '7c:41:a2:19:aa:02', host: 'cam-lobby' }, note: 'Watches the reception desk and the door, and streams over Wi-Fi.' },
+      { id: 'badge', name: 'Badge printer', short: 'badges', kind: 'printer', x: IXF + 2.4, z: 4.2, powered: true, heat: 11, net: { ip: '10.0.0.65', mac: 'f4:0b:3e:00:12:65', host: 'badge-prn' }, note: 'Prints visitor badges, on the same flat network as the ops terminal.' },
+      { id: 'card', name: 'Staff keycard', short: 'keycard', kind: 'tag', x: IXF - 3.55, z: -1.9, powered: false, note: 'Its RFID chip has no battery and only wakes inside a reader’s field, so heat and radio miss it. The junction detector does not.' },
+      { id: 'cooler', name: 'Water cooler bracket', kind: 'metal', x: IXF - 7.3, z: 4.9, metal: true, note: 'A rusty steel bracket.' }] },
+    lab: { name: 'Building H · Solarpunk Lab', net: { cidr: '10.0.0.0/24' }, devs: [
+      { id: 'box', name: 'lab-h workshop box', short: 'lab-h', kind: 'pc', x: IXH - 6.2, z: 1.4, snap: true, powered: true, heat: 8, net: { ip: '10.0.0.80', mac: '02:42:0a:00:00:50', host: 'lab-h.styx.local' }, note: 'Rosa’s workshop machine. The handouts live on it.' },
+      { id: 'prn', name: '3D printer controller', short: 'printer-pi', kind: 'printer', x: IXH + 5.6, z: -1.0, powered: true, heat: 30, radio: { type: 'wifi', name: 'printer-pi', mac: 'b8:27:eb:6c:21:9e', m1: -50 }, net: { ip: '10.0.0.81', mac: 'b8:27:eb:6c:21:9e', host: 'printer-pi' }, note: 'A Raspberry Pi running the printer. The hot end makes it the warmest thing in the room.' },
+      { id: 'soil', name: 'Soil sensor', short: 'SOIL-03', kind: 'iot', x: IXH - 6.7, z: 0.4, powered: true, heat: 1, radio: { type: 'ble', name: 'SOIL-03', mac: '24:0a:c4:11:02:03', m1: -62 }, note: 'A coin-cell Bluetooth beacon in the seed trays. It uses so little power that the thermal camera cannot see it.' },
+      { id: 'ap', name: 'Open access point', short: 'ap', kind: 'ap', x: IXH + 0.4, z: 5.1, powered: true, heat: 6, radio: { type: 'wifi', name: 'solarpunk-open', mac: '3c:9a:11:80:00:01', m1: -38 }, net: { ip: '10.0.0.79', mac: '3c:9a:11:80:00:01', host: 'lab-ap' }, note: 'No password. Anyone in range is on the same network as the workshop box.' },
+      { id: 'shelf', name: 'Steel shelving', kind: 'metal', x: IXH - 6.7, z: -1.6, metal: true, note: 'A rusted shelf joint.' }] },
+    util: { name: 'Building D · Utilities', net: { cidr: '10.0.0.0/24' }, devs: [
+      { id: 'db', name: 'db service console', short: 'db', kind: 'pc', x: IXD + 2.6, z: 3.4, snap: true, powered: true, heat: 9, net: { ip: '10.0.0.200', mac: '02:42:0a:00:00:c8', host: 'db.styx.local' }, note: 'The console on the cart. Port 31337 lives here.' },
+      { id: 'bmc', name: 'Rack 3 management card', short: 'r3-bmc', kind: 'pc', x: IXD + 5.6, z: 0, powered: true, heat: 18, net: { ip: '10.0.0.203', mac: '6c:2e:85:03:00:03', host: 'r3-bmc' }, note: 'The out-of-band card in rack 3. Hot, wired, and easy to forget about.' },
+      { id: 'pi', name: 'Unlabelled Raspberry Pi', short: 'rogue pi', kind: 'iot', x: IXD + 6.3, z: 1.0, powered: true, heat: 6, radio: { type: 'ble', name: 'raspberrypi', mac: 'b8:27:eb:0d:66:01', m1: -60 }, net: { ip: '10.0.0.77', mac: 'b8:27:eb:0d:66:00' }, note: 'Tucked behind rack 3. No DNS name, no asset tag. Its Bluetooth and Ethernet MACs differ by one digit, but they share the Raspberry Pi prefix: the same box seen twice.' },
+      { id: 'meter', name: 'Smart meter', short: 'meter', kind: 'iot', x: IXD - 6.7, z: -4.2, powered: true, heat: 4, note: 'On the breaker panel. It reports over the power line, not the air, so only heat and the junction detector see it.' },
+      { id: 'tray', name: 'Cable tray bolt', kind: 'metal', x: IXD + 1.4, z: -5.4, metal: true, note: 'A corroded bolt.' }] },
+    mart: { name: 'Byte Mart', net: { cidr: '192.168.8.0/24' }, devs: [
+      { id: 'till', name: 'Till and card terminal', short: 'till-1', kind: 'pc', x: W(1.5, 3.3).x, z: W(1.5, 3.3).z, powered: true, heat: 8, net: { ip: '192.168.8.20', mac: '5c:0f:6b:20:00:14', host: 'till-1' }, note: 'On the same network as the free Wi-Fi, separated by a password and hope.' },
+      { id: 'stock', name: 'Stock system PC', short: 'stock-pc', kind: 'pc', x: W(2.8, 3.5).x, z: W(2.8, 3.5).z, snap: true, powered: true, heat: 7, net: { ip: '192.168.8.21', mac: '6c:2e:85:08:00:15', host: 'stock-pc' }, note: 'The screen behind the counter that counts the Duckies.' },
+      { id: 'ap', name: 'Shop router', short: 'router', kind: 'ap', x: W(0, 4.6).x, z: W(0, 4.6).z, powered: true, heat: 6, radio: { type: 'wifi', name: 'BYTEMART-FREE', mac: '3c:9a:11:08:00:01', m1: -38 }, net: { ip: '192.168.8.1', mac: '3c:9a:11:08:00:01', host: 'router.bytemart' }, note: 'Open Wi-Fi for customers.' },
+      { id: 'cam', name: 'Till camera', short: 'camera', kind: 'cam', x: W(-5.6, 4.6).x, z: W(-5.6, 4.6).z, powered: true, heat: 8, radio: { type: 'wifi', name: 'cam-till', mac: '7c:41:a2:08:00:30', m1: -48 }, net: { ip: '192.168.8.30', mac: '7c:41:a2:08:00:30', host: 'cam-till' }, note: 'Pointed at the till.' },
+      { id: 'box1', name: 'Boxed gadgets', short: 'stock', kind: 'junk', x: W(0.4, 0.3).x, z: W(0.4, 0.3).z, powered: false, note: 'Shelf stock still in the box: plenty of electronics, none of it switched on.' },
+      { id: 'box2', name: 'Boxed gadgets', short: 'stock', kind: 'junk', x: W(-3.0, -1.3).x, z: W(-3.0, -1.3).z, powered: false, note: 'More stock, on the other shelf. The junction detector lights up all along both gondolas.' },
+      { id: 'fridge', name: 'Drinks fridge controller', short: 'fridge', kind: 'iot', x: W(5.5, 1.0).x, z: W(5.5, 1.0).z, powered: true, heat: 6, note: 'A thermostat board. No radio.' },
+      { id: 'bin', name: 'Bargain bin', short: 'junk', kind: 'junk', x: W(-4.6, -3.9).x, z: W(-4.6, -3.9).z, powered: false, note: 'Serial cables, a ball mouse, dead floppies.' }],
+      others: [['192.168.8.101', 'de:ad:5f:11:20:65', 'nadia-phone']] },
+    xch: { name: 'Building X · Exchange', net: { cidr: '10.0.2.0/24' }, devs: [
+      { id: 'con', name: 'Lineman console', short: 'exchange', kind: 'pc', x: IXX + 0.6, z: 1.2, snap: true, powered: true, heat: 9, net: { ip: '10.0.2.1', mac: '02:42:0a:00:02:01', host: 'exchange.styx.local' }, note: 'The Asterisk box that routes the four extensions.' },
+      { id: 'tap', name: 'Unlisted line device', short: 'tap?', kind: 'bug', x: IXX - 6.8, z: -1.3, powered: true, heat: 5, note: 'Clipped onto the pair for extension 4. It draws power from the line, so it is warm, but it sends nothing over the air and has no address.' },
+      { id: 'pay', name: 'Payphone', short: 'payphone', kind: 'phone', x: IXX + 6.8, z: -2.5, powered: true, heat: 3, note: 'Line-powered: one chip, a keypad and a lot of steel.' },
+      { id: 'relay', name: 'Relay cabinet', kind: 'metal', x: IXX - 1.2, z: 5.4, metal: true, note: 'Brass contacts and oxidised springs. All metal, no semiconductors.' }],
+      others: [['10.0.2.11', '90:2b:d4:00:00:0b', 'ext-1'], ['10.0.2.12', '90:2b:d4:00:00:0c', 'ext-2'], ['10.0.2.13', '90:2b:d4:00:00:0d', 'ext-3'], ['10.0.2.14', 'de:ad:5f:2b:9e:04', 'ext-4']] },
+    police: { name: 'Meridian Police', net: { cidr: '172.16.4.0/24', closed: true }, devs: [
+      { id: 'front', name: 'Front desk PC', short: 'mpd-front', kind: 'pc', x: IXP, z: -1.1, snap: true, powered: true, heat: 8, net: { ip: '172.16.4.10', mac: '6c:2e:85:04:00:0a', host: 'mpd-front' }, note: 'The desk sergeant’s machine.' },
+      { id: 'cyber', name: 'Cybercrime terminal', short: 'mpd-cyber', kind: 'pc', x: IXP + 5.2, z: 4.3, snap: true, powered: true, heat: 8, net: { ip: '172.16.4.20', mac: '6c:2e:85:04:00:14', host: 'mpd-cyber' }, note: 'Case MP-2610-044 is open on it.' },
+      { id: 'cam', name: 'Door camera', short: 'camera', kind: 'cam', x: IXP + 1.8, z: -5.8, powered: true, heat: 7, net: { ip: '172.16.4.50', mac: '7c:41:a2:04:00:32', host: 'cam-door' }, note: 'Wired (power over Ethernet), so the radio listener hears nothing from it.' },
+      { id: 'guest', name: 'Guest access point', short: 'ap', kind: 'ap', x: IXP + 1.5, z: 5.9, powered: true, heat: 6, radio: { type: 'wifi', name: 'MPD-GUEST', mac: '3c:9a:11:40:00:01', m1: -40 }, note: 'Guest Wi-Fi with a captive portal. The station LAN is a different network.' },
+      { id: 'phone', name: 'Seized phone (evidence)', short: 'evidence', kind: 'phone', x: IXP - 1.45, z: 5.65, powered: false, note: 'Switched off and sealed in a bag in the evidence locker. No heat, no signal, but its chips still answer the junction detector.' },
+      { id: 'lock', name: 'Cell lock controller', short: 'cell lock', kind: 'iot', x: IXP - 5.2, z: 3.6, powered: true, heat: 3, note: 'The display that blinks 03:12.' },
+      { id: 'bars', name: 'Cell bars', kind: 'metal', x: IXP - 6.5, z: 3.45, metal: true, note: 'Old steel with rust in the welds.' }] }
+  };
+  // the STYX overlay as the terminals' arp command shows it (10.0.0.0/24 part)
+  const OVERLAY_ARP = [['10.0.0.1', '02:42:0a:00:00:01', 'gateway.styx.local'], ['10.0.0.60', '02:42:0a:00:00:3c', 'caduceus.styx.local'], ['10.0.0.80', '02:42:0a:00:00:50', 'lab-h.styx.local'], ['10.0.0.200', '02:42:0a:00:00:c8', 'db.styx.local'], ['10.0.0.254', 'de:ad:0a:00:00:fe', '? (no name)']];
+  ['cad', 'lab', 'util'].forEach(k => { const here = SWEEP_ROOMS[k].devs.map(d => d.net && d.net.ip); SWEEP_ROOMS[k].others = OVERLAY_ARP.filter(a => !here.includes(a[0])); }); // hosts in other buildings
+  const SW = { open: false, zone: null, t: 0, rooms: {}, found: {}, last: null, idsWarned: false, mapT: 0, listT: 0, dirty: true, tip: '' };
+  const NJ_RANGE = 1.6, PLE = 2.5; // junction detector reach in metres; path-loss exponent indoors
+  function swRoom(zone) {
+    if (SW.rooms[zone]) return SW.rooms[zone];
+    const R = SWEEP_ROOMS[zone], Z = zones[zone]; if (!R || !Z) return null;
+    // floor plan from the zone's own meshes: walls (occluders) and anything solid below head height
+    const walls = [], solid = [];
+    Z.meshes.forEach(m => {
+      if (!m.getBoundingInfo || (m.isDisposed && m.isDisposed())) return; m.computeWorldMatrix(true);
+      const bb = m.getBoundingInfo().boundingBox, a = bb.minimumWorld, b = bb.maximumWorld; if (a.y > 2.2 || b.y - a.y < 0.25 || b.x - a.x > 40 || b.z - a.z > 40) return;
+      if (m.occluder) walls.push([a.x, b.x, a.z, b.z]); else if (m.checkCollisions) solid.push([a.x, b.x, a.z, b.z]);
+    });
+    const all = walls.length ? walls : solid; const B = { x0: Math.min(...all.map(r => r[0])), x1: Math.max(...all.map(r => r[1])), z0: Math.min(...all.map(r => r[2])), z1: Math.max(...all.map(r => r[3])) };
+    // devices, with monitors snapped onto the real screens, and any other screen in the room listed as a plain desk computer
+    const screens = Z.meshes.filter(m => m.name === 'mscr'), used = new Set(), devs = [];
+    R.devs.forEach(d => {
+      const o = Object.assign({ y: 0 }, d);
+      if (d.snap) { let best = null, bd = 2.5; screens.forEach(sc => { if (used.has(sc)) return; const w = sc.getAbsolutePosition(), dd = Math.hypot(w.x - o.x, w.z - o.z); if (dd < bd && Math.abs(w.y - (o.y + 1)) < 1.6) { bd = dd; best = sc; } }); if (best) { used.add(best); const w = best.getAbsolutePosition(); o.x = w.x; o.z = w.z; } }
+      devs.push(o);
+    });
+    screens.forEach((sc, i) => { if (used.has(sc)) return; const w = sc.getAbsolutePosition(); devs.push({ id: 'scr' + i, name: 'Desk computer', short: 'pc', kind: 'pc', x: w.x, y: w.y > 2.4 ? 3.1 : 0, z: w.z, powered: true, heat: 7, note: 'A display and the box under it. Wired or idle: nothing on the air.' }); });
+    return SW.rooms[zone] = { R, B, walls, solid, devs };
+  }
+  const swF = (zone, id) => { const f = SW.found[zone] || (SW.found[zone] = {}); return f[id] || (f[id] = { th: false, rf: false, net: false, nj: false, samples: [], est: null, err: 0, rssi: null }); };
+  function toggleSweep() { if (SW.open) closeSweep(); else openSweep(); }
+  function openSweep() {
+    if (!state.playing || state.ui) return;
+    if (!store.has('sweep')) { ui.toast({ kind: 'warn', title: 'SWEEP-4', text: 'You do not own a room scanner. Byte Mart sells the SWEEP-4 for 120 cr.' }); return; }
+    if (state.zone === 'out' || !SWEEP_ROOMS[state.zone]) { ui.toast({ kind: '', title: 'SWEEP-4', text: 'Sweeps work inside a room. Walk into a building first.' }); return; }
+    const room = swRoom(state.zone); if (!room) return;
+    SW.open = true; SW.zone = state.zone; SW.t = 0; SW.last = null; SW.dirty = true; SW.passNet = SW.found[state.zone] && SW.found[state.zone].__net; SW.passTh = false;
+    $('sweep').hidden = false; $('hud').classList.add('sweeping'); $('swRoom').textContent = room.R.name; SFX.switch(); drawSweep(); listSweep();
+  }
+  function closeSweep() { if (!SW.open) return; SW.open = false; $('sweep').hidden = true; $('hud').classList.remove('sweeping'); SFX.switch(); }
+  // radio: one reading per spot. RSSI falls with distance (log-distance path loss) plus a few dB of noise; distance comes back out of the same formula
+  function rfSample(room, p) {
+    room.devs.forEach(d => {
+      if (!d.radio) return; const f = swF(SW.zone, d.id), dist = Math.max(0.5, Math.hypot(d.x - p.x, d.z - p.z, (d.y || 0) - (p.y || 0)));
+      const noise = (rnd() + rnd() + rnd() - 1.5) * 4, rssi = Math.round(d.radio.m1 - 10 * PLE * Math.log10(dist) + noise), est = Math.pow(10, (d.radio.m1 - rssi) / (10 * PLE));
+      if (!f.rf) SW.dirty = true; f.rf = true; f.rssi = rssi; f.dist = est; f.samples.push({ x: p.x, z: p.z, d: est }); if (f.samples.length > 8) f.samples.shift();
+      if (f.samples.length >= 2) { // least-squares trilateration on a 25 cm grid over the room
+        const B = room.B; let best = null, bs = Infinity;
+        for (let x = B.x0; x <= B.x1; x += 0.25) for (let z = B.z0; z <= B.z1; z += 0.25) { let e = 0; f.samples.forEach(q => { const r = Math.hypot(x - q.x, z - q.z) - q.d; e += r * r; }); if (e < bs) { bs = e; best = { x, z }; } }
+        const spread = Math.max(...f.samples.map(q => Math.hypot(q.x - f.samples[0].x, q.z - f.samples[0].z)));
+        f.est = best; f.err = Math.min(6, Math.sqrt(bs / f.samples.length) + (f.samples.length < 3 || spread < 3 ? 2.2 : 0.8));
+      }
+    });
+  }
+  function updateSweep(dt) {
+    if (state.zone !== SW.zone) { closeSweep(); if (state.zone !== 'out' && SWEEP_ROOMS[state.zone] && store.has('sweep')) openSweep(); return; }
+    const room = swRoom(SW.zone), p = chars.player.pivot.position, fl = p.y > 2 ? 3.1 : 0; SW.t += dt;
+    // thermal: everything powered on this floor, once the camera has settled
+    if (!SW.passTh && SW.t > 1.2) { SW.passTh = true; room.devs.forEach(d => { if (d.powered && (d.heat || 0) >= 2 && Math.abs((d.y || 0) - fl) < 1) { const f = swF(SW.zone, d.id); if (!f.th) { f.th = true; SW.dirty = true; } } }); SFX.tick(); }
+    // radio: listen continuously, one reading each time the player has moved 2.5 m
+    if (SW.t > 0.6 && (!SW.last || Math.hypot(p.x - SW.last.x, p.z - SW.last.z) > 2.5)) { SW.last = { x: p.x, z: p.z }; rfSample(room, p); SW.dirty = true; }
+    // network: one active ARP sweep per visit to the room
+    if (!SW.passNet && SW.t > 2.4) {
+      SW.passNet = true; const N = room.R.net, F = SW.found[SW.zone] || (SW.found[SW.zone] = {}); F.__net = true;
+      if (!N.closed) { room.devs.forEach(d => { if (d.net) swF(SW.zone, d.id).net = true; }); SFX.tick(); if (N.ids && !SW.idsWarned) { SW.idsWarned = true; ui.toast({ kind: 'warn', title: 'Caduceus IDS', text: 'ARP sweep of 10.0.0.0/24 from an unknown MAC. Logged. Active discovery is loud.' }); } }
+      SW.dirty = true;
+    }
+    // junction detector: anything within reach, powered or not, metal included
+    room.devs.forEach(d => { if (Math.hypot(d.x - p.x, d.z - p.z, (d.y || 0) - fl) < NJ_RANGE) { const f = swF(SW.zone, d.id); if (!f.nj) { f.nj = true; SW.dirty = true; SFX.tick(); } } });
+    SW.mapT += dt; if (SW.mapT > 0.1) { SW.mapT = 0; drawSweep(); }
+    if (SW.dirty) { SW.dirty = false; listSweep(); }
+  }
+  const SWC = { th: '#ff6a3d', rf: '#3ee8f0', net: '#ffd23f', nj: '#8cf28c', metal: '#9d94ad' };
+  function swLabel(d, f) { // what the scanner actually knows: an identity needs radio or network, a place needs heat, junction or a radio fix
+    const id = (f.net && d.net) ? (d.net.host || d.net.ip) : (f.rf && d.radio) ? d.radio.name : null, placed = f.th || f.nj || (f.rf && f.est);
+    if (d.metal && f.nj) return { text: 'Metal junction', known: true };
+    if (id && placed) return { text: d.name, known: true };
+    if (id) return { text: id, known: false };
+    if (f.nj) return { text: 'Electronics', known: false };
+    if (f.th) return { text: 'Warm spot', known: false };
+    return null;
+  }
+  function drawSweep() {
+    const cv = $('swMap'), room = swRoom(SW.zone); if (!room) return; const B = room.B, pad = 10;
+    const cssW = cv.clientWidth || 348, aspect = (B.z1 - B.z0) / (B.x1 - B.x0), cssH = Math.round(Math.min(230, Math.max(140, (cssW - 2 * pad) * aspect + 2 * pad)));
+    const dpr = Math.min(2, window.devicePixelRatio || 1); if (cv.width !== Math.round(cssW * dpr) || cv.height !== Math.round(cssH * dpr)) { cv.width = Math.round(cssW * dpr); cv.height = Math.round(cssH * dpr); cv.style.height = cssH + 'px'; }
+    const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, cssW, cssH);
+    const k = Math.min((cssW - 2 * pad) / (B.x1 - B.x0), (cssH - 2 * pad) / (B.z1 - B.z0)), ox = (cssW - (B.x1 - B.x0) * k) / 2, oy = (cssH - (B.z1 - B.z0) * k) / 2;
+    const X = x => ox + (x - B.x0) * k, Y = z => oy + (B.z1 - z) * k; // north is up, as on the overhead camera
+    c.fillStyle = '#10141f'; c.fillRect(X(B.x0), Y(B.z1), (B.x1 - B.x0) * k, (B.z1 - B.z0) * k);
+    c.fillStyle = 'rgba(157,148,173,.16)'; room.solid.forEach(r => c.fillRect(X(r[0]), Y(r[3]), (r[1] - r[0]) * k, (r[3] - r[2]) * k));
+    c.fillStyle = '#3a3147'; room.walls.forEach(r => c.fillRect(X(r[0]), Y(r[3]), Math.max(2, (r[1] - r[0]) * k), Math.max(2, (r[3] - r[2]) * k)));
+    const p = chars.player.pivot.position;
+    c.strokeStyle = 'rgba(140,242,140,.45)'; c.setLineDash([3, 3]); c.beginPath(); c.arc(X(p.x), Y(p.z), NJ_RANGE * k, 0, PI * 2); c.stroke(); c.setLineDash([]);
+    c.font = '600 10px Oswald, "Arial Narrow", sans-serif'; c.textAlign = 'center';
+    room.devs.forEach(d => {
+      const f = (SW.found[SW.zone] || {})[d.id]; if (!f) return; const up = (d.y || 0) > 2, x = X(d.x), y = Y(d.z);
+      if (f.rf && d.radio) {
+        if (f.est) { c.strokeStyle = SWC.rf; c.globalAlpha = 0.85; c.setLineDash([4, 3]); c.beginPath(); c.arc(X(f.est.x), Y(f.est.z), Math.max(4, f.err * k), 0, PI * 2); c.stroke(); c.setLineDash([]); c.globalAlpha = 1; }
+        else if (f.samples.length) { const q = f.samples[f.samples.length - 1]; c.strokeStyle = 'rgba(62,232,240,.35)'; c.beginPath(); c.arc(X(q.x), Y(q.z), q.d * k, 0, PI * 2); c.stroke(); } // one reading: a ring, not a point
+      }
+      if (f.th) { const g = c.createRadialGradient(x, y, 0, x, y, 12); g.addColorStop(0, 'rgba(255,106,61,.9)'); g.addColorStop(1, 'rgba(255,106,61,0)'); c.fillStyle = g; c.beginPath(); c.arc(x, y, 12, 0, PI * 2); c.fill(); }
+      if (f.nj) { c.fillStyle = d.metal ? SWC.metal : SWC.nj; c.beginPath(); c.moveTo(x, y - 5); c.lineTo(x + 5, y); c.lineTo(x, y + 5); c.lineTo(x - 5, y); c.closePath(); if (up) { c.strokeStyle = c.fillStyle; c.stroke(); } else c.fill(); }
+      else if (f.th) { c.fillStyle = SWC.th; c.beginPath(); c.arc(x, y, 3, 0, PI * 2); if (up) { c.strokeStyle = SWC.th; c.stroke(); } else c.fill(); }
+      const L = swLabel(d, f); if (L && L.known && !d.metal && d.short && (f.th || f.nj)) { c.fillStyle = '#f2ecdc'; c.fillText(d.short + (up ? ' ↑' : ''), x, y - 8); }
+    });
+    c.save(); c.translate(X(p.x), Y(p.z)); c.rotate(chars.player.yaw); c.fillStyle = '#ffd23f'; c.beginPath(); c.moveTo(0, -7); c.lineTo(5, 6); c.lineTo(0, 3); c.lineTo(-5, 6); c.closePath(); c.fill(); c.restore();
+  }
+  function listSweep() {
+    const room = swRoom(SW.zone); if (!room) return; const F = SW.found[SW.zone] || {}, N = room.R.net;
+    const cnt = { th: 0, rf: 0, net: 0, nj: 0 }; room.devs.forEach(d => { const f = F[d.id]; if (f) ['th', 'rf', 'net', 'nj'].forEach(t => { if (f[t]) cnt[t]++; }); });
+    const passes = [['th', 'Thermal', SW.passTh ? cnt.th + ' warm' : 'settling'], ['rf', 'Radio', cnt.rf + ' heard'], ['net', 'Network', !SW.passNet ? 'sweeping' : N.closed ? 'no access' : cnt.net + (room.R.others ? ' + ' + room.R.others.length : '') + ' hosts'], ['nj', 'Junction', cnt.nj + ' up close']];
+    $('swPasses').innerHTML = passes.map(q => '<span class="' + q[0] + (q[0] === 'net' && SW.passNet && N.closed ? ' off' : '') + '">' + q[1] + '<b>' + esc(q[2]) + '</b></span>').join('');
+    const rows = [], tag = (f) => (f.th ? '<i class="th">TH</i>' : '') + (f.rf ? '<i class="rf">RF</i>' : '') + (f.net ? '<i class="net">NET</i>' : '') + (f.nj ? '<i class="nj">NJ</i>' : '');
+    const items = room.devs.map(d => ({ d, f: F[d.id] })).filter(o => o.f && swLabel(o.d, o.f)).sort((a, b) => (swLabel(b.d, b.f).known - swLabel(a.d, a.f).known) || (a.d.metal ? 1 : 0) - (b.d.metal ? 1 : 0));
+    items.forEach(({ d, f }) => {
+      const L = swLabel(d, f), det = [];
+      if (f.rf && d.radio) det.push((d.radio.type === 'wifi' ? 'Wi-Fi ' : 'BLE ') + d.radio.mac + ' · ' + f.rssi + ' dBm ≈ ' + f.dist.toFixed(1) + ' m' + (f.est ? ' · fix ±' + f.err.toFixed(1) + ' m' : ' · walk to fix'));
+      if (f.net && d.net) det.push(d.net.ip + ' · ' + d.net.mac + ' · ' + vendorOf(d.net.mac));
+      if (f.nj) det.push(d.metal ? 'junction: 3rd harmonic > 2nd, so metal, not electronics' : 'junction: 2nd harmonic > 3rd, a semiconductor' + (d.powered ? '' : ' · cold, so switched off'));
+      else if (f.th) det.push('warm, about +' + (d.heat || 2) + ' °C over the room');
+      const col = d.metal ? SWC.metal : f.th ? SWC.th : f.nj ? SWC.nj : f.rf ? SWC.rf : SWC.net;
+      rows.push('<li class="' + (d.metal ? 'metal' : '') + '"><span class="dot" style="background:' + col + '"></span><span class="nm">' + esc(L.text) + ((d.y || 0) > 2 ? ' (upstairs)' : '') + '</span><span class="tags">' + tag(f) + '</span><span class="det">' + det.map(esc).join('<br>') + '</span>' + (L.known ? '<span class="sw-note">' + esc(d.note || '') + '</span>' : '') + '</li>');
+    });
+    if (SW.passNet && !N.closed && room.R.others && room.R.others.length) {
+      rows.push('<li class="sec">On ' + esc(N.cidr) + ', location unknown</li>');
+      room.R.others.forEach(o => rows.push('<li><span class="dot" style="background:' + SWC.net + '"></span><span class="nm">' + esc(o[2] || o[0]) + '</span><span class="tags"><i class="net">NET</i></span><span class="det">' + esc(o[0] + ' · ' + o[1] + ' · ' + vendorOf(o[1])) + '</span></li>'));
+    }
+    $('swList').innerHTML = rows.join('') || '<li class="sec">Listening…</li>';
+    // one line on what the scanner cannot tell yet
+    const unknownRF = room.devs.some(d => d.radio && F[d.id] && F[d.id].rf && !F[d.id].est), anyNJ = cnt.nj > 0;
+    let tip;
+    if (!SW.passTh) tip = '<b>Thermal</b> first: anything powered shows as heat. No names yet.';
+    else if (SW.passNet && N.closed && !SW.closedTold) { tip = '<b>Network: no access.</b> Discovery only works from inside the LAN, and you have no login here. Heat and radio still work.'; }
+    else if (unknownRF) tip = '<b>Radio</b> gives a distance, not a direction: the faint ring. Walk a few metres and it takes another reading to triangulate.';
+    else if (!anyNJ) tip = '<b>Walk the room.</b> The green ring is the junction detector: it finds electronics even when they are switched off, but only up close.';
+    else tip = 'Grey diamonds are <b>metal</b>, not electronics: rust answers the junction detector too, louder on the 3rd harmonic. The network pass names hosts but never says where they are.';
+    $('swTip').innerHTML = tip;
+  }
+
   let t = 0; let blinkT = 0; let mapT = 0;
   scene.onBeforeRenderObservable.add(() => {
     const dt = Math.min(engine.getDeltaTime() / 1000, 0.05); t += dt;
-    if (state.playing) { updatePlayer(dt); updateCamera(dt); updateInteract(); updateNPCs(dt, t); updateMart(dt, t); updateAct2(dt, t); if (state.zone === 'out') { updateTraffic(dt); updatePeds(dt); rollWheels(dt); updateCops(dt, t); resolveBodies(dt); } mapT += dt; if (mapT > 0.08) { mapT = 0; drawMap(t); } }
+    if (state.playing) { updatePlayer(dt); updateCamera(dt); updateInteract(); updateNPCs(dt, t); if (SW.open) updateSweep(dt); updateMart(dt, t); updateAct2(dt, t); if (state.zone === 'out') { updateTraffic(dt); updatePeds(dt); rollWheels(dt); updateCops(dt, t); resolveBodies(dt); } mapT += dt; if (mapT > 0.08) { mapT = 0; drawMap(t); } }
     blinkT += dt; if (blinkT > 0.4) { blinkT = 0; const z = zones[state.zone]; if (z && z !== zones.out) z.meshes.forEach(m => { if (m.metadata && m.metadata.blink) m.setEnabled(!m.isEnabled()); }); }
   });
 
@@ -3492,7 +3732,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     // every notice drops into the top-right stack: a beep, then it fades after a few seconds (longer text stays longer); click to dismiss
     toast(o) {
       const box = $('notes'); while (box.children.length >= 3) box.firstElementChild.remove();
-      const n = document.createElement('div'); n.className = 'note card' + (o.kind === 'ok' ? ' ok' : '');
+      const n = document.createElement('div'); n.className = 'notice card' + (o.kind === 'ok' ? ' ok' : '');
       n.innerHTML = '<div class="t"><span>' + esc(o.title || '') + '</span><time>' + esc(clockText()) + '</time></div>' + (o.text ? '<div class="x">' + esc(o.text) + '</div>' : '');
       const gone = () => { n.classList.remove('on'); setTimeout(() => n.remove(), 250); };
       n.addEventListener('click', gone); box.appendChild(n); requestAnimationFrame(() => n.classList.add('on')); SFX.pager();
@@ -3510,7 +3750,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     carName(name) { const el = $('carName'); if (!name) { el.classList.remove('on'); return; } el.textContent = name; el.classList.add('on'); clearTimeout(ui.carT); ui.carT = setTimeout(() => el.classList.remove('on'), 3500); },
     prompt(text) { const p = $('prompt'); if (!text) { p.hidden = true; $('tE').hidden = true; return; } $('promptText').textContent = text; p.hidden = false; if (state.touch) $('tE').hidden = false; },
     refreshQuest() {
-      const st = store.state; $('hudName').textContent = st.profile || 'Investigator'; $('hudCredits').textContent = String(st.credits).padStart(6, '0');
+      const st = store.state; $('sweepBtn').hidden = !store.has('sweep'); $('hudName').textContent = st.profile || 'Investigator'; $('hudCredits').textContent = String(st.credits).padStart(6, '0');
       const q = store.trackedQuest(); const stt = st.quests[q.id];
       $('qEyebrow').textContent = q.category + ' · ' + (stt === 'available' ? 'available' : stt === 'completed' ? 'completed' : 'active') + ' · ' + q.reward + ' cr';
       $('qTitle').textContent = q.title;
@@ -3601,6 +3841,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   SFX.onTrack = (name) => { if (state.playing) ui.toast({ kind: '', title: 'Radio', text: name }); };
   $('soundBtn').addEventListener('click', () => ui.setSound(SFX.toggle()));
   $('musicBtn').addEventListener('click', () => ui.setMusic(SFX.toggleMusic()));
+  $('sweepBtn').addEventListener('click', () => toggleSweep()); $('swClose').addEventListener('click', () => closeSweep());
   $('togQuest').addEventListener('click', () => ui.togglePanel('quest')); $('togMap').addEventListener('click', () => ui.togglePanel('map')); $('togHints').addEventListener('click', () => ui.togglePanel('hints'));
   try { const sv = JSON.parse(localStorage.getItem('nz-panels') || 'null'); if (sv) ['quest', 'map', 'hints'].forEach(k => { if (sv[k] === false) ui.setPanel(k, false); }); } catch (e) { /* no storage */ }
   $('musicOn').addEventListener('change', (e) => { if (e.target.checked === SFX.musicOff) ui.setMusic(SFX.toggleMusic()); });
