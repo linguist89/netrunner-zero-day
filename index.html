@@ -108,6 +108,11 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 #swList li .det{grid-column:2/-1;color:#cfc8ba;font:11.5px/1.4 var(--font-mono);overflow-wrap:anywhere}
 #swList li .sw-note{grid-column:2/-1;color:var(--mute);font-size:12px;line-height:1.4}
 #swList li.metal .nm{color:var(--mute)}
+#swList li[data-id]{cursor:pointer}
+#swList li[data-id]:hover{border-color:#5a4f6b}
+#swList li.sel{border-color:var(--cash);background:rgba(255,210,63,.07)}
+#swList li .where{grid-column:2/-1;color:var(--cash);font-size:12px;line-height:1.4}
+#swMap{cursor:crosshair}
 #swList li.sec{border:0;background:none;padding:6px 0 0;display:block;font:600 10px var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
 #swTip{margin:0;font-size:12px;line-height:1.45;color:var(--mute);border-top:1px solid var(--line);padding-top:7px}
 #swTip b{color:var(--fg);font-weight:600}
@@ -2972,7 +2977,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (!store.has('sweep')) { ui.toast({ kind: 'warn', title: 'SWEEP-4', text: 'You do not own a room scanner. Byte Mart sells the SWEEP-4 for 120 cr.' }); return; }
     if (state.zone === 'out' || !SWEEP_ROOMS[state.zone]) { ui.toast({ kind: '', title: 'SWEEP-4', text: 'Sweeps work inside a room. Walk into a building first.' }); return; }
     const room = swRoom(state.zone); if (!room) return;
-    SW.open = true; SW.zone = state.zone; SW.t = 0; SW.last = null; SW.dirty = true; SW.passNet = SW.found[state.zone] && SW.found[state.zone].__net; SW.passTh = false;
+    if (SW.zone !== state.zone) SW.sel = null; SW.open = true; SW.zone = state.zone; SW.t = 0; SW.last = null; SW.dirty = true; SW.passNet = SW.found[state.zone] && SW.found[state.zone].__net; SW.passTh = false;
     $('sweep').hidden = false; $('hud').classList.add('sweeping'); $('swRoom').textContent = room.R.name; SFX.switch(); drawSweep(); listSweep();
   }
   function closeSweep() { if (!SW.open) return; SW.open = false; $('sweep').hidden = true; $('hud').classList.remove('sweeping'); SFX.switch(); }
@@ -3018,6 +3023,21 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (f.th) return { text: 'Warm spot', known: false };
     return null;
   }
+  function swWhere(d, f) {
+    if (!d) return 'Not on the map: the network pass knows its address, not where it is. Find it with heat or the junction detector.';
+    if (f.th || f.nj) return 'On the map: the exact spot, from ' + (f.th && f.nj ? 'its heat and the junction detector' : f.th ? 'its heat' : 'the junction detector') + ((d.y || 0) > 2 ? ', upstairs' : '') + '.';
+    if (f.rf && f.est) return 'On the map: somewhere inside the circle, a radio fix good to about ±' + f.err.toFixed(1) + ' m.';
+    if (f.rf) return 'On the map: somewhere on the ring, ' + f.dist.toFixed(1) + ' m from where you took the reading. Walk a few metres for a second reading.';
+    return 'No position yet.';
+  }
+  function swSelect(id) { SW.sel = SW.sel === id ? null : id; SFX.tick(); listSweep(); drawSweep(); if (SW.sel) { const li = $('swList').querySelector('li[data-id="' + CSS.escape(SW.sel) + '"]'); if (li) li.scrollIntoView({ block: 'nearest' }); } }
+  // clicking the map picks the nearest marker the scanner has placed (heat or junction spot, or a radio fix)
+  function swMapClick(e) {
+    const M = SW.map, room = swRoom(SW.zone); if (!M || !room) return; const rc = $('swMap').getBoundingClientRect(), px = e.clientX - rc.left, py = e.clientY - rc.top;
+    let best = null, bd = 16; const F = SW.found[SW.zone] || {};
+    room.devs.forEach(d => { const f = F[d.id]; if (!f) return; const q = (f.th || f.nj) ? { x: d.x, z: d.z } : (f.rf && f.est) ? f.est : null; if (!q) return; const dd = Math.hypot(M.ox + (q.x - M.B.x0) * M.k - px, M.oy + (M.B.z1 - q.z) * M.k - py); if (dd < bd) { bd = dd; best = d.id; } });
+    if (best) swSelect(best); else if (SW.sel) swSelect(SW.sel);
+  }
   function drawSweep() {
     const cv = $('swMap'), room = swRoom(SW.zone); if (!room) return; const B = room.B, pad = 10;
     const cssW = cv.clientWidth || 348, aspect = (B.z1 - B.z0) / (B.x1 - B.x0), cssH = Math.round(Math.min(230, Math.max(140, (cssW - 2 * pad) * aspect + 2 * pad)));
@@ -3025,6 +3045,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, cssW, cssH);
     const k = Math.min((cssW - 2 * pad) / (B.x1 - B.x0), (cssH - 2 * pad) / (B.z1 - B.z0)), ox = (cssW - (B.x1 - B.x0) * k) / 2, oy = (cssH - (B.z1 - B.z0) * k) / 2;
     const X = x => ox + (x - B.x0) * k, Y = z => oy + (B.z1 - z) * k; // north is up, as on the overhead camera
+    SW.map = { ox, oy, k, B };
     c.fillStyle = '#10141f'; c.fillRect(X(B.x0), Y(B.z1), (B.x1 - B.x0) * k, (B.z1 - B.z0) * k);
     c.fillStyle = 'rgba(157,148,173,.16)'; room.solid.forEach(r => c.fillRect(X(r[0]), Y(r[3]), (r[1] - r[0]) * k, (r[3] - r[2]) * k));
     c.fillStyle = '#3a3147'; room.walls.forEach(r => c.fillRect(X(r[0]), Y(r[3]), Math.max(2, (r[1] - r[0]) * k), Math.max(2, (r[3] - r[2]) * k)));
@@ -3042,6 +3063,24 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       else if (f.th) { c.fillStyle = SWC.th; c.beginPath(); c.arc(x, y, 3, 0, PI * 2); if (up) { c.strokeStyle = SWC.th; c.stroke(); } else c.fill(); }
       const L = swLabel(d, f); if (L && L.known && !d.metal && d.short && (f.th || f.nj)) { c.fillStyle = '#f2ecdc'; c.fillText(d.short + (up ? ' ↑' : ''), x, y - 8); }
     });
+    if (SW.sel) { // the selected device: a pulsing ring and crosshairs on whatever position the scanner actually has for it
+      const d = room.devs.find(o => o.id === SW.sel), f = d && (SW.found[SW.zone] || {})[d.id], pulse = 0.5 + 0.5 * Math.sin(performance.now() / 160);
+      let pt = null, r = 0; c.strokeStyle = '#ffd23f'; c.lineWidth = 2;
+      if (d && f && (f.th || f.nj)) { pt = { x: X(d.x), y: Y(d.z) }; r = 9 + pulse * 5; }
+      else if (d && f && f.rf && f.est) { pt = { x: X(f.est.x), y: Y(f.est.z) }; r = Math.max(7, f.err * k) + pulse * 3; }
+      else if (d && f && f.rf && f.samples.length) { const q = f.samples[f.samples.length - 1]; c.globalAlpha = 0.5 + pulse * 0.5; c.beginPath(); c.arc(X(q.x), Y(q.z), q.d * k, 0, PI * 2); c.stroke(); c.globalAlpha = 1; }
+      if (pt) {
+        c.beginPath(); c.arc(pt.x, pt.y, r, 0, PI * 2); c.stroke();
+        c.strokeStyle = 'rgba(255,210,63,.5)'; c.lineWidth = 1; c.setLineDash([2, 4]); c.beginPath(); c.moveTo(X(B.x0), pt.y); c.lineTo(X(B.x1), pt.y); c.moveTo(pt.x, Y(B.z1)); c.lineTo(pt.x, Y(B.z0)); c.stroke(); c.setLineDash([]);
+        const L = swLabel(d, f), txt = (L ? L.text : '') + ((d.y || 0) > 2 ? ' (upstairs)' : ''); c.font = '600 11px Oswald, "Arial Narrow", sans-serif';
+        const tw = c.measureText(txt).width + 10, lx = Math.max(2, Math.min(cssW - tw - 2, pt.x - tw / 2)), ly = pt.y - r - 22 < 2 ? pt.y + r + 6 : pt.y - r - 22;
+        c.fillStyle = 'rgba(8,10,16,.88)'; c.fillRect(lx, ly, tw, 17); c.strokeStyle = '#ffd23f'; c.strokeRect(lx + 0.5, ly + 0.5, tw - 1, 16); c.fillStyle = '#ffd23f'; c.textAlign = 'left'; c.fillText(txt, lx + 5, ly + 12.5); c.textAlign = 'center';
+      } else if (!(d && f && f.rf)) {
+        const txt = 'No position: the network pass names hosts, not places'; c.font = '600 11px Oswald, "Arial Narrow", sans-serif'; const tw = Math.min(cssW - 8, c.measureText(txt).width + 12);
+        c.fillStyle = 'rgba(8,10,16,.9)'; c.fillRect((cssW - tw) / 2, 6, tw, 18); c.fillStyle = '#ffd23f'; c.fillText(txt, cssW / 2, 19);
+      }
+      c.lineWidth = 1;
+    }
     c.save(); c.translate(X(p.x), Y(p.z)); c.rotate(chars.player.yaw); c.fillStyle = '#ffd23f'; c.beginPath(); c.moveTo(0, -7); c.lineTo(5, 6); c.lineTo(0, 3); c.lineTo(-5, 6); c.closePath(); c.fill(); c.restore();
   }
   function listSweep() {
@@ -3058,11 +3097,12 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       if (f.nj) det.push(d.metal ? 'junction: 3rd harmonic > 2nd, so metal, not electronics' : 'junction: 2nd harmonic > 3rd, a semiconductor' + (d.powered ? '' : ' · cold, so switched off'));
       else if (f.th) det.push('warm, about +' + (d.heat || 2) + ' °C over the room');
       const col = d.metal ? SWC.metal : f.th ? SWC.th : f.nj ? SWC.nj : f.rf ? SWC.rf : SWC.net;
-      rows.push('<li class="' + (d.metal ? 'metal' : '') + '"><span class="dot" style="background:' + col + '"></span><span class="nm">' + esc(L.text) + ((d.y || 0) > 2 ? ' (upstairs)' : '') + '</span><span class="tags">' + tag(f) + '</span><span class="det">' + det.map(esc).join('<br>') + '</span>' + (L.known ? '<span class="sw-note">' + esc(d.note || '') + '</span>' : '') + '</li>');
+      const sel = SW.sel === d.id;
+      rows.push('<li data-id="' + esc(d.id) + '" tabindex="0" role="button" aria-pressed="' + sel + '" class="' + (d.metal ? 'metal' : '') + (sel ? ' sel' : '') + '"><span class="dot" style="background:' + col + '"></span><span class="nm">' + esc(L.text) + ((d.y || 0) > 2 ? ' (upstairs)' : '') + '</span><span class="tags">' + tag(f) + '</span><span class="det">' + det.map(esc).join('<br>') + '</span>' + (L.known ? '<span class="sw-note">' + esc(d.note || '') + '</span>' : '') + (sel ? '<span class="where">' + esc(swWhere(d, f)) + '</span>' : '') + '</li>');
     });
     if (SW.passNet && !N.closed && room.R.others && room.R.others.length) {
       rows.push('<li class="sec">On ' + esc(N.cidr) + ', location unknown</li>');
-      room.R.others.forEach(o => rows.push('<li><span class="dot" style="background:' + SWC.net + '"></span><span class="nm">' + esc(o[2] || o[0]) + '</span><span class="tags"><i class="net">NET</i></span><span class="det">' + esc(o[0] + ' · ' + o[1] + ' · ' + vendorOf(o[1])) + '</span></li>'));
+      room.R.others.forEach(o => { const id = 'o:' + o[0], sel = SW.sel === id; rows.push('<li data-id="' + esc(id) + '" tabindex="0" role="button" aria-pressed="' + sel + '"' + (sel ? ' class="sel"' : '') + '><span class="dot" style="background:' + SWC.net + '"></span><span class="nm">' + esc(o[2] || o[0]) + '</span><span class="tags"><i class="net">NET</i></span><span class="det">' + esc(o[0] + ' · ' + o[1] + ' · ' + vendorOf(o[1])) + '</span>' + (sel ? '<span class="where">' + esc(swWhere(null)) + '</span>' : '') + '</li>'); });
     }
     $('swList').innerHTML = rows.join('') || '<li class="sec">Listening…</li>';
     // one line on what the scanner cannot tell yet
@@ -3842,6 +3882,9 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   $('soundBtn').addEventListener('click', () => ui.setSound(SFX.toggle()));
   $('musicBtn').addEventListener('click', () => ui.setMusic(SFX.toggleMusic()));
   $('sweepBtn').addEventListener('click', () => toggleSweep()); $('swClose').addEventListener('click', () => closeSweep());
+  $('swList').addEventListener('click', e => { const li = e.target.closest('li[data-id]'); if (li) swSelect(li.dataset.id); });
+  $('swList').addEventListener('keydown', e => { const li = e.target.closest('li[data-id]'); if (li && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); swSelect(li.dataset.id); } });
+  $('swMap').addEventListener('click', swMapClick);
   $('togQuest').addEventListener('click', () => ui.togglePanel('quest')); $('togMap').addEventListener('click', () => ui.togglePanel('map')); $('togHints').addEventListener('click', () => ui.togglePanel('hints'));
   try { const sv = JSON.parse(localStorage.getItem('nz-panels') || 'null'); if (sv) ['quest', 'map', 'hints'].forEach(k => { if (sv[k] === false) ui.setPanel(k, false); }); } catch (e) { /* no storage */ }
   $('musicOn').addEventListener('change', (e) => { if (e.target.checked === SFX.musicOff) ui.setMusic(SFX.toggleMusic()); });
