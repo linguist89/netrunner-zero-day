@@ -2182,7 +2182,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const n = new BABYLON.TransformNode('workstation', scene); n.parent = Z.root; n.position.set(x, 0, z); n.rotation.y = ry;
     const top = box(mat('worktop', '#d9d2c4', { spec: 0.2 }), 2.1, 0.03, 0.9, 0, 0.72, 0, { parent: n, collide: true });
     [[-0.95, -0.38], [0.95, -0.38], [-0.95, 0.38], [0.95, 0.38]].forEach(p => box(mat('workLeg', '#3c3f45', { spec: 0.35, power: 48 }), 0.05, 0.72, 0.05, p[0], 0, p[1], { parent: n, cast: false }));
-    const m = monitor(0, 0.75, 0.22, PI, lines, color); m.parent = n; m.position.set(0, 0.75, 0.22); m.rotation.y = PI;
+    // front (the seated side) is local -z: the chair sits there, and monitor() screens face local -z, so no turn is needed
+    const m = monitor(0, 0.75, 0.22, 0, lines, color); m.parent = n; m.position.set(0, 0.75, 0.22); m.rotation.y = 0;
     box(mat('keyboard', '#17181c', { spec: 0.25 }), 0.58, 0.025, 0.22, 0, 0.75, -0.16, { parent: n, cast: false, name: 'workstationKeyboard' });
     const c = chair(0, 0, 0); c.parent = n; c.position.set(0, 0, -0.92); c.rotation.y = 0;
     return { node: n, chair: c, monitor: m, top };
@@ -2324,8 +2325,10 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     room({ name: 'P', X0, X1, Z0, Z1, H, wallM, floorM, door: 0, windows: [[-6, 1.0, Z0 + 0.1, 2.7, 1.5, 0, 'front'], [X1 - 0.1, 1.0, 2, 2.2, 1.5, PI / 2, 'side']] });
     const navy = mat('policeNavy', '#202c4a', { spec: 0.3 }); const steel = mat('policeSteel', '#8d98a8', { spec: 0.45 }); const glass = mat('policeGlass', '#9ec9ed', { alpha: 0.28, spec: 0.8 });
     // Front desk at the civic lobby, facing south toward the entry.
-    workstation(0, -0.8, 0, ['MERIDIAN PD', 'front desk', 'bell: ring once'], '#8fc5ff');
-    box(mat('bell', '#e8bd63', { emissive: '#6a4d1d' }), 0.12, 0.08, 0.12, 0.8, 1.08, -0.55, { cast: false, name: 'frontBell' });
+    // turned by PI so the desk sergeant sits on the north side and faces arrivals at the door
+    workstation(0, -0.8, PI, ['MERIDIAN PD', 'front desk', 'bell: ring once'], '#8fc5ff');
+    // the bell rests on the desktop (top at 0.75) on the public edge, clear of the monitor
+    box(mat('bell', '#e8bd63', { emissive: '#6a4d1d' }), 0.12, 0.08, 0.12, 0.8, 0.75, -1.15, { cast: false, name: 'frontBell' });
     [[-7.7, -3.6], [-7.7, -1.4]].forEach(p => { box(mat('bench', '#34415b'), 1.8, 0.08, 0.45, p[0], 0.46, p[1], { collide: true }); box(steel, 0.05, 0.46, 0.05, p[0] - 0.7, 0, p[1], { cast: false }); box(steel, 0.05, 0.46, 0.05, p[0] + 0.7, 0, p[1], { cast: false }); });
     // Cybercrime desk and evidence side behind the glass partition.
     workstation(5.2, 4.0, 0, ['cybercrime desk', 'MP-2610-044', 'case: OKAFOR'], '#61a5ff');
