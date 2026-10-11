@@ -27,7 +27,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 .btn.ghost{background:transparent;color:var(--fg);border:2px solid var(--line);box-shadow:none}
 .btn[disabled]{opacity:.5;cursor:default}
 
-/* HUD: cash top-right like an arcade score, mission box top-left, pager along the bottom */
+/* HUD: cash top-right like an arcade score, mission box top-left, notices under the score */
 #hud{position:absolute;inset:0;pointer-events:none;padding:16px}
 #hud>*{pointer-events:auto}
 .card{background:var(--panel);border:2px solid var(--line);border-radius:2px;backdrop-filter:blur(4px);box-shadow:4px 4px 0 rgba(0,0,0,.55)}
@@ -75,16 +75,23 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 #prompt kbd{display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 6px;background:var(--cash);color:#1a1206;border-radius:2px;font:20px/1 var(--font-display);box-shadow:2px 2px 0 #000}
 #hints{position:absolute;left:200px;right:330px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;gap:4px 14px;font-family:var(--font-ui);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
 #hints b{color:var(--fg);font-weight:600}
-#pager{position:absolute;left:50%;bottom:calc(40px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(460px,calc(100vw - 32px));background:#1d2315;border:3px solid #0a0c08;border-radius:6px;padding:6px 10px 6px;box-shadow:0 6px 0 #000,inset 0 0 0 2px #2d3821;display:flex;flex-direction:column;gap:2px;opacity:0;transform:translate(-50%,16px);transition:opacity .25s,transform .25s;pointer-events:none}
-#pager.on{opacity:1;transform:translateX(-50%)}
-#pager .lcd{font-family:var(--font-lcd);font-size:20px;line-height:1.05;color:var(--pager-fg);background:var(--pager-bg);padding:6px 10px;border-radius:2px;text-shadow:0 0 6px rgba(200,255,106,.55);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;height:54px}
-#pager .lcd b{color:#eaffb0}
-#pager .lbl{font-family:var(--font-ui);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#7c8a60;display:flex;justify-content:space-between}
-@media (prefers-reduced-motion:reduce){#pager{transition:none}}
+/* notices: a short stack in the top-right corner under the score, clear of the player and the E prompts in the middle of the screen */
+#notes{position:absolute;right:16px;top:calc(150px + env(safe-area-inset-top,0px));width:min(300px,calc(100vw - 32px));display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.note{pointer-events:auto;cursor:pointer;display:grid;grid-template-columns:auto 1fr;gap:2px 8px;align-items:baseline;padding:7px 10px 8px;font-size:12.5px;line-height:1.35;color:var(--fg);opacity:0;transform:translateX(12px);transition:opacity .2s,transform .2s}
+.note.on{opacity:1;transform:none}
+.note .t{grid-column:1/-1;display:flex;justify-content:space-between;gap:8px;font:16px/1.1 var(--font-display);letter-spacing:.05em;color:var(--cash)}
+.note .t time{font:600 10px var(--font-ui);letter-spacing:.14em;color:var(--mute);font-variant-numeric:tabular-nums}
+.note.ok .t{color:var(--ok)}
+.note .x{grid-column:1/-1;min-width:0;overflow-wrap:anywhere}
+@media (prefers-reduced-motion:reduce){.note{transition:none}}
+/* panels the player can switch off: Q mission card, V minimap, X key list, U all of them */
+#hud.no-quest #quest,#hud.no-map #map,#hud.no-hints #hints{display:none!important}
+#hudBar{position:absolute;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;max-width:min(330px,calc(100vw - 32px))}
+#hudBar .btn{padding:6px 12px 4px;font-size:15px}
+#hudBar .tog{font-size:13px;padding:5px 9px 3px}
+#hudBar .tog[aria-pressed="false"]{color:var(--mute);border-style:dashed}
+#hudBar .tog kbd{font:600 10px var(--font-ui);color:var(--mute);margin-left:4px}
 #map{position:absolute;left:16px;bottom:calc(44px + env(safe-area-inset-bottom,0px));width:170px;height:186px;background:rgba(8,10,16,.82);border:2px solid var(--line);box-shadow:4px 4px 0 rgba(0,0,0,.55);image-rendering:pixelated}
-#journalBtn,#soundBtn,#musicBtn{position:absolute;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));padding:6px 12px 4px;font-size:15px}
-#soundBtn{right:118px}
-#musicBtn{right:220px}
 /* the clock: a wristwatch-style LCD that drops in at the top centre on T, with a 24-hour strip whose marker walks from night to day */
 #clock{position:absolute;left:50%;top:16px;transform:translate(-50%,-8px);width:232px;padding:8px 12px 10px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;background:#1d2315;border:3px solid #0a0c08;border-radius:6px;box-shadow:0 5px 0 #000,inset 0 0 0 2px #2d3821}
 #clock.on{opacity:1;transform:translate(-50%,0)}
@@ -242,7 +249,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 #kpNote{font-size:12px;color:var(--mute);text-align:center;min-height:16px}
 #fade{position:absolute;inset:0;background:#000;opacity:1;pointer-events:none;transition:opacity .4s ease}
 #fade.clear{opacity:0}
-@media (max-width:640px){#hints{display:none}#map{left:16px;bottom:auto;top:calc(16px + 150px + env(safe-area-inset-top,0px));width:104px;height:114px}#quest{width:min(230px,50vw);padding:8px 10px 10px}#quest .title{font-size:19px}#quest ul{font-size:12px}#cash .num{font-size:34px}#carName{top:92px;font-size:20px}#pager{bottom:calc(34px + env(safe-area-inset-bottom,0px));width:min(320px,calc(100vw - 180px));left:auto;right:16px;transform:none}#pager.on{transform:none}#journalBtn,#soundBtn{bottom:calc(16px + env(safe-area-inset-bottom,0px))}}
+@media (max-width:640px){#hints{display:none}#map{left:16px;bottom:auto;top:calc(16px + 150px + env(safe-area-inset-top,0px));width:104px;height:114px}#quest{width:min(230px,50vw);padding:8px 10px 10px}#quest .title{font-size:19px}#quest ul{font-size:12px}#cash .num{font-size:34px}#carName{top:92px;font-size:20px}#notes{top:calc(110px + env(safe-area-inset-top,0px));width:min(240px,calc(100vw - 32px))}#hudBar .tog kbd{display:none}}
 </style>
 
 <div id="app">
@@ -254,12 +261,17 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
     <div id="cash"><div id="cashPop"></div><div class="num" id="hudCredits">000000</div><div class="name" id="hudName">...</div><div id="boost" hidden></div></div>
     <div id="carName"></div>
     <div id="prompt" class="card" hidden><kbd>E</kbd><span id="promptText"></span></div>
-    <div id="hints"><span><b>W S</b> run</span><span><b>A D</b> turn</span><span><b>Shift</b> stroll / run inside</span><span><b>E</b> interact / car</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> camera</span><span><b>B</b> drink</span><span><b>K</b> whistle car</span><span><b>F</b> phone</span><span><b>T</b> clock</span><span><b>P</b> missions</span><span><b>L</b> settings</span><span><b>M</b> sound</span><span><b>N</b> music</span><span><b>wheel</b> zoom</span></div>
+    <div id="hints"><span><b>W S</b> run</span><span><b>A D</b> turn</span><span><b>Shift</b> stroll / run inside</span><span><b>E</b> interact / car</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> camera</span><span><b>B</b> drink</span><span><b>K</b> whistle car</span><span><b>F</b> phone</span><span><b>T</b> clock</span><span><b>P</b> missions</span><span><b>Q V X</b> mission card / map / keys</span><span><b>U</b> hide panels</span><span><b>L</b> settings</span><span><b>M</b> sound</span><span><b>N</b> music</span><span><b>wheel</b> zoom</span></div>
     <canvas id="map" width="170" height="186" aria-label="Minimap"></canvas>
-    <div id="pager"><div class="lbl"><span>STYX PAGER</span><span id="pagerTime">--:--</span></div><div class="lcd" id="pagerText"></div></div>
-    <button id="musicBtn" class="btn ghost" type="button" aria-pressed="true">Music on</button>
-    <button id="soundBtn" class="btn ghost" type="button" aria-pressed="true">Sound on</button>
-    <button id="journalBtn" class="btn ghost" type="button">Missions</button>
+    <div id="notes" aria-live="polite"></div>
+    <div id="hudBar">
+      <button id="togQuest" class="btn ghost tog" type="button" aria-pressed="true">Mission card<kbd>Q</kbd></button>
+      <button id="togMap" class="btn ghost tog" type="button" aria-pressed="true">Map<kbd>V</kbd></button>
+      <button id="togHints" class="btn ghost tog" type="button" aria-pressed="true">Keys<kbd>X</kbd></button>
+      <button id="musicBtn" class="btn ghost" type="button" aria-pressed="true">Music on</button>
+      <button id="soundBtn" class="btn ghost" type="button" aria-pressed="true">Sound on</button>
+      <button id="journalBtn" class="btn ghost" type="button">Missions</button>
+    </div>
   </div>
 
   <div id="touch">
@@ -2555,6 +2567,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (k === 'f' && !e.repeat) openPhone();
     if (k === 'k' && !e.repeat) whistleCar();
     if (k === 't' && !e.repeat) toggleClock();
+    if (!e.repeat) { if (k === 'q') ui.togglePanel('quest'); if (k === 'v') ui.togglePanel('map'); if (k === 'x') ui.togglePanel('hints'); if (k === 'u') ui.toggleAllPanels(); }
     if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
   });
   window.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
@@ -3292,10 +3305,24 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   })();
   /* ---------- UI ---------- */
   const ui = {
-    // every notice arrives on the pager: one line at a time, a beep, five seconds on the LCD
-    pagerQ: [], pagerBusy: false,
-    toast(o) { ui.pagerQ.push(o); if (!ui.pagerBusy) ui.pagerNext(); },
-    pagerNext() { const o = ui.pagerQ.shift(); const p = $('pager'); if (!o) { ui.pagerBusy = false; p.classList.remove('on'); return; } ui.pagerBusy = true; $('pagerText').innerHTML = '<b>' + esc(o.title).toUpperCase() + '</b> ' + esc(o.text || ''); $('pagerTime').textContent = clockText(); /* the pager runs on Meridian Row time */ p.classList.add('on'); SFX.pager(); setTimeout(ui.pagerNext, 4800); },
+    // every notice drops into the top-right stack: a beep, then it fades after a few seconds (longer text stays longer); click to dismiss
+    toast(o) {
+      const box = $('notes'); while (box.children.length >= 3) box.firstElementChild.remove();
+      const n = document.createElement('div'); n.className = 'note card' + (o.kind === 'ok' ? ' ok' : '');
+      n.innerHTML = '<div class="t"><span>' + esc(o.title || '') + '</span><time>' + esc(clockText()) + '</time></div>' + (o.text ? '<div class="x">' + esc(o.text) + '</div>' : '');
+      const gone = () => { n.classList.remove('on'); setTimeout(() => n.remove(), 250); };
+      n.addEventListener('click', gone); box.appendChild(n); requestAnimationFrame(() => n.classList.add('on')); SFX.pager();
+      setTimeout(gone, Math.min(11000, 4500 + (o.text || '').length * 45));
+    },
+    // HUD panels the player can switch off; the choice is remembered on this device
+    panels: { quest: true, map: true, hints: true },
+    setPanel(k, on) {
+      ui.panels[k] = on; $('hud').classList.toggle('no-' + k, !on);
+      const b = $({ quest: 'togQuest', map: 'togMap', hints: 'togHints' }[k]); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      try { localStorage.setItem('nz-panels', JSON.stringify(ui.panels)); } catch (e) { /* no storage */ }
+    },
+    togglePanel(k) { SFX.switch(); ui.setPanel(k, !ui.panels[k]); },
+    toggleAllPanels() { SFX.switch(); const on = !(ui.panels.quest || ui.panels.map || ui.panels.hints); ['quest', 'map', 'hints'].forEach(k => ui.setPanel(k, on)); },
     carName(name) { const el = $('carName'); if (!name) { el.classList.remove('on'); return; } el.textContent = name; el.classList.add('on'); clearTimeout(ui.carT); ui.carT = setTimeout(() => el.classList.remove('on'), 3500); },
     prompt(text) { const p = $('prompt'); if (!text) { p.hidden = true; $('tE').hidden = true; return; } $('promptText').textContent = text; p.hidden = false; if (state.touch) $('tE').hidden = false; },
     refreshQuest() {
@@ -3390,11 +3417,13 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   SFX.onTrack = (name) => { if (state.playing) ui.toast({ kind: '', title: 'Radio', text: name }); };
   $('soundBtn').addEventListener('click', () => ui.setSound(SFX.toggle()));
   $('musicBtn').addEventListener('click', () => ui.setMusic(SFX.toggleMusic()));
+  $('togQuest').addEventListener('click', () => ui.togglePanel('quest')); $('togMap').addEventListener('click', () => ui.togglePanel('map')); $('togHints').addEventListener('click', () => ui.togglePanel('hints'));
+  try { const sv = JSON.parse(localStorage.getItem('nz-panels') || 'null'); if (sv) ['quest', 'map', 'hints'].forEach(k => { if (sv[k] === false) ui.setPanel(k, false); }); } catch (e) { /* no storage */ }
   $('musicOn').addEventListener('change', (e) => { if (e.target.checked === SFX.musicOff) ui.setMusic(SFX.toggleMusic()); });
   $('voicesOn').addEventListener('change', (e) => { if (e.target.checked === SFX.voicesOff) ui.setVoices(SFX.toggleVoices()); });
   canvas.addEventListener('wheel', (e) => { CAM.zoom = Math.max(0.55, Math.min(2.0, CAM.zoom + (e.deltaY > 0 ? 0.1 : -0.1))); e.preventDefault(); }, { passive: false });
 
-  // the quest store drives the HUD: every notice goes to the pager, every change redraws the mission card and saves, a finished quest moves the beacon
+  // the quest store drives the HUD: every notice goes to the corner stack, every change redraws the mission card and saves, a finished quest moves the beacon
   store.on('toast', o => { ui.toast(o); if (o.kind === 'ok') SFX.objective(); else if (o.kind === 'quest') SFX.quest(); else if (o.kind === 'found') SFX.discovery(); else if (o.kind === 'warn') SFX.warn(); else if (o.kind === 'buy') SFX.buy(); else if (o.kind === 'cash') SFX.coin(); else SFX.tick(); });
   store.on('bought', id => { if (id === 'keys') ensureOwnCar(); });
   store.on('change', () => { ui.refreshQuest(); updateBeacon(); save(); });
