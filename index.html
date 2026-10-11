@@ -3613,7 +3613,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     chips.forEach(ch => {
       if (!ch.alive) { ch.t -= dt; if (ch.t <= 0) { ch.alive = true; ch.node.setEnabled(true); ch.disc.setEnabled(true); } return; }
       ch.node.rotation.y = t * 2.4; ch.node.position.y = 0.75 + Math.sin(t * 3 + ch.x) * 0.06;
-      if (Math.abs(ch.x - px) < reach && Math.abs(ch.z - pz) < reach && Math.hypot(ch.x - px, ch.z - pz) < reach) { ch.alive = false; ch.t = 240; ch.node.setEnabled(false); ch.disc.setEnabled(false); SFX.coin(ch.value > 10); store.addCredits(ch.value, null); ui.cashPop('+' + ch.value); }
+      if (Math.abs(ch.x - px) < reach && Math.abs(ch.z - pz) < reach && Math.hypot(ch.x - px, ch.z - pz) < reach) { ch.alive = false; ch.t = 240; ch.node.setEnabled(false); ch.disc.setEnabled(false); SFX.coin(ch.value > 10); store.addCredits(ch.value, null); ui.cashPop('+' + ch.value); ui.toast({ kind: 'ok', title: '+' + ch.value + ' credits', text: ch.value > 10 ? 'Blue credit chip. Spend credits at Byte Mart.' : 'Credit chip. Spend credits at Byte Mart.', quiet: true, ms: 2600 }); }
     });
   }
   function drinkOverclock() {
@@ -4032,8 +4032,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       const n = document.createElement('div'); n.className = 'notice card' + (o.kind === 'ok' ? ' ok' : '');
       n.innerHTML = '<div class="t"><span>' + esc(o.title || '') + '</span><time>' + esc(clockText()) + '</time></div>' + (o.text ? '<div class="x">' + esc(o.text) + '</div>' : '');
       const gone = () => { n.classList.remove('on'); setTimeout(() => n.remove(), 250); };
-      n.addEventListener('click', gone); box.appendChild(n); requestAnimationFrame(() => n.classList.add('on')); SFX.pager();
-      setTimeout(gone, Math.min(11000, 4500 + (o.text || '').length * 45));
+      n.addEventListener('click', gone); box.appendChild(n); requestAnimationFrame(() => n.classList.add('on')); if (!o.quiet) SFX.pager(); // quiet: the event has its own sound
+      setTimeout(gone, o.ms || Math.min(11000, 4500 + (o.text || '').length * 45));
     },
     // HUD panels the player can switch off; the choice is remembered on this device
     panels: { quest: true, map: true, hints: true },
