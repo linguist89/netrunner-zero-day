@@ -185,7 +185,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 #knob{position:absolute;left:38px;top:38px;width:48px;height:48px;border-radius:50%;background:var(--cash);opacity:.85}
 .tbtn{position:absolute;right:24px;width:64px;height:64px;border-radius:50%;border:2px solid var(--cash);background:rgba(8,10,16,.6);color:var(--cash);font:22px/1 var(--font-display);letter-spacing:.06em;pointer-events:auto;touch-action:none}
 #tE{bottom:calc(140px + env(safe-area-inset-bottom,0px))}
-#tBrake{bottom:calc(220px + env(safe-area-inset-bottom,0px));right:104px;width:56px;height:56px;font-size:15px}
+#tBrake,#tJump{bottom:calc(220px + env(safe-area-inset-bottom,0px));right:104px;width:56px;height:56px;font-size:15px}
 #tRun{bottom:calc(220px + env(safe-area-inset-bottom,0px));right:24px;width:56px;height:56px;font-size:15px}
 #tRun.on,#tBrake.on{background:var(--cash);color:#1a1206}
 
@@ -328,7 +328,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
     <div id="cash"><div id="cashPop"></div><div class="num" id="hudCredits">000000</div><div class="name" id="hudName">...</div><div id="boost" hidden></div></div>
     <div id="carName"></div>
     <div id="prompt" class="card" hidden><kbd>E</kbd><span id="promptText"></span></div>
-    <div id="hints"><span><b>W S</b> run</span><span><b>A D</b> turn</span><span><b>Shift</b> stroll / run inside</span><span><b>E</b> interact / car</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> camera</span><span><b>B</b> drink</span><span><b>K</b> whistle car</span><span><b>F</b> phone</span><span><b>T</b> clock</span><span><b>P</b> missions</span><span><b>Q V X</b> mission card / map / keys</span><span><b>U</b> hide panels</span><span><b>G</b> room sweep</span><span><b>I</b> backpack</span><span><b>L</b> settings</span><span><b>M</b> sound</span><span><b>N</b> music</span><span><b>wheel</b> zoom</span></div>
+    <div id="hints"><span><b>W S</b> run</span><span><b>A D</b> turn</span><span><b>Shift</b> stroll / run inside</span><span><b>E</b> interact / car</span><span><b>Space</b> jump / handbrake</span><span><b>H</b> horn</span><span><b>C</b> camera</span><span><b>B</b> drink</span><span><b>K</b> whistle car</span><span><b>F</b> phone</span><span><b>T</b> clock</span><span><b>P</b> missions</span><span><b>Q V X</b> mission card / map / keys</span><span><b>U</b> hide panels</span><span><b>G</b> room sweep</span><span><b>I</b> backpack</span><span><b>L</b> settings</span><span><b>M</b> sound</span><span><b>N</b> music</span><span><b>wheel</b> zoom</span></div>
     <canvas id="map" width="170" height="186" aria-label="Minimap"></canvas>
     <div id="notes" aria-live="polite"></div>
     <section id="sweep" class="card" hidden aria-label="SWEEP-4 room scanner">
@@ -354,6 +354,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
     <div id="stick"><div id="knob"></div></div>
     <button id="tRun" class="tbtn" type="button">STROLL</button><button id="tClock" class="tbtn" type="button" aria-label="Clock">TIME</button>
     <button id="tBrake" class="tbtn" type="button" hidden>BRAKE</button>
+    <button id="tJump" class="tbtn" type="button">JUMP</button>
     <button id="tE" class="tbtn" type="button" hidden>E</button>
   </div>
 
@@ -365,7 +366,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
       <p><b>Follow the arrow to Building A. Steal a car if you like, nobody here is counting. Except the gateway.</b></p>
       <div class="field"><label class="eyebrow" for="pname">Profile name</label><input id="pname" value="Fresh Investigator" maxlength="24" autocomplete="off"></div>
       <div class="row"><button id="enterBtn" class="btn" type="button" disabled>Drop into Meridian Row</button><button id="continueBtn" class="btn ghost" type="button" hidden>Continue saved profile</button><span id="loadline">LOADING ENGINE...</span></div>
-      <div id="controls"><span><b>W / S</b> run forward, back</span><span><b>A / D</b> turn</span><span><b>Shift</b> stroll outside, run inside</span><span><b>E</b> interact, talk to people, enter or leave a car</span><span><b>W / S</b> gas and brake in a car</span><span><b>A / D</b> steer</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> switch between overhead and chase camera</span><span><b>B</b> drink an OVERCLOCK from Byte Mart</span><span><b>K</b> whistle your own car back to the mart</span><span><b>Wheel</b> zoom the camera</span><span><b>T</b> show or hide the clock and the date; a day lasts 12 minutes and the clock stops in terminals and menus</span><span><b>P</b> missions and journal</span><span><b>L</b> settings</span><span><b>N</b> music on or off</span><span>Meridian PD patrols on foot and in white cruisers; the station is east of Building X</span><span><b>Esc</b> close window</span><span>On a phone: stick to move, tap E, tap BRAKE in a car.</span></div>
+      <div id="controls"><span><b>W / S</b> run forward, back</span><span><b>A / D</b> turn</span><span><b>Shift</b> stroll outside, run inside</span><span><b>E</b> interact, talk to people, enter or leave a car</span><span><b>W / S</b> gas and brake in a car</span><span><b>A / D</b> steer</span><span><b>Space</b> jump / handbrake</span><span><b>H</b> horn</span><span><b>C</b> switch between overhead and chase camera</span><span><b>B</b> drink an OVERCLOCK from Byte Mart</span><span><b>K</b> whistle your own car back to the mart</span><span><b>Wheel</b> zoom the camera</span><span><b>T</b> show or hide the clock and the date; a day lasts 12 minutes and the clock stops in terminals and menus</span><span><b>P</b> missions and journal</span><span><b>L</b> settings</span><span><b>N</b> music on or off</span><span>Meridian PD patrols on foot and in white cruisers; the station is east of Building X</span><span><b>Esc</b> close window</span><span>On a phone: stick to move, tap E, tap BRAKE in a car.</span></div>
     </div>
   </div>
 
@@ -2265,16 +2266,21 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     src.targetedAnimations.forEach(ta => { const target = map[ta.target.name]; if (!target) return; const a = ta.animation.clone(); if (inPlace && a.targetProperty === 'position') { const keys = a.getKeys(); const x0 = keys[0].value.x, z0 = keys[0].value.z; a.setKeys(keys.map(k => ({ frame: k.frame, value: new BABYLON.Vector3(x0, k.value.y, z0) }))); } g.addTargetedAnimation(a, target); });
     return g;
   }
-  function giveAnims(ch, list) { list.forEach(c => { const ag = retarget(c[1], ch, ch.name + '_' + c[0], true); ch.anims[c[0]] = ag; ch.w[c[0]] = c[0] === 'idle' ? 1 : 0; ag.start(true, 1.0); ag.setWeightForAllAnimatables(ch.w[c[0]]); }); }
+  function giveAnims(ch, list) { list.forEach(c => { const ag = retarget(c[1], ch, ch.name + '_' + c[0], true); ch.anims[c[0]] = ag; ch.w[c[0]] = c[0] === 'idle' ? 1 : 0;
+    if (c[0] === 'jump') { // keep the crouch at take-off and landing, drop the rise: updatePlayer lifts the whole body on a real arc
+      ag.targetedAnimations.forEach(ta => { if (ta.target.name !== 'Hips' || ta.animation.targetProperty !== 'position') return; const keys = ta.animation.getKeys(), y0 = keys[0].value.y; ta.animation.setKeys(keys.map(k => ({ frame: k.frame, value: new BABYLON.Vector3(k.value.x, Math.min(k.value.y, y0), k.value.z) }))); });
+      ag.setWeightForAllAnimatables(0); return; }
+    ag.start(true, 1.0); ag.setWeightForAllAnimatables(ch.w[c[0]]); }); }
   const NAT = { walk: 1.6, jog: 3.6, walkback: 1.44, jogback: 3.2 };
   function animateAvatar(ch, dt) {
     const s = ch.speedVis; const moving = ch.moving && s > 0.25; const back = !!ch.backing;
     let goal = !moving ? 'idle' : (s > 3.2 ? (back ? 'jogback' : 'jog') : (back ? 'walkback' : 'walk'));
     if (!ch.anims[goal]) goal = moving && ch.anims.walk ? 'walk' : 'idle';
     if (ch.talking && ch.anims.talk) goal = 'talk';
-    Object.keys(ch.anims).forEach(n => { const w = ch.w[n] + ((n === goal ? 1 : 0) - ch.w[n]) * Math.min(1, dt * 9); ch.w[n] = w; ch.anims[n].setWeightForAllAnimatables(w); });
+    if (ch.jumpT != null && ch.anims.jump) goal = 'jump';
+    Object.keys(ch.anims).forEach(n => { const w = ch.w[n] + ((n === goal ? 1 : 0) - ch.w[n]) * Math.min(1, dt * (goal === 'jump' || n === 'jump' ? 18 : 9)); ch.w[n] = w; ch.anims[n].setWeightForAllAnimatables(w); });
     if (moving && NAT[goal]) ch.anims[goal].speedRatio = Math.max(0.6, Math.min(2.4, s / NAT[goal]));
-    ch.pivot.position.y = ch.baseY || 0;
+    ch.pivot.position.y = ch.baseY || 0; ch.fix.position.y = ch.jumpY || 0;
   }
   function animateChar(ch, dt) { if (ch.kind === 'avatar') animateAvatar(ch, dt); else animateFigure(ch, dt); }
   function charMeshes(ch) { return ch.kind === 'avatar' ? ch.meshes.filter(m => m.getTotalVertices && m.getTotalVertices() > 0) : Object.values(ch.parts); }
@@ -2291,6 +2297,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     ch.parts.legL.rotation.x = sw; ch.parts.legR.rotation.x = -sw; ch.parts.armL.rotation.x = -sw * 0.8; ch.parts.armR.rotation.x = sw * 0.8;
     ch.pivot.position.y = (ch.baseY || 0) + (ch.moving ? Math.abs(Math.sin(ch.phase)) * (running ? 0.08 : 0.04) : 0);
     if (ch.talking) { ch.parts.head.rotation.x = Math.sin(ch.phase * 3) * 0.08; ch.phase += dt * 2; } else ch.parts.head.rotation.x = 0;
+    if (ch.jumpT != null) { const k = Math.min(1, (ch.jumpY || 0) / 0.25); ch.parts.legL.rotation.x = -0.9 * k; ch.parts.legR.rotation.x = -0.5 * k; ch.parts.armL.rotation.x = ch.parts.armR.rotation.x = -1.6 * k; ch.pivot.position.y = (ch.baseY || 0) + (ch.jumpY || 0); }
   }
   const PED_LOOKS = [['#c73a3a', '#2a2a3a', '#d9a06a', '#2a1a10'], ['#2b6cb0', '#3a3a3a', '#8a5a3a', '#101010'], ['#6a8a3a', '#1a1a2a', '#f0c8a0', '#c8a060'], ['#ff3d7f', '#2a2a2a', '#5a3a2a', '#1a1a1a'], ['#d4d0c4', '#4a3a2a', '#e0b090', '#4a2a1a'], ['#ffd23f', '#2a3a4a', '#a06a4a', '#1a1a1a'], ['#3ee8f0', '#1a1a1a', '#d9a06a', '#3a2a1a'], ['#8a4a8a', '#2a2a2a', '#f0c8a0', '#2a1a10']];
   function spawnPeds(n) {
@@ -2862,7 +2869,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (!car || state.driving) return; const p = chars.player; if (car.cop) copCarTaken(car);
     if (car.driver) { car.driver = false; const look = PED_LOOKS[Math.floor(rnd() * PED_LOOKS.length)]; const n = 'jacked' + Date.now(); const ch = newPed(n, look); const side = Math.cos(car.heading), sidez = -Math.sin(car.heading); const d = Math.floor(rnd() * 4); peds.push({ ch, x: car.x + side * 2.2, z: car.z + sidez * 2.2, dir: d, speed: 1.4, pause: 0, side: 1, flee: 3 }); SFX.yelp(car.x, car.z); }
     car.parked = false; car.speed = 0; car.vx = Math.sin(car.heading) * 0; car.vz = 0; state.driving = car; p.pivot.setEnabled(false); car.cone.setEnabled(true);
-    SFX.door(); ui.carName(car.type.name); ui.prompt(null); if (state.touch) { $('tBrake').hidden = false; $('tRun').hidden = true; }
+    SFX.door(); ui.carName(car.type.name); ui.prompt(null); if (state.touch) { $('tBrake').hidden = false; $('tRun').hidden = true; $('tJump').hidden = true; }
   }
   function leaveCar() {
     const car = state.driving; if (!car) return; const p = chars.player;
@@ -2870,7 +2877,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (car.own) car.leftInLane = onCarriageway(car.x, car.z); else car.abandoned = true; // see updateTraffic: it rejoins the traffic, or the coupe is towed
     const side = Math.cos(car.heading), sidez = -Math.sin(car.heading); const ox = car.x - side * (car.type.wid / 2 + 0.9), oz = car.z - sidez * (car.type.wid / 2 + 0.9);
     p.pivot.setEnabled(true); p.pivot.position.set(ox, 0, oz); p.baseY = 0; p.yaw = car.heading; p.pivot.rotation.y = p.yaw;
-    SFX.door(); SFX.engine(0, false); SFX.skid(0); ui.carName(null); if (state.touch) { $('tBrake').hidden = true; $('tRun').hidden = false; }
+    SFX.door(); SFX.engine(0, false); SFX.skid(0); ui.carName(null); if (state.touch) { $('tBrake').hidden = true; $('tRun').hidden = false; $('tJump').hidden = false; }
   }
   // the car's rectangle against every axis-aligned footprint in the city
   function carHits(x, z, heading, len, wid) {
@@ -2907,6 +2914,12 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   }
 
   /* ---------- input ---------- */
+  const JUMP = { lift: 0.1, vy: 3.9, g: 14, dur: 1.0 }; // about 0.55 m high and 0.55 s in the air, matched to the jump clip
+  function playerJump() {
+    const p = chars.player; if (!p || !state.playing || state.ui || state.driving || p.jumpT != null) return;
+    p.jumpT = 0; p.jumpY = 0; p.landed = false; SFX.step(state.zone, true, 0);
+    if (p.anims && p.anims.jump) { const g = p.anims.jump; g.stop(); g.start(false, 1.0); g.setWeightForAllAnimatables(p.w.jump || 0); }
+  }
   const MOVE = { run: 7.5, walk: 3.4, inside: 2.5, insideRun: 5.0, smooth: 14, turn: 4.4 };
   const keys = {}; const joy = { x: 0, y: 0, on: false };
   window.addEventListener('keydown', (e) => {
@@ -2924,6 +2937,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (k === 'f' && !e.repeat) openPhone();
     if (k === 'k' && !e.repeat) whistleCar();
     if (k === 't' && !e.repeat) toggleClock();
+    if (k === ' ' && !e.repeat && !state.driving) playerJump();
     if (k === 'g' && !e.repeat) toggleSweep();
     if (k === 'i' && !e.repeat) ui.openInv();
     if (!e.repeat) { if (k === 'q') ui.togglePanel('quest'); if (k === 'v') ui.togglePanel('map'); if (k === 'x') ui.togglePanel('hints'); if (k === 'u') ui.toggleAllPanels(); }
@@ -2948,6 +2962,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     stick.addEventListener('pointerup', end); stick.addEventListener('pointercancel', end);
     $('tE').addEventListener('click', () => { if (state.ui === 'dlg') ui.dlgAdvance(); else if (state.ui === 'examine') ui.closeAll(); else interact(); });
     $('tClock').addEventListener('click', () => { if (state.playing && !state.ui) toggleClock(); });
+    $('tJump').addEventListener('pointerdown', e => { e.preventDefault(); playerJump(); });
     $('tRun').addEventListener('click', () => { state.run = !state.run; $('tRun').classList.toggle('on', state.run); });
     const brake = $('tBrake'); brake.addEventListener('pointerdown', () => { state.brake = true; brake.classList.add('on'); }); ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => brake.addEventListener(ev, () => { state.brake = false; brake.classList.remove('on'); }));
   })();
@@ -2971,6 +2986,11 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const pos = p.pivot.position; const gy = groundUnder(pos.x, pos.y, pos.z);
     if (gy != null) p.baseY = gy;
     if (state.zone === 'out') { const B = CITY.bounds; pos.x = Math.max(B.x0 + 1, Math.min(B.x1 - 1, pos.x)); pos.z = Math.max(B.z0 + 1, Math.min(B.z1 - 1, pos.z)); }
+    if (p.jumpT != null) {
+      p.jumpT += dt; const t = p.jumpT - JUMP.lift; let y = t > 0 ? JUMP.vy * t - 0.5 * JUMP.g * t * t : 0;
+      if (t > 0.1 && y <= 0) { y = 0; if (!p.landed) { p.landed = true; SFX.step(state.zone, true, 0); } }
+      p.jumpY = Math.max(0, y); if (p.jumpT > JUMP.dur) { p.jumpT = null; p.jumpY = 0; }
+    }
     p.moving = moving; p.speedVis = speed; p.backing = p.speed < -0.25; animateChar(p, dt); if (p.kind !== 'avatar' && p.backing) { p.parts.legL.rotation.x *= -1; p.parts.legR.rotation.x *= -1; }
     if (moving) { p.stepDist = (p.stepDist || 0) + speed * dt; if (p.stepDist > (speed > 3.2 ? 1.3 : 0.8)) { p.stepDist = 0; p.stepSide = !p.stepSide; SFX.step(state.zone, speed > 3.2, p.stepSide ? 0.12 : -0.12); } } else p.stepDist = 0.5;
     // upstairs or down: the mezzanine ghosts out while the player is on the ground floor
@@ -4224,7 +4244,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (ch.rig !== rig) {
       const pos = ch.pivot.position.clone(), yaw = ch.yaw, baseY = ch.baseY || 0, zoneName = state.zone; const sgs = Object.values(zones).map(z => z.sg).filter(Boolean);
       sgs.forEach(sg => charMeshes(ch).forEach(m => sg.removeShadowCaster(m))); Object.values(ch.anims).forEach(a => a.dispose()); ch.pivot.dispose(false, false); (ch.parts || []).forEach(p => p.dispose());
-      const pl = makeAvatar('player', rig, { parent: null }); pl.rig = rig; giveAnims(pl, [['idle', 'anim-m-idle'], ['walk', 'anim-m-walk'], ['jog', 'anim-m-jog'], ['walkback', 'anim-m-walkback'], ['jogback', 'anim-m-jogback']]);
+      const pl = makeAvatar('player', rig, { parent: null }); pl.rig = rig; giveAnims(pl, [['idle', 'anim-m-idle'], ['walk', 'anim-m-walk'], ['jog', 'anim-m-jog'], ['walkback', 'anim-m-walkback'], ['jogback', 'anim-m-jogback'], ['jump', 'anim-m-jump']]);
       pl.vx = 0; pl.vz = 0; pl.speed = 0; pl.turnRate = 0; pl.pivot.position.copyFrom(pos); pl.yaw = yaw; pl.pivot.rotation.y = yaw; pl.baseY = baseY;
       const sg = zones[zoneName] && zones[zoneName].sg; if (sg && !NULL_ENGINE) charMeshes(pl).forEach(m => sg.addShadowCaster(m));
     }
@@ -4304,7 +4324,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   /* ---------- boot ---------- */
   let loaded = false;
   async function loadAvatars() {
-    const line = $('loadline'); const rigs = ['avatar-player', 'avatar-rosa', 'avatar-julien']; const clips = ['anim-m-idle', 'anim-m-walk', 'anim-m-jog', 'anim-m-walkback', 'anim-m-jogback', 'anim-m-idle2', 'anim-f-idle', 'anim-m-talk', 'anim-f-talk'];
+    const line = $('loadline'); const rigs = ['avatar-player', 'avatar-rosa', 'avatar-julien']; const clips = ['anim-m-idle', 'anim-m-walk', 'anim-m-jog', 'anim-m-walkback', 'anim-m-jogback', 'anim-m-idle2', 'anim-f-idle', 'anim-m-talk', 'anim-f-talk', 'anim-m-jump'];
     const names = rigs.concat(clips); const prog = names.map(() => 0); const show = () => { line.textContent = 'LOADING CHARACTERS ' + Math.round(prog.reduce((a, b) => a + b, 0) / prog.length * 100) + '%'; };
     const res = await Promise.all(names.map((n, i) => loadGLB(n + '.glb', v => { prog[i] = v; show(); }, i < rigs.length)));
     rigs.forEach((n, i) => { AV.rigs[n.replace('avatar-', '')] = res[i]; }); clips.forEach((n, i) => { AV.clips[n] = res[rigs.length + i]; });
@@ -4324,7 +4344,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     Z = zones.out;
     let pl, rosa, jul;
     if (AV.ready) {
-      pl = makeAvatar('player', 'player', { parent: null }); pl.rig = 'player'; giveAnims(pl, [['idle', 'anim-m-idle'], ['walk', 'anim-m-walk'], ['jog', 'anim-m-jog'], ['walkback', 'anim-m-walkback'], ['jogback', 'anim-m-jogback']]);
+      pl = makeAvatar('player', 'player', { parent: null }); pl.rig = 'player'; giveAnims(pl, [['idle', 'anim-m-idle'], ['walk', 'anim-m-walk'], ['jog', 'anim-m-jog'], ['walkback', 'anim-m-walkback'], ['jogback', 'anim-m-jogback'], ['jump', 'anim-m-jump']]);
       rosa = makeAvatar('rosa', 'rosa', {}); giveAnims(rosa, [['idle', 'anim-f-idle'], ['talk', 'anim-f-talk']]);
       jul = makeAvatar('julien', 'julien', {}); giveAnims(jul, [['idle', 'anim-m-idle2'], ['talk', 'anim-m-talk']]);
     } else {
