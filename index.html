@@ -876,6 +876,129 @@ Lineman's notebook, Meridian Exchange.
     tmp: D({})
   });
 
+  /* ---- Meridian Works: the engineering workstation in the plant control room (operational technology) ---- */
+  const FS_PLANT = D({
+    etc: D({
+      hostname: F('eng-ws\n'),
+      motd: F('Meridian Works engineering workstation. Read before you touch. The plant is live.\n'),
+      network: D({
+        'firewall.conf': F(`
+# Meridian Works IT/OT boundary. One guarded doorway between the office and the plant.
+# Everything legitimate crosses at the jump host and is logged. Default: deny.
+policy            = deny
+allow office->plant via jump-host (10.1.0.2) only, logged
+allow plant->historian (10.1.0.20)
+deny  plant->internet
+deny  plant->office
+# --- line added by contractor on install day, not reviewed ---
+allow plant->10.0.3.1 any   # "remote support box", added by T. Petrov. bypasses the jump host.
+`)
+      })
+    }),
+    home: D({ eng: D({
+      README: F(`
+Engineering workstation, Meridian Works.
+This machine talks to the plant: the water skid, the substation, the boiler and the bottling line.
+
+RULES ON THIS NETWORK, in order:
+1. Never test on live equipment. A crashed controller can open a valve or trip the power on a real street.
+2. Do not scan the controllers. They are fragile and a loud scan can knock one over. Read the records instead.
+3. Find it, write it down, tell me and Agnes. You do not change the plant yourself.
+
+Start with the plant diagram: cat diagram.txt
+-- Mara
+`),
+      'diagram.txt': F(`
+MERIDIAN WORKS - one-line diagram (read top to bottom)
+
+  [CITY POWER] -> SUBSTATION (RTU-02) -> plant bus
+  plant bus -> WATER SKID        (PLC-01): pumps, chemical dosing, level
+  plant bus -> BOILER & PUMPS    (PLC-03): pressure, temperature
+  plant bus -> BOTTLING LINE     (PLC-04): conveyor, motors
+
+  Every process reports to the HISTORIAN (10.1.0.20) and shows on the HMI in this room.
+
+  ABOVE ALL OF IT: the SAFETY SYSTEM (SIS). It can trip any process to a safe
+  state on its own, and it is NOT on this network. That independence is the point.
+`),
+      'inventory.txt': F(`
+MERIDIAN WORKS - asset inventory (what we think is on the plant network)
+#  DEVICE        TYPE              ADDRESS      WHERE
+1  PLC-01        controller        10.1.0.11    Water skid
+2  RTU-02        controller        10.1.0.12    Substation
+3  PLC-03        controller        10.1.0.13    Boiler & pump house
+4  PLC-04        controller        10.1.0.14    Bottling line
+5  HMI-01        operator screen   10.1.0.10    Control room (this desk)
+6  HISTORIAN     log store         10.1.0.20    Control room rack
+7  SWITCH-01     network switch    10.1.0.2     Control room rack (also the jump host)
+# The safety system is deliberately NOT here: it stands alone, off the network.
+`),
+      'switch-macs.txt': F(`
+SWITCH-01 learned addresses (what is ACTUALLY plugged in right now)
+PORT  ADDRESS      MAC                 NAME
+1     10.1.0.11    02:50:0a:01:00:0b   PLC-01
+2     10.1.0.12    02:50:0a:01:00:0c   RTU-02
+3     10.1.0.13    02:50:0a:01:00:0d   PLC-03
+4     10.1.0.14    02:50:0a:01:00:0e   PLC-04
+5     10.1.0.10    02:50:0a:01:00:0a   HMI-01
+6     10.1.0.20    02:50:0a:01:00:14   HISTORIAN
+8     10.1.0.77    de:ad:5f:03:00:77   (not in inventory) remote-support box
+# Port 8 is not on the asset list. Nobody wrote it down. It is the contractor's box.
+`),
+      notes: D({
+        'handover.md': F('Mara’s handover notes.\n- You cannot protect what you cannot see. Keep the inventory honest.\n- The safety system is the last line. Prove it is still alone, every time.\n- Petrov is quick and friendly and leaves things behind. Check his work.\n')
+      })
+    }) }),
+    opt: D({
+      plc: D({
+        water: D({
+          config: F(`
+# PLC-01 water skid - operator-settable values and their SAFE RANGES
+# (ranges are what Mara keeps pinned to the wall; the controller will accept
+#  values outside them, which is exactly why a human has to watch)
+dosing_setpoint     = 9.9 mg/L      # SAFE RANGE 0.5 - 4.0 mg/L   <-- out of range
+pump_pressure       = 2.1 bar       # safe 1.5 - 3.0
+tank_level          = 61 %          # safe 20 - 90
+`),
+          'history.log': F(`
+Sep 28 09:14 dosing_setpoint 1.9 -> 2.0  by operator mara    (routine)
+Oct  2 11:02 dosing_setpoint 2.0 -> 2.1  by operator mara    (routine)
+Oct  3 03:12 dosing_setpoint 2.1 -> 9.9  by remote 10.0.3.1  (OUT OF SAFE RANGE, no work ticket)
+`)
+        }),
+        boiler: D({ config: F('# PLC-03 boiler\npressure_setpoint = 6.0 bar   # safe 4.0 - 8.0\ntemp_setpoint     = 82 C     # safe 60 - 95\n') }),
+        line:   D({ config: F('# PLC-04 bottling line\nconveyor_speed = 0.8 m/s     # safe 0 - 1.2\n') })
+      }),
+      safety: D({
+        'sis.conf': F(`
+# Safety Instrumented System (SIS) - independent protection layer
+# It trips the plant to a safe state on its own, whatever a PLC is told to do.
+network      = none          # AIR-GAPPED on purpose. Not reachable from the plant network.
+owner        = Agnes Vukovic (safety)
+trip_water_dosing_above = 4.0 mg/L   # if the dose ever climbs this high, SIS shuts the valve
+trip_boiler_pressure_above = 9.0 bar
+last_proof_test = Oct 1   (passed)
+# If you can reach this file over the network, something is wrong. You are reading a copy
+# the safety team exports to the desk on purpose. The live unit answers to nobody online.
+`)
+      })
+    }),
+    var: D({ log: D({
+      'historian.log': F(`
+Oct  8 03:12:44 historian: catalogue/export pulled by 10.0.3.1 (remote-support box)
+Oct  8 03:42:44 historian: beat from 10.0.3.1
+Oct  8 04:12:44 historian: beat from 10.0.3.1
+Oct  9 03:12:44 historian: catalogue/export pulled by 10.0.3.1 (remote-support box)
+`)
+    }) }),
+    tmp: D({})
+  });
+  { // the half-hour beacon and the nightly pull are generated for the whole run, oldest first
+    const L = FS_PLANT.children.var.children.log.children['historian.log'];
+    let pre = 'Sep 30 03:12:44 historian: catalogue/export pulled by 10.0.3.1 (remote-support box)\n';
+    L.text = pre + L.text;
+  }
+
   const HOSTS = {
     phone: { id: 'phone', fs: FS_PHONE, user: 'burner', hostname: 'burner', ip: '10.0.9.9', home: '/home/burner', banner: 'burner (prepaid, no name)\n1 new message. Type: cat messages/1.txt\n' },
     xch: { id: 'xch', fs: FS_XCH, user: 'lineman', hostname: 'exchange', ip: '10.0.2.1', home: '/home/lineman', banner: 'exchange (10.0.2.1) Asterisk 20 / Linux 6.1.0-styx\nMeridian Exchange lineman console. Four extensions, one of them not mine.\nYou have 1 unread message. Type: cat /var/mail/lineman\nStart with: cat /etc/asterisk/sip.conf\n' },
@@ -884,6 +1007,7 @@ Lineman's notebook, Meridian Exchange.
     cad: { id: 'cad', fs: FS_CAD, user: 'julien', hostname: 'caduceus', ip: '10.0.0.60', home: '/home/julien', banner: 'caduceus (10.0.0.60) Linux 6.1.0-styx\nCaduceus Analytics ops. Activity is logged.\nYou have 1 unread message. Type: cat /var/mail/julien\nStart with: cat notes.txt. The cheat sheet is on the desk.\n' },
     lab: { id: 'lab', fs: FS_LAB, user: 'rosa', hostname: 'lab-h', ip: '10.0.0.80', home: '/home/rosa', banner: 'lab-h (10.0.0.80) Linux 6.1.0-styx\nSolarpunk Lab workshop box. The handouts live in workshop/.\nls workshop, then cat workshop/04-ghosts.md for the last one.\n' },
     util: { id: 'util', fs: FS_UTIL, user: 'svc', hostname: 'db', ip: '10.0.0.200', home: '/home/svc', banner: 'db (10.0.0.200) Linux 6.1.0-styx\nMeridian Utilities service console. The hum is normal.\nStart with: ps aux. The laminated card on the cart lists the rest.\n' },
+    plant: { id: 'plant', fs: FS_PLANT, user: 'eng', hostname: 'eng-ws', ip: '10.1.0.10', home: '/home/eng', banner: 'eng-ws (10.1.0.10) Linux 6.1.0-styx\nMeridian Works engineering workstation. The plant is live: read, do not touch.\nStart with: cat README\n' },
     ghost: { id: 'ghost', fs: FS_GHOST, user: 'ghost', hostname: 'ghost', ip: '10.0.0.254', home: '/home/ghost', banner: 'Welcome, investigator.\nghost (10.0.0.254). You found the door. It was never locked.\nStart with: cat READ_ME\n' }
   };
 
@@ -1121,6 +1245,64 @@ Lineman's notebook, Meridian Exchange.
         { id: 'o1', text: 'Find the third token in the database log', cmd: 'grep STYX-ROOT /var/log/styxd.log', sig: 'served to 10.0.3.1 token=STYX-ROOT-00000000', hint: 'On the Building D console: grep STYX-ROOT /var/log/styxd.log.' },
         { id: 'o2', text: 'Find when it first appeared', cmd: 'grep STYX-ROOT /var/log/styxd.log | head -n 1', sig: 'Sep 30 03:12:44', needs: ['head'], hint: 'Logs run oldest first: grep STYX-ROOT /var/log/styxd.log | head -n 1.' },
         { id: 'o3', text: 'Compare with the ghost’s record', cmd: 'cat reports/latest.json', sig: '"from":"0.0.0.0","token":"STYX-ROOT-00000000"', hint: 'ssh ghost@10.0.0.254, then cat reports/latest.json. Where does the ghost think the token came from?' }
+      ] },
+
+    /* ---- Meridian Works: the operational-technology (OT) arc, north of the park. Opens in Act 2. ---- */
+    { id: 'plant_coldstart', title: 'Cold Start', category: 'Industrial', giver: 'mara', after: 'quest_i3_ghost', location: 'Meridian Works control room', reward: 60, side: true,
+      pitch: ['First time in a plant? Then one rule before anything else: in here a mistake does not crash a web page, it floods a street or trips the power.', 'Read my note on the engineering desk, then read the plant diagram. Hands in your pockets until you have.'],
+      start: 'Enter Meridian Works, north of the park, and talk to Mara in the control room.',
+      journalStart: 'Mara’s first lesson: operational technology is not IT. Read the workstation’s README and the one-line diagram before touching anything. Learn where the safety system sits.',
+      journalDone: 'Learned the shape of the plant: water, power, boiler and bottling line, all reporting to the historian and the HMI, with an independent safety system above them all. You touched nothing. That was the point.',
+      objectives: [
+        { id: 'o1', text: 'Read the workstation’s README', cmd: 'cat README', sig: 'Never test on live equipment', hint: 'On the engineering workstation in the control room: cat README.' },
+        { id: 'o2', text: 'Read the plant’s one-line diagram', cmd: 'cat diagram.txt', sig: 'ABOVE ALL OF IT: the SAFETY SYSTEM', hint: 'cat diagram.txt. Note what sits above every process.' }
+      ] },
+    { id: 'plant_census', title: 'Quiet Census', category: 'Industrial', giver: 'mara', after: 'plant_coldstart', location: 'Meridian Works control room', reward: 70, side: true,
+      pitch: ['Nobody here can tell me what is actually on the plant network. I want a census, but a gentle one.', 'Do not scan the controllers, they fall over. Read the records: our inventory, then what the switch has actually seen.'],
+      start: 'Mara wants a gentle inventory of the plant network. Talk to her in the control room.',
+      journalStart: 'You cannot protect what you cannot see. Read the plant’s asset inventory, then the switch’s list of what is actually plugged in, and find anything that is on the network but not on the list.',
+      journalDone: 'The inventory and the switch agree on everything but one device: a remote-support box on port 8, 10.1.0.77, that nobody wrote down. It is the contractor’s. A census is only useful if it is honest.',
+      objectives: [
+        { id: 'o1', text: 'Read the plant’s asset inventory', cmd: 'cat inventory.txt', sig: 'asset inventory', hint: 'cat inventory.txt. These are the devices the plant thinks it has.' },
+        { id: 'o2', text: 'Read what the switch has actually seen', cmd: 'cat switch-macs.txt', sig: 'not in inventory', hint: 'cat switch-macs.txt. One address is plugged in but not on the list.' }
+      ] },
+    { id: 'plant_boundary', title: 'One Door', category: 'Industrial', giver: 'mara', after: 'plant_census', location: 'Meridian Works control room', reward: 80, side: true,
+      pitch: ['There is meant to be exactly one way between the office and the plant: the jump host, where everything is checked and logged.', 'Prove it is the only one. Read the firewall rules. I would love to be wrong about this.'],
+      start: 'Mara wants you to prove the plant has only one way in. Talk to her in the control room.',
+      journalStart: 'Find the IT/OT boundary. Read the firewall rules. There should be one guarded doorway, the jump host. Check whether anything bypasses it.',
+      journalDone: 'The firewall has one line that does not belong: the contractor’s remote-support box is allowed to reach 10.0.3.1 directly, straight past the jump host. That is the same hidden address from the street. The plant is wired into Reyes.',
+      objectives: [
+        { id: 'o1', text: 'Read the firewall rules', cmd: 'cat /etc/network/firewall.conf', sig: 'via jump-host (10.1.0.2) only', hint: 'cat /etc/network/firewall.conf. The jump host is meant to be the only crossing.' },
+        { id: 'o2', text: 'Find the rule that bypasses the jump host', cmd: 'grep 10.0.3.1 /etc/network/firewall.conf', sig: 'allow plant->10.0.3.1', needs: ['grep'], hint: 'grep 10.0.3.1 /etc/network/firewall.conf. Who added that, and where does it reach?' }
+      ] },
+    { id: 'plant_setpoint', title: 'Setpoint', category: 'Industrial', giver: 'mara', after: 'plant_boundary', location: 'Meridian Works, water skid', reward: 90, side: true,
+      pitch: ['The water skid is reading wrong. Do not fix it. I mean that: do not touch the dose.', 'Read the controller and its change history, find out what changed and who changed it, and bring it to me and Agnes. We bring it back to safe the proper way.'],
+      start: 'Something is wrong on the water skid. Talk to Mara, then read the controller.',
+      journalStart: 'The water skid’s dosing setpoint is out of its safe range. Do not change it. Read the controller’s config and its change history to find what it was, what it became, and who made the change. Then report to Mara and Agnes.',
+      journalDone: 'The dosing setpoint was pushed from 2.1 to 9.9 mg/L, far above the 4.0 safe limit, at 03:12 on Oct 3, by the remote box at 10.0.3.1, with no work ticket. You did not touch it. Mara and Agnes brought it back to safe, and the safety system would have shut the valve long before it mattered.',
+      objectives: [
+        { id: 'o1', text: 'Read the water controller’s safe ranges', cmd: 'cat /opt/plc/water/config', sig: 'SAFE RANGE 0.5 - 4.0', hint: 'cat /opt/plc/water/config. The safe range is written next to each value.' },
+        { id: 'o2', text: 'Find the change that pushed it out of range', cmd: 'grep OUT /opt/plc/water/history.log', sig: '2.1 -> 9.9  by remote 10.0.3.1', needs: ['grep', 'cat'], hint: 'grep OUT /opt/plc/water/history.log, or read the whole history. When, and from where?' },
+        { id: 'o3', text: 'Report it to Mara and Agnes (do not touch the dose)', sig: 'REPORT setpoint', hint: 'Talk to Agnes in the control room once you have the what, the when and the who.' }
+      ] },
+    { id: 'plant_safety', title: 'Safety Net', category: 'Industrial', giver: 'agnes', after: 'plant_setpoint', location: 'Meridian Works, safety panel', reward: 90, side: true,
+      pitch: ['Now you have seen what a bad number can do, I will show you what stops it.', 'My safety system trips the plant to a safe state on its own. Your job is to prove it is still alone, that nothing has put it on the network.'],
+      start: 'Agnes wants to show you the safety system. Talk to her in the control room.',
+      journalStart: 'The safety system is the last line: it trips the plant to a safe state no matter what a controller is told. Read its configuration and prove it is independent, air-gapped, and untouched.',
+      journalDone: 'The safety system stands alone: off the network, owned by Agnes, set to shut the water valve the moment the dose climbs past 4.0. Even with the contractor’s box inside the plant, this layer was never reachable. Defence in depth: the last line held.',
+      objectives: [
+        { id: 'o1', text: 'Read the safety system’s configuration', cmd: 'cat /opt/safety/sis.conf', sig: 'network      = none', hint: 'cat /opt/safety/sis.conf. The first line you care about is whether it is on the network at all.' },
+        { id: 'o2', text: 'Confirm it would have caught the bad dose', cmd: 'grep trip_water /opt/safety/sis.conf', sig: 'trip_water_dosing_above = 4.0', needs: ['grep', 'cat'], hint: 'grep trip_water /opt/safety/sis.conf. Compare the trip point with the setpoint you found.' }
+      ] },
+    { id: 'plant_ghost', title: 'Ghost in the Plant', category: 'Industrial', giver: 'mara', after: 'plant_safety', location: 'Meridian Works, then Meridian Police', reward: 140, side: true,
+      pitch: ['Old Bram keeps saying the plant does something in the small hours. He is right. Line up the historian’s log with what you learned on the street.', 'Then take the whole thing to the police, intact. This is one more room in the same house.'],
+      start: 'Tie the plant into the street’s story. Talk to Mara, read the historian, then report to the police.',
+      journalStart: 'The contractor’s box wakes on the same clock as everything Reyes does. Read the historian’s log, find the beacon and the nightly pull to 10.0.3.1, find when it started, and report the lot to Meridian Police.',
+      journalDone: 'The plant reports to the same hidden address as the vault, every half hour and every night at 03:12:44, since Sep 30. Water, power and the bottling line, all feeding Reyes. Reported to the police with the records intact. The industrial estate is now part of the case, and all roads still point to the vault at 10.0.3.1.',
+      objectives: [
+        { id: 'o1', text: 'Find the plant’s calls to the hidden address', cmd: 'grep 10.0.3.1 /var/log/historian.log', sig: 'beat from 10.0.3.1', needs: ['grep'], hint: 'grep 10.0.3.1 /var/log/historian.log. A pull at 03:12, then a beat every half hour.' },
+        { id: 'o2', text: 'Find when it started', cmd: 'grep 10.0.3.1 /var/log/historian.log | head -n 1', sig: 'Sep 30 03:12:44', needs: ['head'], hint: 'Logs run oldest first: grep 10.0.3.1 /var/log/historian.log | head -n 1.' },
+        { id: 'o3', text: 'Report the plant to Meridian Police', sig: 'REPORT plant', hint: 'Take it to the front desk at Meridian Police, records intact.' }
       ] }
   ];
 
@@ -1206,7 +1388,11 @@ Lineman's notebook, Meridian Exchange.
     payphone: { title: 'Payphone', style: 'plain', text: 'A coin payphone bolted to the exchange wall, the last one on the Row. The receiver is off the hook and warm. Scratched into the paint above the keypad: 0312 OPENS THE DOOR. 1337 OPENS NOTHING YOU WANT OPENED.' },
     relays: { title: 'Relay cabinet', style: 'plain', text: 'A wall of electromechanical relays that still click every time a call goes through, which tonight is never. A yellowed card inside the door lists the extensions in fountain pen: 1001, 1002, 1003. A fourth line has been added in ballpoint and crossed out twice.' },
     policeNotice: { title: 'Notice on the station door', style: 'paper', text: 'MERIDIAN POLICE · FRONT DESK\nOpen 24 hours. Ring the bell and wait.\n\nCYBERCRIME DESK: closed until Monday 19 October.\n\nMISSING PERSON: OKAFOR, Dara. Last seen Sunday 4 October, 23:40, Building F (Caduceus Analytics). Report filed Monday 5 October, ref. MP-2610-044. Status: open.\n\nTo report a cyber incident, write down what you saw, the date and the time it happened, and the address or host. Keep the logs. Do not log in to systems you do not own to check for yourself.', discovery: { id: 'POLICE-MP-044', title: 'Missing person report MP-2610-044', text: 'Meridian Police list Dara Okafor as missing: last seen Sunday 4 October at 23:40 at Caduceus (Building F), reported Monday 5 October. The cybercrime desk is closed until 19 October.' } },
-    rack3: { title: 'Rack 3', style: 'plain', text: 'A full-height rack behind a mesh door. Two database servers, a switch, and a small grey box on the top shelf with no label and a blinking amber light. Its network cable goes nowhere you can see.' }
+    rack3: { title: 'Rack 3', style: 'plain', text: 'A full-height rack behind a mesh door. Two database servers, a switch, and a small grey box on the top shelf with no label and a blinking amber light. Its network cable goes nowhere you can see.' },
+    hmi: { title: 'HMI (operator screen)', style: 'plain', text: 'The big operator screen for the whole plant. Green mimic diagrams of the water skid, the substation, the boiler and the bottling line, with live numbers ticking beside each. One number on the water skid is boxed in red and flashing: the chemical dose, reading far higher than the green band printed next to it. Everything else is calm. Mara keeps a printed card of the safe ranges taped to the frame.' },
+    oneline: { title: 'One-line diagram', style: 'paper', text: 'A laminated board on the control-room wall. City power comes in through the substation, feeds a plant bus, and the bus feeds the water skid, the boiler house and the bottling line. Every process reports down to the historian and up to this screen. Drawn in bold across the top, above everything else: THE SAFETY SYSTEM, with a note in Agnes’s hand: "stands alone. not on the network. that is the point."' },
+    safetypanel: { title: 'Safety panel', style: 'plain', text: 'A plain steel cabinet with a key lock, a big red mushroom button, and a single green lamp that means armed. There is no screen and no network cable, only thick wiring straight to the valves and breakers. A faded label: INDEPENDENT PROTECTION LAYER. TRIP TESTS QUARTERLY. It answers to nobody online, which is exactly why Agnes trusts it.' },
+    supportbox: { title: 'Remote-support box', style: 'plain', text: 'A small grey box zip-tied inside the control cabinet, newer than everything around it. A sticker in marker reads "T. PETROV - REMOTE SUPPORT - DO NOT UNPLUG". One cable to the plant switch, one tiny aerial. It is how the contractor dials in from home without going through the front door, and, you now know, how something dials out to an address nobody here has ever heard of.', discovery: { id: 'WORKS-SUPPORTBOX', title: 'The contractor’s remote-support box', text: 'A remote-support box installed by the contractor T. Petrov bypasses the plant’s IT/OT boundary and reaches 10.0.3.1, the same hidden address tied to Reyes.' } }
   };
 
   /* ---- cybersecurity intake (PR #2 by hugoClews): ten questions set the briefing level, which shapes the hints ---- */
@@ -1668,6 +1854,24 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       if (q4 === 'active') return ['The keycard opens Building D. Mind the hum. Dara said it was normal, which is what she said about everything.'];
       if (q5 === 'completed') return ['So it was hers. The whole time, it was hers.', 'A third token. Someone else is mapping us. I will rotate every key in this building tonight. Go and tell Rosa.'];
       return ['A box called ghost reporting to a host with no name. Rosa will know how to find a host with no name. I only know how to find them in my logs.'];
+    },
+    mara(st) {
+      const cs = st.quests.plant_coldstart, sp = st.quests.plant_setpoint, gh = st.quests.plant_ghost;
+      if (cs === 'available' || cs === 'active') return ['You made it up the hill. Good. Mara Kessler, I run the control system here, eleven years now.', 'Rule one before you touch anything: on the street a mistake crashes a computer. In here it floods a road. Read the note on the desk, then the plant diagram.'];
+      if (gh === 'completed') return ['You found the thread we never would have. The plant has been feeding that address since before Dara went quiet.', 'Keep the records. The police have them now, and so do we.'];
+      if (sp === 'completed') return ['After that dose, go and see Agnes. She will show you why none of us lost any sleep over it. The safety system does not care what a controller is told.'];
+      return ['The plant runs on controllers: water, power, the boiler, the bottling line. We watch them, we do not poke them.', 'Whenever you are ready for the next one, ask. I have a list of things nobody here has had time to check.'];
+    },
+    agnes(st) {
+      const sp = st.quests.plant_setpoint, sa = st.quests.plant_safety;
+      if (sp === 'active' && st.done.plant_setpoint && st.done.plant_setpoint.includes('o1') && st.done.plant_setpoint.includes('o2'))
+        return ['Out of range, from that address, no ticket. You were right to come to me and not to the valve.', 'We will bring the dose back the proper way, two of us, logged. You touched nothing. That is exactly the job.'];
+      if (sa === 'available' || sa === 'active') return ['Agnes Vukovic, safety. The thing I keep is the one that saves the plant when every clever system fails.', 'It trips the plant to a safe state on its own, and it is not on your network. Prove that is still true. Read the config I export to the desk.'];
+      if (sa === 'completed') return ['Still alone, still armed. Good. That is the only report I ever want to hear about it.'];
+      return ['Find it, write it down, tell me. Never the valve. Say it back to me.'];
+    },
+    bram(st) {
+      return ['Thirty years I have watched these dials. They do not lie, the dials. Screens lie.', 'Plant does something funny in the small hours, you know. Same small hours the whole street keeps on about. Nobody listens to the night man.', 'Tea is over there if Mara left any.'];
     }
   };
 
@@ -1890,8 +2094,9 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       const w = x1 - x0, d = z1 - z0; if (w < 6 || d < 6) continue;
       const central = i === 2 && (j === 2 || j === 3) && x1 - x0 > 50; if (central) continue; // Meridian Row's own blocks are hand-built
       k++;
-      const kind = (i === 1 && j === 3) ? 'park' : (i === 3 && j === 2) ? 'lot' : (i === 1 && j === 1) ? 'garage' : 'offices';
+      const kind = (i === 1 && j === 3) ? 'park' : (i === 1 && j === 4) ? 'plant' : (i === 3 && j === 2) ? 'lot' : (i === 1 && j === 1) ? 'garage' : 'offices';
       if (kind === 'park') park(x0, x1, z0, z1);
+      else if (kind === 'plant') plant(x0, x1, z0, z1);
       else if (kind === 'lot') parkingLot(x0, x1, z0, z1);
       else if (kind === 'garage') garage(x0, x1, z0, z1, k);
       else if (i === 3 && j === 3) policeStation(); // the block east of Building X, across the Row from the parking lot
@@ -2556,7 +2761,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   }
 
   /* ---------- the other three interiors: Caduceus ops floor (F), the Solarpunk Lab workshop (H), the Utilities machine room (D) ---------- */
-  const IXF = 500, IXH = 750, IXD = 1000, IXM = 1250, IXX = 1500; // Byte Mart's interior sits at x+1250
+  const IXF = 500, IXH = 750, IXD = 1000, IXM = 1250, IXX = 1500, IXW = 2000; // Byte Mart's interior sits at x+1250; Meridian Works control room at x+2000
   // a one-room shell: floor, four walls, an exit door on the front wall (z = Z0) with a label, a few windows; the zone root decides which way it faces
   function room(o) {
     const { X0, X1, Z0, Z1, H, wallM, floorM, door } = o; const T = 0.3;
@@ -2803,10 +3008,68 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
 
   /* ---------- build ---------- */
   let glow = null;
+  /* ---------- Meridian Works: the industrial estate north of the park, and its control room ---------- */
+  function plant(x0, x1, z0, z1) {
+    const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, w = x1 - x0, d = z1 - z0;
+    // concrete pad for the whole estate
+    box(texMat('plantPad', asphaltTex(), { spec: 0.05 }), w, 0.1, d, cx, 0, cz, { cast: false, walk: true, recv: true, name: 'plantpad' });
+    // chain-link fence around the perimeter, with a gap for the gate at the south centre
+    const postM = mat('fencePost', '#6a7080', { spec: 0.3 }), meshM = mat('fenceMesh', '#3a3d44', { alpha: 0.5, spec: 0.1 });
+    const run = (ax, az, bx, bz, gate) => { const len = Math.hypot(bx - ax, bz - az), n = Math.max(2, Math.round(len / 2)); for (let i = 0; i <= n; i++) { const t = i / n, px = ax + (bx - ax) * t, pz = az + (bz - az) * t; if (gate && Math.abs(px - cx) < 1.8 && Math.abs(pz - (z0)) < 1.0) continue; box(postM, 0.1, 2.0, 0.1, px, 0, pz, { cast: false }); } const mx = (ax + bx) / 2, mz = (az + bz) / 2; box(meshM, Math.abs(bx - ax) || 0.06, 1.7, Math.abs(bz - az) || 0.06, mx, 0.1, mz, { cast: false }); };
+    run(x0 + 0.3, z0 + 0.3, x1 - 0.3, z0 + 0.3, true); run(x0 + 0.3, z1 - 0.3, x1 - 0.3, z1 - 0.3, false); run(x0 + 0.3, z0 + 0.3, x0 + 0.3, z1 - 0.3, false); run(x1 - 0.3, z0 + 0.3, x1 - 0.3, z1 - 0.3, false);
+    // control room: a small block near the south edge, door on its south face toward the gate
+    const crx = cx, crz = z0 + 4.5, cw = Math.min(10, w - 4), cd = 5, ch = 4.4;
+    box(mat('crWall', '#3a4452', { spec: 0.15 }), cw, ch, cd, crx, 0, crz, { collide: true, occlude: true, cast: true, recv: true });
+    box(mat('crParapet', '#222831'), cw + 0.3, 0.4, cd + 0.3, crx, ch, crz, { cast: false });
+    box(mat('crDoor', '#141a22', { spec: 0.2 }), 2.0, 2.6, 0.12, crx, 0, crz - cd / 2 - 0.02, { cast: false });
+    box(mat('crStrip', '#ffd9a8', { emissive: '#ff8a3c', unlit: true }), 2.3, 0.08, 0.08, crx, 2.75, crz - cd / 2 - 0.05, { cast: false });
+    decal(texMat('crSign', textTex('MERIDIAN WORKS · CONTROL ROOM', { w: 1024, h: 120, color: '#ff8a3c', glow: true }), { unlit: true, alpha: true, emissive: '#ffffff' }), 7, 0.82, crx, ch - 1.0, crz - cd / 2 - 0.06);
+    decal(texMat('crRoof', textTex('WORKS', { w: 256, h: 256, color: '#ff8a3c', font: '200px "Bebas Neue", sans-serif' }), { unlit: true, alpha: true, emissive: '#ffffff' }), 4, 4, crx, ch + 0.08, crz);
+    block(crx - cw / 2, crx + cw / 2, crz - cd / 2, crz + cd / 2);
+    // process kit in the yard (north of the control room): tanks, a pipe rack, a substation, a conveyor
+    const steelY = mat('plantSteel', '#8d939b', { spec: 0.4 }), tankM = mat('plantTank', '#9aa6ad', { spec: 0.3 }), pipeM = mat('plantPipe', '#b7a24a', { spec: 0.3 });
+    [[-w * 0.28, 0.45], [-w * 0.28, 0.78]].forEach(t => { cyl(tankM, 2.4, 3.2, cx + t[0], 0, cz + d * 0.1, { collide: true, tess: 18, name: 'tank' }); cyl(tankM, 2.5, 0.3, cx + t[0], 3.2, cz + d * 0.1, { cast: true, tess: 18, top: 1.2 }); });
+    for (let i = 0; i < 4; i++) { box(steelY, 0.2, 2.2, 0.2, cx - 1.5 + i * 1.0, 0, cz + d * 0.28, { cast: true }); } box(pipeM, 4.2, 0.22, 0.22, cx, 2.2, cz + d * 0.28, { cast: true }); box(pipeM, 4.2, 0.22, 0.22, cx, 1.7, cz + d * 0.28, { cast: true });
+    // substation: a fenced pad with transformer cans that hum
+    box(mat('subPad', '#2a2c31'), 5, 0.14, 4, cx + w * 0.3, 0, cz + d * 0.12, { cast: false }); [[-1.0], [1.0]].forEach(o => { cyl(mat('xformer', '#5a6068', { spec: 0.3 }), 1.4, 2.0, cx + w * 0.3 + o[0], 0, cz + d * 0.12, { collide: true, tess: 10, name: 'transformer' }); cyl(steelY, 0.08, 1.0, cx + w * 0.3 + o[0], 2.0, cz + d * 0.12, { cast: false, tess: 6 }); });
+    box(mat('subWarn', '#ffb020', { emissive: '#7a5200', unlit: true }), 0.6, 0.4, 0.02, cx + w * 0.3, 1.2, cz + d * 0.12 - 2.0, { cast: false });
+    // bottling line: a long low conveyor along the north fence
+    box(mat('conveyor', '#2f3a4a', { spec: 0.2 }), w * 0.7, 0.7, 0.9, cx, 0.5, cz + d * 0.38, { collide: true, cast: true, name: 'conveyor' }); for (let i = 0; i < 6; i++) box(mat('bottle', '#9fd0e8', { alpha: 0.5, spec: 0.8 }), 0.16, 0.3, 0.16, cx - w * 0.3 + i * (w * 0.6 / 5), 1.05, cz + d * 0.38, { cast: false });
+    // a sodium work-lamp glow over the yard
+    pointLight(cx, 6, cz + d * 0.2, '#ffd59a', 0.5, 22);
+    mapBlocks.push([x0, x1, z0, z1, '#3a2d18']);
+  }
+  function buildWorks() {
+    Z = makeZone('works', IXW);
+    addLights(Z, { hemi: 0.62, sky: '#dfe6ee', groundCol: '#20242a', dir: V3(-0.25, -1, -0.35), dirI: 0.5, dirCol: '#cfe0ff', dirPos: V3(IXW + 4, 8, -4), shadowRes: 1536 });
+    const X0 = -8, X1 = 8, Z0 = -6, Z1 = 6, H = 4.2;
+    const wallM = mat('worksWall', '#aab2bd', { spec: 0.12 });
+    const floorM = texMat('worksFloor', dtex('worksFloor', 256, 256, (c, W, Hh) => { c.fillStyle = '#31363d'; c.fillRect(0, 0, W, Hh); c.strokeStyle = 'rgba(255,170,90,.14)'; c.lineWidth = 3; for (let i = 0; i <= W; i += 64) { c.beginPath(); c.moveTo(i, 0); c.lineTo(i, Hh); c.stroke(); c.beginPath(); c.moveTo(0, i); c.lineTo(W, i); c.stroke(); } }, { mips: true, u: 7, v: 5 }), { spec: 0.2 });
+    room({ name: 'W', X0, X1, Z0, Z1, H, wallM, floorM, door: 0, windows: [[X1 - 0.1, 1.2, 2, 2.4, 1.4, PI / 2, 'side']] });
+    const steel = mat('worksSteel', '#8d98a8', { spec: 0.4 }), dark = mat('darkPlastic', '#17181c', { spec: 0.25 });
+    // engineering workstation (the plant terminal), facing south into the room
+    workstation(-3.5, 3.4, PI, ['eng-ws 10.1.0.10', 'plant: 4 controllers', 'water dose: HIGH', 'eng@eng-ws:~$ _'], '#ffbe5c');
+    // the big HMI mimic screen on the north wall
+    plane(texMat('worksHMI', screenTex(['MERIDIAN WORKS  HMI', 'WATER  dose 9.9  !!', 'POWER  ok   BOILER ok', 'LINE   ok'], '#8cf2b0'), { unlit: true, emissive: '#ffffff' }), 3.6, 2.2, 0, 2.2, Z1 - 0.12, { single: true, name: 'hmiScreen' });
+    // one-line diagram board on the west wall
+    plane(texMat('worksOneline', textTex('ONE-LINE  ·  SAFETY SYSTEM ABOVE ALL', { w: 768, h: 256, color: '#dbe6f0', bg: '#1b2230', font: '600 40px "JetBrains Mono", monospace', lineH: 60 }), { unlit: true, emissive: '#ffffff' }), 3.0, 1.4, X0 + 0.12, 2.1, -2.0, { ry: PI / 2, single: true });
+    // the independent safety panel: a steel cabinet with a red trip button and a green armed lamp, no screen
+    box(mat('sisCab', '#4a5a4a', { spec: 0.2 }), 1.2, 2.2, 0.6, X1 - 0.6, 0, -3.5, { collide: true, name: 'safetypanel' }); box(mat('sisBtn', '#d83a2a', { emissive: '#5a1008' }), 0.22, 0.22, 0.12, X1 - 0.6, 1.5, -3.82, { cast: false }); box(mat('sisArmed', '#3ddc84', { emissive: '#1a7a44', unlit: true }), 0.08, 0.08, 0.06, X1 - 0.6, 1.9, -3.82, { cast: false });
+    // the control cabinet with the contractor's little grey remote-support box zip-tied inside
+    box(mat('ctrlCab', '#2a2d35', { spec: 0.3 }), 1.4, 2.4, 0.6, X0 + 0.9, 0, 4.4, { collide: true });
+    box(mat('supportBox', '#6a7078', { spec: 0.3 }), 0.4, 0.26, 0.5, X0 + 0.9, 1.2, 4.1, { cast: false, name: 'supportbox' }); box(mat('supportLed', '#ffb454', { emissive: '#ffb454', unlit: true }), 0.03, 0.03, 0.03, X0 + 1.05, 1.34, 3.83, { cast: false }).metadata = { blink: true };
+    // a couple of operator desks and chairs
+    desk(3.2, -1.0, 0, ['historian 10.1.0.20', 'trend: water dose', '03:12 spike'], '#8cf2b0'); chair(-1.5, -3.0, 0.3);
+    // overhead tubes and work light
+    [[-3.5, -3], [3, -3], [-3.5, 2.5], [3, 2.5]].forEach(pz => box(mat('tube', '#f6f8ff', { emissive: '#dfe8ff', unlit: true }), 1.4, 0.06, 0.12, pz[0], H - 0.1, pz[1], { cast: false }));
+    decal(texMat('worksRug', rugTex('#2b3a2b', '#ff8a3c'), { spec: 0 }), 2.2, 1.5, 0, 0.01, 0.5);
+    pointLight(-2, 3.4, 1, '#ffffff', 0.5, 12); pointLight(3, 3.4, -1, '#ffe0b0', 0.5, 11);
+  }
+
   function buildWorld() {
     // the prefiltered studio environment ships as base64 text so it can be served; it is decoded and handed to Babylon through a blob URL
     fetch('env/studio.env.txt').then(r => r.ok ? r.text() : Promise.reject(r.status)).then(b64 => { const bin = atob(b64.trim()); const bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); const url = URL.createObjectURL(new Blob([bytes])); scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(url, scene, '.env'); scene.environmentIntensity = 0.7; }).catch(() => { /* PBR falls back to lights only */ });
-    buildOutdoor(); buildInterior(); buildCaduceus(); buildLab(); buildUtilities(); buildPolice(); buildMart(); buildExchange(); spawnChips();
+    buildOutdoor(); buildInterior(); buildCaduceus(); buildLab(); buildUtilities(); buildPolice(); buildMart(); buildExchange(); buildWorks(); spawnChips();
     if (!NULL_ENGINE) { glow = new BABYLON.GlowLayer('glow', scene, { blurKernelSize: 32 }); glow.intensity = 0.5; noGlow.forEach(m => glow.addExcludedMesh(m)); }
     setZone('out', true);
   }
@@ -2862,10 +3125,21 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   addInter({ id: 'mlog', zone: 'util', pos: V3(IXD + 1.4, 0, -4.3), r: 1.3, label: 'Read maintenance clipboard', run() { ui.examine('mlog'); } });
   addInter({ id: 'rack3', zone: 'util', pos: V3(IXD + 5.0, 0, 0.0), r: 1.5, label: 'Look at rack 3', run() { ui.examine('rack3'); } });
   // Meridian Police interior interactables, in world coordinates (IXP + local x).
-  addInter({ id: 'frontDesk', zone: 'police', pos: V3(IXP + 0.8, 0, -1.35), r: 1.1, label: 'Ring the front-desk bell', run() { const ph = 'side_customs'; if (store.state.quests[ph] === 'active' && store.isDone(ph, 'o1') && store.isDone(ph, 'o2') && !store.isDone(ph, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant photographs the screen: sender, link, time. “You did not click it? Good. Customs fees by text are the oldest trick there is.”' }); store.checkText('REPORT phish'); return; } const q = 'gig_cleanroom'; if (store.state.quests[q] === 'active' && store.isDone(q, 'o1') && store.isDone(q, 'o2') && !store.isDone(q, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant writes it all down: what, where, when you found it, and that you left both devices in place. “Good. Touch them and they stop being evidence.”' }); store.checkText('REPORT bugs'); return; } ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The bell rings once. A tired voice calls from the back: “Cybercrime is closed until Monday. Leave the logs.”' }); } });
+  addInter({ id: 'frontDesk', zone: 'police', pos: V3(IXP + 0.8, 0, -1.35), r: 1.1, label: 'Ring the front-desk bell', run() { const pg = 'plant_ghost'; if (store.state.quests[pg] === 'active' && store.isDone(pg, 'o1') && store.isDone(pg, 'o2') && !store.isDone(pg, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant takes the plant’s logs, intact, and adds them to the file. “Water and power, reporting to the same address. That is one for the morning. Good that you kept it clean.”' }); store.checkText('REPORT plant'); return; } const ph = 'side_customs'; if (store.state.quests[ph] === 'active' && store.isDone(ph, 'o1') && store.isDone(ph, 'o2') && !store.isDone(ph, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant photographs the screen: sender, link, time. “You did not click it? Good. Customs fees by text are the oldest trick there is.”' }); store.checkText('REPORT phish'); return; } const q = 'gig_cleanroom'; if (store.state.quests[q] === 'active' && store.isDone(q, 'o1') && store.isDone(q, 'o2') && !store.isDone(q, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant writes it all down: what, where, when you found it, and that you left both devices in place. “Good. Touch them and they stop being evidence.”' }); store.checkText('REPORT bugs'); return; } ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The bell rings once. A tired voice calls from the back: “Cybercrime is closed until Monday. Leave the logs.”' }); } });
   addInter({ id: 'caseBoard', zone: 'police', pos: V3(IXP + 1.5, 0, 5.75), r: 1.1, label: 'Look at the case board', run() { ui.examine('policeNotice'); } });
   addInter({ id: 'cyberDesk', zone: 'police', pos: V3(IXP + 5.2, 0, 3.85), r: 1.1, label: 'Use the cybercrime terminal', run() { ui.toast({ kind: 'ok', title: 'Cybercrime desk', text: 'Case MP-2610-044: Dara Okafor. Preserve original logs, write down the time, and record the host or address.' }); } });
   addInter({ id: 'policeCells', zone: 'police', pos: V3(IXP - 6.5, 0, 3.5), r: 1.5, label: 'Look into the holding cell', run() { ui.toast({ kind: '', title: 'Holding cell', text: 'Empty tonight. The lock display blinks 03:12, then resets.' }); } });
+  // Meridian Works: the estate north of the park and its control room
+  addInter({ id: 'doorW', zone: 'out', pos: V3(WDOOR()[0], 0, WDOOR()[1]), r: 2.4, label: 'Enter Meridian Works', run() { transition(() => { setZone('works'); placePlayer(IXW, 0, -4.4, 0); if (store.state.quests.plant_coldstart === 'available') store.activateQuest('plant_coldstart'); }); } });
+  addInter({ id: 'exitW', zone: 'works', pos: V3(IXW, 0, -5.2), r: 1.5, label: 'Leave Meridian Works', run() { transition(() => { setZone('out'); placePlayer(WDOOR()[0], 0, WDOOR()[1] - 2.4, PI); }); } });
+  addInter({ id: 'comp-w-01', zone: 'works', pos: V3(IXW - 3.5, 0, 2.6), r: 1.6, label: 'Use engineering workstation (eng-ws)', run() { ui.openTerminal('plant'); } });
+  addInter({ id: 'hmi', zone: 'works', pos: V3(IXW, 0, 4.8), r: 1.6, label: 'Look at the HMI', run() { ui.examine('hmi'); } });
+  addInter({ id: 'oneline', zone: 'works', pos: V3(IXW - 6.6, 0, -2.0), r: 1.4, label: 'Read the one-line diagram', run() { ui.examine('oneline'); } });
+  addInter({ id: 'safetypanel', zone: 'works', pos: V3(IXW + 5.2, 0, -3.2), r: 1.3, label: 'Look at the safety panel', run() { ui.examine('safetypanel'); } });
+  addInter({ id: 'supportbox', zone: 'works', pos: V3(IXW - 6.0, 0, 4.0), r: 1.3, label: 'Look in the control cabinet', run() { ui.examine('supportbox'); } });
+  addInter({ id: 'mara', zone: 'works', pos: V3(IXW - 2.4, 0, 2.6), r: 2.0, label: 'Talk to Mara Kessler', run() { const st = store.state; ui.dialogue('Mara Kessler', ZD.DIALOGUE.mara(st).concat(store.pitches('mara')), () => { store.offer('mara'); }, 'mara'); } });
+  addInter({ id: 'agnes', zone: 'works', pos: V3(IXW + 4.6, 0, -3.0), r: 2.0, label: 'Talk to Agnes Vukovic', run() { const st = store.state; ui.dialogue('Agnes Vukovic', ZD.DIALOGUE.agnes(st).concat(store.pitches('agnes')), () => { store.offer('agnes'); const q = 'plant_setpoint'; if (st.quests[q] === 'active' && store.isDone(q, 'o1') && store.isDone(q, 'o2') && !store.isDone(q, 'o3')) { ui.toast({ kind: 'ok', title: 'Reported', text: 'Agnes logs the what, the when and the who, and the two of you bring the dose back to safe the proper way.' }); store.checkText('REPORT setpoint'); } }, 'agnes'); } });
+  addInter({ id: 'bram', zone: 'works', pos: V3(IXW - 5.0, 0, -1.0), r: 2.0, label: 'Talk to Old Bram', run() { ui.dialogue('Old Bram', ZD.DIALOGUE.bram(store.state), () => {}, 'bram'); } });
   martInteractables(); exchangeInteractables();
   // the two people on the street
   addInter({ id: 'rosa', zone: 'out', pos: V3(-7.2, 0, 13.6), r: 2.2, label: 'Talk to Rosa Tavares', run() { ui.dialogue('Rosa Tavares', ZD.DIALOGUE.rosa(store.state).concat(store.pitches('rosa')), () => { const st = store.state; store.offer('rosa'); if (st.quests.quest_f1_cli === 'completed' && st.quests.quest_f2_networking === 'available') { st.flags.rosaKit = true; store.activateQuest('quest_f2_networking'); } if (st.quests.quest_i2_utilities === 'completed' && st.quests.quest_i3_ghost === 'available') store.activateQuest('quest_i3_ghost'); }, 'rosa'); faceNPC('rosa'); } });
@@ -3038,7 +3312,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   }
   function interact() { if (state.ui || !current) return; current.run(); }
   function updateNPCs(dt, t) {
-    ['rosa', 'julien', 'nadia', 'courier'].forEach(n => { const ch = chars[n]; if (!ch) return; let d = ch.yaw - ch.pivot.rotation.y; while (d > PI) d -= 2 * PI; while (d < -PI) d += 2 * PI; ch.pivot.rotation.y += d * Math.min(1, dt * 4); ch.talking = state.ui === 'dlg' && ui.dlgWho === n; ch.moving = false; animateChar(ch, dt); });
+    ['rosa', 'julien', 'nadia', 'courier', 'mara', 'agnes', 'bram'].forEach(n => { const ch = chars[n]; if (!ch) return; let d = ch.yaw - ch.pivot.rotation.y; while (d > PI) d -= 2 * PI; while (d < -PI) d += 2 * PI; ch.pivot.rotation.y += d * Math.min(1, dt * 4); ch.talking = state.ui === 'dlg' && ui.dlgWho === n; ch.moving = false; animateChar(ch, dt); });
     if (beacon.node && beacon.node.isEnabled()) { beacon.arrow.position.y = 4.0 + Math.sin(t * 2.2) * 0.4; beacon.arrow.rotation.y = t * 1.5; beacon.ring.scaling.setAll(1 + Math.sin(t * 2.2) * 0.06); } // the beacon is silent in this cut; the minimap carries the objective
   }
   function spatial(pos, range) { const p = chars.player.pivot.position; const dx = pos.x - p.x, dz = pos.z - p.z; const d = Math.hypot(dx, dz); const att = Math.pow(Math.max(0, 1 - d / range), 1.4); const pan = d > 0.01 ? dx / d * 0.8 : 0; return { att, pan }; }
@@ -3052,10 +3326,10 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     c.strokeStyle = '#2a2d36'; c.lineWidth = CITY.roadW * sx; CITY.roadsZ.forEach(rz => { c.beginPath(); c.moveTo(0, Y(rz)); c.lineTo(W, Y(rz)); c.stroke(); }); c.lineWidth = CITY.roadW * sz; CITY.roadsX.forEach(rx => { c.beginPath(); c.moveTo(X(rx), 0); c.lineTo(X(rx), H); c.stroke(); });
     c.strokeStyle = '#5a4a1c'; c.lineWidth = 1; c.beginPath(); c.moveTo(0, Y(0)); c.lineTo(W, Y(0)); c.stroke(); // Meridian Row itself
     mapBlocks.forEach(b => { c.fillStyle = b[4]; c.fillRect(X(b[0]), Y(b[3]), (b[1] - b[0]) * sx, (b[3] - b[2]) * sz); });
-    c.fillStyle = '#f2ecdc'; c.font = '9px "Oswald", sans-serif'; c.textAlign = 'center'; [['A', -8.5, -21], ['F', 12, -21], ['H', -9, 21], ['D', 13, 21], ['M', -22.5, -21], ['X', 24.5, 21], ['P', 54, 17]].forEach(l => c.fillText(l[0], X(l[1]), Y(l[2]) + 3));
+    c.fillStyle = '#f2ecdc'; c.font = '9px "Oswald", sans-serif'; c.textAlign = 'center'; [['A', -8.5, -21], ['F', 12, -21], ['H', -9, 21], ['D', 13, 21], ['M', -22.5, -21], ['X', 24.5, 21], ['P', 54, 17], ['W', -54, 60]].forEach(l => c.fillText(l[0], X(l[1]), Y(l[2]) + 3));
     if (store.has('scanner')) { c.fillStyle = '#ffd23f'; chips.forEach(ch => { if (!ch.alive) return; c.beginPath(); c.arc(X(ch.x), Y(ch.z), 1.6, 0, PI * 2); c.fill(); }); }
     const p = chars.player; if (!p) return;
-    const PINS = { in: ['A', -8.5, -21], cad: ['F', 12, -21], lab: ['H', -9, 21], util: ['D', 13, 21], mart: ['M', -22.5, -21], xch: ['X', 24.5, 21] }; const pin = PINS[state.zone]; const inside = !!pin; const px = inside ? pin[1] : p.pivot.position.x, pz = inside ? pin[2] : p.pivot.position.z;
+    const PINS = { in: ['A', -8.5, -21], cad: ['F', 12, -21], lab: ['H', -9, 21], util: ['D', 13, 21], mart: ['M', -22.5, -21], xch: ['X', 24.5, 21], works: ['W', -54, 60] }; const pin = PINS[state.zone]; const inside = !!pin; const px = inside ? pin[1] : p.pivot.position.x, pz = inside ? pin[2] : p.pivot.position.z;
     if (beacon.node && beacon.node.isEnabled() && !inside) { const bp = beacon.node.position; const r = 3 + Math.sin(t * 5) * 1.5; c.fillStyle = '#3ee8f0'; c.beginPath(); c.arc(X(bp.x), Y(bp.z), r, 0, PI * 2); c.fill(); c.strokeStyle = 'rgba(62,232,240,.45)'; c.setLineDash([3, 3]); c.beginPath(); c.moveTo(X(px), Y(pz)); c.lineTo(X(bp.x), Y(bp.z)); c.stroke(); c.setLineDash([]); }
     c.save(); c.translate(X(px), Y(pz)); c.rotate(state.driving ? state.driving.heading : p.yaw); c.fillStyle = '#ffd23f'; c.beginPath(); c.moveTo(0, -6); c.lineTo(4.5, 5); c.lineTo(0, 2.5); c.lineTo(-4.5, 5); c.closePath(); c.fill(); c.restore();
     if (inside) { c.fillStyle = '#ffd23f'; c.font = '10px "Oswald", sans-serif'; c.fillText(pin[0] === 'M' ? 'INSIDE BYTE MART' : 'INSIDE BUILDING ' + pin[0], W / 2, H - 6); }
@@ -3785,7 +4059,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   }
 
   /* ---------- Act 2: the courier in the park, the burner phone, the call, and Building X, the Meridian Exchange ---------- */
-  function COURIER() { return [-50.5, 23.2]; } function XDOOR() { return [24.5, 15]; } // functions, not consts: the interactables below register before this file's statements run
+  function COURIER() { return [-50.5, 23.2]; } function XDOOR() { return [24.5, 15]; } function WDOOR() { return [-54, 49]; } // the control-room door in the estate north of the park // functions, not consts: the interactables below register before this file's statements run
   function buildExchange() {
     Z = makeZone('xch', IXX); // the door is on the south wall facing the Row, like Buildings H and D
     addLights(Z, { hemi: 0.6, sky: '#b8c4d8', groundCol: '#141418', dir: V3(0.25, -1, 0.35), dirI: 0.35, dirCol: '#cfe0ff', dirPos: V3(IXX - 3, 8, -4), shadowRes: 1536 });
@@ -3842,6 +4116,19 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const c = BABYLON.MeshBuilder.CreateCylinder('npcCol', { height: 1.8, diameter: 0.7 }, scene); c.position.set(COURIER()[0], 0.9, COURIER()[1]); c.isVisible = false; c.isPickable = false; c.checkCollisions = true; c.parent = Z.root;
     Z = prev;
   }
+  function placePlantNPCs() {
+    const prev = Z; Z = zones.works; if (!Z) { Z = prev; return; }
+    const spots = { mara: [-2.4, 2.6, PI, 'worker', true], agnes: [4.6, -3.0, -PI / 2, 'worker', true], bram: [-5.0, -1.0, 0.4, 'casual', false] };
+    Object.entries(spots).forEach(([name, s]) => {
+      if (chars[name]) return;
+      let ch; if (AV.ready) { const rb = rbPick(s[3], s[4]) || rbPick('casual', s[4]); ch = rb ? makeAvatar(name, rb, {}) : makeAvatar(name, s[4] ? 'rosa' : 'julien', {}); ch.rig = rb || (s[4] ? 'rosa' : 'julien'); ch.female = s[4]; rbAnims(ch, true); }
+      else ch = makeFigure(name, { jacket: s[4] ? '#c86a3a' : '#3a4a55', pants: '#2a2a2a', skin: '#c99a70', hair: '#2a2a2a' });
+      ch.pivot.position.set(s[0], 0, s[1]); ch.yaw = s[2]; ch.pivot.rotation.y = s[2];
+      const c = BABYLON.MeshBuilder.CreateCylinder('npcCol', { height: 1.8, diameter: 0.7 }, scene); c.position.set(s[0], 0.9, s[1]); c.isVisible = false; c.isPickable = false; c.checkCollisions = true; c.parent = Z.root;
+      if (!NULL_ENGINE && Z.sg && ch.kind === 'avatar') charMeshes(ch).forEach(m => Z.sg.addShadowCaster(m));
+    });
+    Z = prev;
+  }
   /* ---------- the phone: rings on a timer after the courier, answered with E or the button; F opens it afterwards ---------- */
   const PHONE = { ringing: false, lastRing: 0, calls: [] };
   function updateAct2(dt, t) {
@@ -3869,7 +4156,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   const SFX = (function () {
     let ctx = null, master = null, white = null, brown = null, bus = {}, humG = null, muted = false, musicOff = false, musicSuspended = false, voicesOff = false, padTimers = [], mix = {}; const music = { out: null, in: null, zone: 'out', step: { out: 0, in: 0 }, next: 0 };
     const vol = { master: 100, music: 70, sfx: 100, ambient: 80 };
-    const VOICES = { courier: { female: true, pitch: 0.95, rate: 0.97, pick: 2 }, caller: { female: false, pitch: 0.55, rate: 0.85, pick: 1 }, rosa: { female: true, pitch: 1.0, rate: 1.0, pick: 0 }, julien: { female: false, pitch: 0.85, rate: 0.95, pick: 0 }, nadia: { female: true, pitch: 1.12, rate: 1.08, pick: 1 }, ped: { female: false, pitch: 1.0, rate: 1.0, pick: 0 } };
+    const VOICES = { courier: { female: true, pitch: 0.95, rate: 0.97, pick: 2 }, caller: { female: false, pitch: 0.55, rate: 0.85, pick: 1 }, rosa: { female: true, pitch: 1.0, rate: 1.0, pick: 0 }, julien: { female: false, pitch: 0.85, rate: 0.95, pick: 0 }, nadia: { female: true, pitch: 1.12, rate: 1.08, pick: 1 }, ped: { female: false, pitch: 1.0, rate: 1.0, pick: 0 }, mara: { female: true, pitch: 0.98, rate: 1.0, pick: 1 }, agnes: { female: true, pitch: 0.9, rate: 0.95, pick: 0 }, bram: { female: false, pitch: 0.8, rate: 0.9, pick: 1 } };
     if (window.speechSynthesis) { try { window.speechSynthesis.getVoices(); window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices(); } catch (e) { /* no speech */ } }
     try { muted = localStorage.getItem('nz-sound') === 'off'; musicOff = localStorage.getItem('nz-music') === 'off'; voicesOff = localStorage.getItem('nz-voices') === 'off'; const v = JSON.parse(localStorage.getItem('nz-vol') || 'null'); if (v) Object.keys(vol).forEach(k => { if (typeof v[k] === 'number') vol[k] = v[k]; }); } catch (e) { /* no storage */ }
     const rnd = Math.random;
@@ -4397,7 +4684,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     rosa.pivot.position.set(-7.2, 0, 13.6); rosa.yaw = PI; rosa.pivot.rotation.y = PI;
     jul.pivot.position.set(10.2, 0, -13.4); jul.yaw = 0.2; jul.pivot.rotation.y = 0.2;
     [rosa, jul].forEach(ch => { const c = BABYLON.MeshBuilder.CreateCylinder('npcCol', { height: 1.8, diameter: 0.7 }, scene); c.position.set(ch.pivot.position.x, 0.9, ch.pivot.position.z); c.isVisible = false; c.isPickable = false; c.checkCollisions = true; c.parent = Z.root; });
-    placeNadia(); placeCourier();
+    placeNadia(); placeCourier(); placePlantNPCs();
     spawnTraffic(22); spawnPeds(AV.ready ? 18 : 28); spawnPolice();
     [[-20, -5, PI / 2], [26, 5, -PI / 2], [-24, 5, -PI / 2], [-41, -20, 0], [41, 22, PI], [-41, 60, 0], [41, -60, PI], [-77, 20, 0], [77, -20, PI]].forEach(p => spawnCar({ x: p[0], z: p[1], heading: p[2], parked: true }));
     if (!NULL_ENGINE && AV.ready) { const sg = zones.out.sg; Object.values(chars).forEach(ch => { if (ch.kind === 'avatar' && ch !== chars.nadia) charMeshes(ch).forEach(m => sg.addShadowCaster(m)); }); }
