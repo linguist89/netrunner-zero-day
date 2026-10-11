@@ -60,6 +60,8 @@ Before dropping in (and whenever you continue) the runner is styled Morrowind-st
 
 Rosa, Julien and Nadia speak their lines through the browser's own speech voices (a Voices switch in settings turns this off; without voices the old radio blips play). Every passer-by has a name and a mood: the kind ones give directions and gossip about Dara, the rude ones tell you to keep walking, the busy ones are late for Caduceus. Anyone you nearly ran over will mention it.
 
+The crowd is drawn from 22 Microsoft Rocketbox characters (MIT), put on the game's own skeleton so they walk, jog, idle and talk with the same clips as everyone else. Who they are decides where they spend the day: office staff and a security guard outside Caduceus (F), work crews outside Meridian Utilities and the Exchange (D, X), a gardener by the Solarpunk Lab (H), and everyone else anywhere on the grid. People with a workplace drift back toward it when they wander off. Nadia behind the Byte Mart counter and Ines by the fountain have their own bodies too. `tools/rocketbox` holds the converter and the full cast list.
+
 ## Time, date and the 03:12 event
 
 Meridian Row runs on its own calendar. A new profile starts on Saturday 10 October 2026 at 19:00, six days after Dara was last seen. Two game minutes pass every real second, so a day lasts twelve minutes, and the clock stops while a terminal, a conversation or a menu is open. T shows a pager-style clock with the time, the date and a 24-hour strip. The date is saved with the profile.
@@ -73,7 +75,7 @@ Meridian Row runs on its own calendar. A new profile starts on Saturday 10 Octob
 
 The station is on the block east of Building X, facing the Row (P on the minimap), with blue POLICE lamps, bollards and two cruisers on the forecourt. The notice on its door lists Dara's missing person report (MP-2610-044) and explains how to report a cyber incident properly; reading it adds a notebook entry.
 
-Six officers patrol the sidewalks, three of them on Meridian Row. They wear a uniform built on the game's own rigs and fixed to their bones, so it follows every animation: navy shirt and trousers, black boots, a peaked cap with a chequered band and gold badge, a hi-vis vest with reflective bands and POLICE on the back, a duty belt and a radio. Talk to them with E for cyber-safety advice (phishing, responsible disclosure, logs as evidence) and remarks that follow the story.
+Six officers patrol the sidewalks, three of them on Meridian Row. The three men are Rocketbox officers: one in a peaked-cap uniform and two cybercrime detectives in POLICE vests. The three women wear a uniform built on the game's own rigs and fixed to their bones, so it follows every animation: navy shirt and trousers, black boots, a peaked cap with a chequered band and gold badge, a hi-vis vest with reflective bands and POLICE on the back, a duty belt and a radio. Talk to them with E for cyber-safety advice (phishing, responsible disclosure, logs as evidence) and remarks that follow the story.
 
 Three white cruisers patrol the grid with flashing red and blue light bars and a POLICE roof plate readable from above. Take one and dispatch reports it stolen; speed past an officer and you get a warning.
 
@@ -99,7 +101,8 @@ Credits come from the five quests, the four gigs on the board by the mart door (
 - `audio/`: music, ambience and effects
 - `tex/`: photographic textures and PBR maps
 - `env/studio.env.txt`: prefiltered environment map for PBR materials, base64 encoded
-- `models/`: Ready Player Me avatars and animation clips, base64 encoded glTF
+- `models/`: Ready Player Me avatars and animation clips, Rocketbox characters (`rb-*`), base64 encoded glTF
+- `tools/rocketbox/`: the converter that puts Rocketbox characters on the game's skeleton
 
 ## Credits
 
@@ -111,4 +114,4 @@ Effects: Kenney.nl Interface Sounds and UI Audio (CC0). Horns and impacts from t
 
 Textures: oak, brick and carbon maps from the three.js examples (MIT); moss from "dark grass" on OpenGameArt (CC-BY 3.0); studio environment map from the Babylon.js Assets repository (CC-BY 4.0).
 
-Characters: Ready Player Me avatars and animation clips.
+Characters: Ready Player Me avatars and animation clips. Passers-by, officers, Nadia and Ines from the Microsoft Rocketbox library (MIT, `models/LICENSE-microsoft-rocketbox.txt`).

@@ -2139,7 +2139,9 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     return out;
   }
   function nextPedEdge(w) {
-    const from = w.at, opts = pedEdges(from).filter(e => !w.prev || e.to.key !== w.prev.key); let r = rnd() * opts.reduce((a, e) => a + e.w, 0), e = opts[0];
+    const from = w.at, opts = pedEdges(from).filter(e => !w.prev || e.to.key !== w.prev.key);
+    if (w.home && Math.hypot(from.x - w.home[0], from.z - w.home[1]) > 30) { const d0 = Math.hypot(from.x - w.home[0], from.z - w.home[1]); opts.forEach(o => { if (Math.hypot(o.to.x - w.home[0], o.to.z - w.home[1]) < d0) o.w *= 5; }); } // too far from work: head back
+    let r = rnd() * opts.reduce((a, e) => a + e.w, 0), e = opts[0];
     for (const o of opts) { r -= o.w; if (r <= 0) { e = o; break; } }
     w.prev = from; w.at = e.to; w.edge = e.kind; w.axis = e.axis || null; w.waiting = e.kind === 'cross'; w.crossing = false; w.wps = [e.to]; w.wi = 0;
   }
@@ -2258,12 +2260,14 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     inst.animationGroups.forEach(g => { g.stop(); g.dispose(); });
     if (o.tint) meshes.forEach(m => { const mt = m.material; if (!mt || !mt.albedoColor) return; if (/Outfit_Top/.test(mt.name)) mt.albedoColor = C3(o.tint[0]); else if (/Outfit_Bottom/.test(mt.name)) mt.albedoColor = C3(o.tint[1]); else if (/Hair/.test(mt.name) && o.tint[2]) mt.albedoColor = C3(o.tint[2]); });
     const ch = { kind: 'avatar', name, pivot, fix, root, meshes, nodes: [root].concat(root.getDescendants()), anims: {}, w: {}, yaw: 0, moving: false, speedVis: 0 };
+    if (/^rb-/.test(rig)) { const hips = ch.nodes.find(n => n.name === 'Hips'); ch.hipsY = hips ? hips.position.y : null; } // a Rocketbox body: shorter legs than the rigs the clips were made on
     chars[name] = ch; return ch;
   }
   // a clip's targeted animations are cloned onto the avatar's joints by name; locomotion clips lose their root motion so the controller owns movement
   function retarget(clipName, ch, name, inPlace) {
     const clip = AV.clips[clipName]; const map = {}; ch.nodes.forEach(n => { map[n.name] = n; }); const src = clip.animationGroups[0]; const g = new BABYLON.AnimationGroup(name, scene);
-    src.targetedAnimations.forEach(ta => { const target = map[ta.target.name]; if (!target) return; const a = ta.animation.clone(); if (inPlace && a.targetProperty === 'position') { const keys = a.getKeys(); const x0 = keys[0].value.x, z0 = keys[0].value.z; a.setKeys(keys.map(k => ({ frame: k.frame, value: new BABYLON.Vector3(x0, k.value.y, z0) }))); } g.addTargetedAnimation(a, target); });
+    const hk = ch.hipsY ? ch.hipsY / (/anim-f/.test(clipName) ? 1.037 : 1.019) : 1; // the clips' hip height belongs to the woman's or the man's rig
+    src.targetedAnimations.forEach(ta => { const target = map[ta.target.name]; if (!target) return; const a = ta.animation.clone(); if (inPlace && a.targetProperty === 'position') { const keys = a.getKeys(); const x0 = keys[0].value.x, z0 = keys[0].value.z; a.setKeys(keys.map(k => ({ frame: k.frame, value: new BABYLON.Vector3(x0, k.value.y * hk, z0) }))); } g.addTargetedAnimation(a, target); });
     return g;
   }
   function giveAnims(ch, list) { list.forEach(c => { const ag = retarget(c[1], ch, ch.name + '_' + c[0], true); ch.anims[c[0]] = ag; ch.w[c[0]] = c[0] === 'idle' ? 1 : 0;
@@ -2285,8 +2289,29 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   function animateChar(ch, dt) { if (ch.kind === 'avatar') animateAvatar(ch, dt); else animateFigure(ch, dt); }
   function charMeshes(ch) { return ch.kind === 'avatar' ? ch.meshes.filter(m => m.getTotalVertices && m.getTotalVertices() > 0) : Object.values(ch.parts); }
   const RIGS = ['player', 'rosa', 'julien'];
-  function newPed(name, look) {
+  // Microsoft Rocketbox characters (MIT), put on the game's skeleton by tools/rocketbox. Each kind of person has a part of the Row they keep to.
+  const RB = {
+    business: { m: ['rb-business-male-02', 'rb-business-male-04', 'rb-business-male-06'], f: ['rb-business-female-01', 'rb-business-female-04'] }, // Caduceus staff, late for the ops floor
+    security: { m: [], f: ['rb-security-female-01'] },                                                                                              // Caduceus door security
+    casual: { m: ['rb-male-adult-04', 'rb-male-adult-09', 'rb-male-adult-10', 'rb-male-adult-12', 'rb-male-adult-18'], f: ['rb-female-adult-07', 'rb-female-adult-13'] },
+    worker: { m: ['rb-construction-male-07', 'rb-delivery-male-01'], f: ['rb-construction-female-01'] },                                             // Utilities and Exchange crews, a parcel run
+    lab: { m: ['rb-gardener-male-01'], f: [] },                                                                                                      // the Solarpunk Lab's gardener
+    police: { m: ['rb-police-male-03', 'rb-police-male-06', 'rb-police-male-07'], f: [] },                                                           // uniform, and two cybercrime detectives in vests
+    nadia: 'rb-female-adult-12', courier: 'rb-female-adult-04'
+  };
+  const RB_RIGS = [].concat(...Object.values(RB).map(v => typeof v === 'string' ? [v] : v.m.concat(v.f)));
+  const rbFemale = rig => /female/.test(rig);
+  const RB_HOME = { business: [12, -21], security: [12, -21], worker: [19, 21], lab: [-9, 21] }; // Buildings F, D and X, H
+  const rbTurn = {};
+  function rbPick(role, female) { // the next body of this kind in turn (either sex when female is null), so a crowd of eighteen does not repeat itself early
+    const R = RB[role]; if (!R) return null; const pool = (female == null ? R.m.concat(R.f) : R[female ? 'f' : 'm']).filter(r => AV.rigs[r]); if (!pool.length) return null;
+    const k = role + (female == null ? '' : female ? 'f' : 'm'); rbTurn[k] = rbTurn[k] == null ? Math.floor(rnd() * pool.length) : (rbTurn[k] + 1) % pool.length; return pool[rbTurn[k]];
+  }
+  function rbAnims(ch, talk) { const f = rbFemale(ch.rig); giveAnims(ch, [['idle', f ? 'anim-f-idle' : 'anim-m-idle'], ['walk', 'anim-m-walk'], ['jog', 'anim-m-jog']].concat(talk ? [['talk', f ? 'anim-f-talk' : 'anim-m-talk']] : [])); }
+  function newPed(name, look, role, female) {
     if (!AV.ready) { const ch = makeFigure(name, { jacket: look[0], pants: look[1], skin: look[2], hair: look[3] }); ch.female = rnd() < 0.5; return ch; }
+    const rb = rbPick(role || 'casual', female) || rbPick('casual', null);
+    if (rb) { const ch = makeAvatar(name, rb, {}); ch.rig = rb; ch.female = rbFemale(rb); ch.role = role || 'casual'; rbAnims(ch, false); return ch; }
     const rig = RIGS[Math.floor(rnd() * RIGS.length)]; const ch = makeAvatar(name, rig, { tint: [look[0], look[1], rnd() < 0.5 ? look[3] : null] }); ch.rig = rig; ch.female = rig === 'rosa'; // the voice and the name follow the body
     giveAnims(ch, [['idle', 'anim-m-idle'], ['walk', 'anim-m-walk'], ['jog', 'anim-m-jog']]); return ch;
   }
@@ -2302,12 +2327,17 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   const PED_LOOKS = [['#c73a3a', '#2a2a3a', '#d9a06a', '#2a1a10'], ['#2b6cb0', '#3a3a3a', '#8a5a3a', '#101010'], ['#6a8a3a', '#1a1a2a', '#f0c8a0', '#c8a060'], ['#ff3d7f', '#2a2a2a', '#5a3a2a', '#1a1a1a'], ['#d4d0c4', '#4a3a2a', '#e0b090', '#4a2a1a'], ['#ffd23f', '#2a3a4a', '#a06a4a', '#1a1a1a'], ['#3ee8f0', '#1a1a1a', '#d9a06a', '#3a2a1a'], ['#8a4a8a', '#2a2a2a', '#f0c8a0', '#2a1a10']];
   function spawnPeds(n) {
     for (let i = 0; i < n; i++) {
-      const look = PED_LOOKS[Math.floor(rnd() * PED_LOOKS.length)]; const ch = newPed('ped' + i, look);
-      const alongX = rnd() < 0.5; const dir = alongX ? (rnd() < 0.5 ? 0 : 2) : (rnd() < 0.5 ? 1 : 3); const side = rnd() < 0.5 ? 1 : -1;
-      const road = alongX ? CITY.roadsZ[Math.floor(rnd() * CITY.roadsZ.length)] : CITY.roadsX[Math.floor(rnd() * CITY.roadsX.length)];
-      const along = (alongX ? CITY.bounds.x0 : CITY.bounds.z0) + 10 + rnd() * ((alongX ? CITY.bounds.x1 - CITY.bounds.x0 : CITY.bounds.z1 - CITY.bounds.z0) - 20);
-      const d = DIRS[dir]; const rx = d[1], rz = -d[0];
-      const r = rnd(); const w = { ch, x: alongX ? along : road + rx * CITY.walk * side, z: alongX ? road + rz * CITY.walk * side : along, dir, speed: 1.2 + rnd() * 0.8, pause: 0, side, name: (ch.female ? ZD.PED_NAMES.female : ZD.PED_NAMES.male)[i % 12], mood: r < 0.42 ? 'kind' : r < 0.72 ? 'rude' : 'busy', female: !!ch.female, seed: i, talk: 0, scared: 0 };
+      const r = rnd(), mood = r < 0.42 ? 'kind' : r < 0.72 ? 'rude' : 'busy', q = rnd();
+      const role = mood === 'busy' ? (q < 0.15 ? 'security' : 'business') : q < 0.22 ? 'worker' : q < 0.3 ? 'lab' : 'casual'; // the busy ones are late for Caduceus
+      const look = PED_LOOKS[Math.floor(rnd() * PED_LOOKS.length)]; const ch = newPed('ped' + i, look, role);
+      const home = ch.role && RB_HOME[ch.role];
+      let alongX = rnd() < 0.5; const side0 = rnd() < 0.5 ? 1 : -1;
+      let road = alongX ? CITY.roadsZ[Math.floor(rnd() * CITY.roadsZ.length)] : CITY.roadsX[Math.floor(rnd() * CITY.roadsX.length)];
+      let along = (alongX ? CITY.bounds.x0 : CITY.bounds.z0) + 10 + rnd() * ((alongX ? CITY.bounds.x1 - CITY.bounds.x0 : CITY.bounds.z1 - CITY.bounds.z0) - 20);
+      if (home) { alongX = true; road = 0; along = home[0] + (rnd() - 0.5) * 24; } // on Meridian Row, outside their building
+      const dir = alongX ? (rnd() < 0.5 ? 0 : 2) : (rnd() < 0.5 ? 1 : 3); const d = DIRS[dir]; const rx = d[1], rz = -d[0];
+      const side = home ? Math.sign(home[1]) * (rz || 1) : side0;
+      const w = { ch, x: alongX ? along : road + rx * CITY.walk * side, z: alongX ? road + rz * CITY.walk * side : along, dir, speed: 1.2 + rnd() * 0.8, pause: 0, side, name: (ch.female ? ZD.PED_NAMES.female : ZD.PED_NAMES.male)[i % 12], mood, female: !!ch.female, seed: i, talk: 0, scared: 0, home };
       peds.push(w);
     }
   }
@@ -2867,7 +2897,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   /* ---------- cars: getting in and out ---------- */
   function enterCar(car) {
     if (!car || state.driving) return; const p = chars.player; if (car.cop) copCarTaken(car);
-    if (car.driver) { car.driver = false; const look = PED_LOOKS[Math.floor(rnd() * PED_LOOKS.length)]; const n = 'jacked' + Date.now(); const ch = newPed(n, look); const side = Math.cos(car.heading), sidez = -Math.sin(car.heading); const d = Math.floor(rnd() * 4); peds.push({ ch, x: car.x + side * 2.2, z: car.z + sidez * 2.2, dir: d, speed: 1.4, pause: 0, side: 1, flee: 3 }); SFX.yelp(car.x, car.z); }
+    if (car.driver) { car.driver = false; const look = PED_LOOKS[Math.floor(rnd() * PED_LOOKS.length)]; const n = 'jacked' + Date.now(); const ch = newPed(n, look, 'casual'); const side = Math.cos(car.heading), sidez = -Math.sin(car.heading); const d = Math.floor(rnd() * 4); peds.push({ ch, x: car.x + side * 2.2, z: car.z + sidez * 2.2, dir: d, speed: 1.4, pause: 0, side: 1, flee: 3 }); SFX.yelp(car.x, car.z); }
     car.parked = false; car.speed = 0; car.vx = Math.sin(car.heading) * 0; car.vz = 0; state.driving = car; p.pivot.setEnabled(false); car.cone.setEnabled(true);
     SFX.door(); ui.carName(car.type.name); ui.prompt(null); if (state.touch) { $('tBrake').hidden = false; $('tRun').hidden = true; $('tJump').hidden = true; }
   }
@@ -3585,7 +3615,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   function faceNadia() { const ch = chars.nadia; if (!ch) return; const p = chars.player.pivot.position; const lx = IXM - p.x, lz = -p.z; ch.yaw = Math.atan2(lx - ch.pivot.position.x, lz - ch.pivot.position.z); }
   function placeNadia() {
     if (chars.nadia) return; const prev = Z; Z = zones.mart;
-    const ch = newPed('nadia', ['#ff6a3d', '#1a1a22', '#8a5a3a', '#1a1a1a']); ch.pivot.position.set(1.5, 0, 4.3); ch.yaw = PI; ch.pivot.rotation.y = PI;
+    let ch; if (AV.ready && AV.rigs[RB.nadia]) { ch = makeAvatar('nadia', RB.nadia, {}); ch.rig = RB.nadia; ch.female = true; rbAnims(ch, true); } else ch = newPed('nadia', ['#ff6a3d', '#1a1a22', '#8a5a3a', '#1a1a1a']);
+    ch.pivot.position.set(1.5, 0, 4.3); ch.yaw = PI; ch.pivot.rotation.y = PI;
     const c = BABYLON.MeshBuilder.CreateCylinder('npcCol', { height: 1.8, diameter: 0.7 }, scene); c.position.set(1.5, 0.9, 4.3); c.isVisible = false; c.isPickable = false; c.checkCollisions = true; c.parent = Z.root;
     if (!NULL_ENGINE && Z.sg && ch.kind === 'avatar') charMeshes(ch).forEach(m => Z.sg.addShadowCaster(m));
     Z = prev;
@@ -3715,6 +3746,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   const COP_NAMES = { female: ['Officer Lund', 'Sergeant Okoye', 'Officer Brandt', 'Officer Reyes-Holm'], male: ['Officer Halvorsen', 'Sergeant Diallo', 'Officer Kaya', 'Officer Mikkelsen'] };
   function newCop(name, female) {
     if (!AV.ready) { const ch = makeFigure(name, { jacket: '#c6ec1a', pants: COP_LOOK.trousers, skin: '#c9a080', hair: '#1a1a1a', beanie: '#151c33' }); ch.female = female; return ch; }
+    const rb = female ? null : rbPick('police', false);
+    if (rb) { const ch = makeAvatar(name, rb, {}); ch.rig = rb; ch.female = false; giveAnims(ch, [['idle', 'anim-m-idle'], ['walk', 'anim-m-walk'], ['jog', 'anim-m-jog']]); return ch; } // already in uniform or a POLICE vest
     const rig = female ? 'rosa' : (rnd() < 0.5 ? 'player' : 'julien'); const ch = makeAvatar(name, rig, {}); ch.rig = rig; ch.female = female;
     dressCop(ch); giveAnims(ch, [['idle', 'anim-m-idle'], ['walk', 'anim-m-walk'], ['jog', 'anim-m-jog']]); return ch;
   }
@@ -3796,7 +3829,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   function enterExchange() { transition(() => { setZone('xch'); placePlayer(IXX - 1.0, 0, -4.8, 0); if (store.state.quests.quest_z3_exchange === 'available') store.activateQuest('quest_z3_exchange'); }); }
   function placeCourier() {
     if (chars.courier) return; const prev = Z; Z = zones.out;
-    let ch; if (AV.ready) { ch = makeAvatar('courier', 'rosa', { tint: ['#4a4a52', '#1a1a22', '#2a2a2a'] }); giveAnims(ch, [['idle', 'anim-f-idle'], ['talk', 'anim-f-talk']]); } else ch = makeFigure('courier', { jacket: '#4a4a52', pants: '#1a1a22', skin: '#c9a080', hair: '#2a2a2a' });
+    let ch; if (AV.ready && AV.rigs[RB.courier]) { ch = makeAvatar('courier', RB.courier, {}); ch.rig = RB.courier; giveAnims(ch, [['idle', 'anim-f-idle'], ['talk', 'anim-f-talk']]); }
+    else if (AV.ready) { ch = makeAvatar('courier', 'rosa', { tint: ['#4a4a52', '#1a1a22', '#2a2a2a'] }); giveAnims(ch, [['idle', 'anim-f-idle'], ['talk', 'anim-f-talk']]); } else ch = makeFigure('courier', { jacket: '#4a4a52', pants: '#1a1a22', skin: '#c9a080', hair: '#2a2a2a' });
     ch.pivot.position.set(COURIER()[0], 0, COURIER()[1]); ch.yaw = -2.4; ch.pivot.rotation.y = ch.yaw; ch.female = true;
     const c = BABYLON.MeshBuilder.CreateCylinder('npcCol', { height: 1.8, diameter: 0.7 }, scene); c.position.set(COURIER()[0], 0.9, COURIER()[1]); c.isVisible = false; c.isPickable = false; c.checkCollisions = true; c.parent = Z.root;
     Z = prev;
@@ -4324,10 +4358,10 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   /* ---------- boot ---------- */
   let loaded = false;
   async function loadAvatars() {
-    const line = $('loadline'); const rigs = ['avatar-player', 'avatar-rosa', 'avatar-julien']; const clips = ['anim-m-idle', 'anim-m-walk', 'anim-m-jog', 'anim-m-walkback', 'anim-m-jogback', 'anim-m-idle2', 'anim-f-idle', 'anim-m-talk', 'anim-f-talk', 'anim-m-jump'];
+    const line = $('loadline'); const rigs = ['avatar-player', 'avatar-rosa', 'avatar-julien'].concat(RB_RIGS); const clips = ['anim-m-idle', 'anim-m-walk', 'anim-m-jog', 'anim-m-walkback', 'anim-m-jogback', 'anim-m-idle2', 'anim-f-idle', 'anim-m-talk', 'anim-f-talk', 'anim-m-jump'];
     const names = rigs.concat(clips); const prog = names.map(() => 0); const show = () => { line.textContent = 'LOADING CHARACTERS ' + Math.round(prog.reduce((a, b) => a + b, 0) / prog.length * 100) + '%'; };
-    const res = await Promise.all(names.map((n, i) => loadGLB(n + '.glb', v => { prog[i] = v; show(); }, i < rigs.length)));
-    rigs.forEach((n, i) => { AV.rigs[n.replace('avatar-', '')] = res[i]; }); clips.forEach((n, i) => { AV.clips[n] = res[rigs.length + i]; });
+    const res = await Promise.all(names.map((n, i) => { const p = loadGLB(n + '.glb', v => { prog[i] = v; show(); }, i < rigs.length); return /^rb-/.test(n) ? p.catch(e => { console.warn(e); prog[i] = 1; return null; }) : p; })); // a missing extra character only thins the crowd
+    rigs.forEach((n, i) => { if (res[i]) AV.rigs[n.replace('avatar-', '')] = res[i]; }); clips.forEach((n, i) => { AV.clips[n] = res[rigs.length + i]; });
     AV.ready = true;
   }
   // the Kenney car models (CC0): loaded as containers, measured once, with the palette image kept for repainting
