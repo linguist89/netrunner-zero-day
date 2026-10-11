@@ -3512,27 +3512,27 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const lampsOn = (1 - sstep(0.25, 0.7, d)) * stutter; // lamps switch off a little after sunrise and back on before dark
     L.labLamps.forEach(([l, i0]) => { l.intensity = i0 * (dark ? 0.12 : 1); }); if (L.grow) L.grow.emissiveColor.copyFrom(dark ? BABYLON.Color3.Black() : L.growC);
     if (state.zone !== 'out') { // interiors keep their own lamps; only shared materials go back to their night values
-      if (glowDisc) glowDisc.alpha = 1; if (coneMat) coneMat.alpha = 1; if (glow) glow.intensity = 0.5; if (ipc.exposure !== 1.2) ipc.exposure = 1.2; if (scene.environmentTexture && scene.environmentIntensity !== 0.7) scene.environmentIntensity = 0.7; return;
+      if (glowDisc) glowDisc.alpha = 0.999; if (coneMat) coneMat.alpha = 0.999; if (glow) glow.intensity = 0.5; if (scene.environmentTexture) scene.environmentIntensity = 0.7; return;
     }
     // sky and haze
     const warm = gold * 0.85;
     const clear = mixC(mixC(N.clear, L.dayC.clear, d), L.dusk.clear, warm * 0.8); scene.clearColor.set(clear.r, clear.g, clear.b, 1);
     scene.fogColor = mixC(mixC(C3('#07080f'), L.dayC.fog, d), L.dusk.fog, warm * 0.7); scene.fogDensity = 0.0032 - 0.0018 * d;
     // ambient fill and the sun (by night the directional light is the original warm city glow from the north-east)
-    L.hemi.intensity = N.hemiI + (1.05 - N.hemiI) * d; L.hemi.diffuse = mixC(N.sky, L.dayC.sky, d); L.hemi.groundColor = mixC(N.ground, L.dayC.ground, d);
+    // exposure stays at 1.2 (a new exposure value makes Babylon rebuild every material, one hitch per change); the daytime dimming
+    // it used to give, 1.2 down to 1.02, is applied to the sky, sun and environment light instead, which are plain per-frame values
+    const kx = (1.2 - 0.18 * d) / 1.2;
+    L.hemi.intensity = (N.hemiI + (1.05 - N.hemiI) * d) * kx; L.hemi.diffuse = mixC(N.sky, L.dayC.sky, d); L.hemi.groundColor = mixC(N.ground, L.dayC.ground, d);
     const sunCol = mixC(L.dayC.sun, L.dusk.sun, gold); L.dir.diffuse = mixC(N.dirCol, sunCol, sstep(-0.05, 0.15, s.elev));
-    L.dir.intensity = N.dirI * night + (0.5 + 1.25 * Math.max(0, s.elev)) * d;
+    L.dir.intensity = (N.dirI * night + (0.5 + 1.25 * Math.max(0, s.elev)) * d) * kx;
     const sunV = new BABYLON.Vector3(-Math.cos(s.az), -(0.3 + 0.7 * Math.max(0, s.elev)), -0.3).normalize();
     const dv = BABYLON.Vector3.Lerp(N.dirV, sunV, d).normalize(); L.dir.direction.copyFrom(dv); L.dir.position.copyFrom(dv.scale(-100));
-    // in steps of 0.01 and only on a change: each new exposure or environment intensity makes Babylon mark every material in the scene dirty,
-    // and setting a slightly different value every frame from dawn to dusk dropped the game to about one frame a second
-    const ex = Math.round((1.2 - 0.18 * d) * 100) / 100, env = Math.round((0.7 + 0.35 * d) * 100) / 100;
-    if (ipc.exposure !== ex) ipc.exposure = ex; if (scene.environmentTexture && scene.environmentIntensity !== env) scene.environmentIntensity = env;
+    if (scene.environmentTexture) scene.environmentIntensity = (0.7 + 0.35 * d) * kx;
     // what the city switches on after dark
-    // only switch a lamp when it changes: Babylon's light.setEnabled resyncs the light with every mesh in the scene on each call,
-    // and calling it every frame for every lamp stalled the game for about a second a frame from dawn onwards
-    L.lamps.forEach(([l, i0]) => { l.intensity = i0 * lampsOn; const on = lampsOn > 0.02; if (l.isEnabled(false) !== on) l.setEnabled(on); });
-    if (glowDisc) glowDisc.alpha = lampsOn; if (coneMat) coneMat.alpha = 0.35 + 0.65 * lampsOn; if (glow) glow.intensity = 0.15 + 0.35 * night;
+    // lamps are never switched off, only faded to nothing: enabling or disabling a light resyncs it with every mesh and changes how
+    // many lights each material has, which rebuilt materials and compiled shaders at dawn and dusk (the hitches in the transition)
+    L.lamps.forEach(([l, i0]) => { l.intensity = i0 * lampsOn; if (!l.isEnabled(false)) l.setEnabled(true); });
+    if (glowDisc) glowDisc.alpha = Math.min(0.999, lampsOn); if (coneMat) coneMat.alpha = Math.min(0.999, 0.35 + 0.65 * lampsOn); if (glow) glow.intensity = 0.15 + 0.35 * night;
     const win = 0.12 + 0.88 * (1 - sstep(0.15, 0.85, d)); L.facades.forEach(m => m.emissiveColor.set(win, win, win));
     L.heads.forEach(([m, c]) => m.emissiveColor.copyFrom(c.scale(0.25 + 0.75 * lampsOn)));
     L.neons.forEach(([m, c]) => m.emissiveColor.copyFrom(dark && m.name === 'neonSH' ? BABYLON.Color3.Black() : c.scale(0.55 + 0.45 * night)));
@@ -4403,6 +4403,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (!NULL_ENGINE && AV.ready) { const sg = zones.out.sg; Object.values(chars).forEach(ch => { if (ch.kind === 'avatar' && ch !== chars.nadia) charMeshes(ch).forEach(m => sg.addShadowCaster(m)); }); }
     // the clip rigs' meshes have done their job; the animation groups stay, because the character creator rebuilds the player and retargets them again
     Object.values(AV.clips).forEach(clip => { clip.animationGroups.forEach(g => g.stop()); clip.meshes.forEach(m => m.dispose(false, false)); });
+    // build every character's shaders now, while the loading screen is up, instead of the first time each one walks into view (a small jump mid-play)
+    if (!NULL_ENGINE && AV.ready) { const seen = new Set(); Object.values(chars).forEach(ch => { if (ch.kind !== 'avatar') return; charMeshes(ch).forEach(m => { const mt = m.material; if (!mt || !mt.forceCompilation || seen.has(mt.uniqueId + ':' + (m.skeleton ? 1 : 0))) return; seen.add(mt.uniqueId + ':' + (m.skeleton ? 1 : 0)); try { mt.forceCompilation(m); } catch (e) { /* compiled on first draw instead */ } }); }); }
     loaded = true; $('loadline').textContent = 'READY.'; $('enterBtn').disabled = false;
   }
   function begin(resume) {
