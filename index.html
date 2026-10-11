@@ -38,6 +38,37 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 #cashPop{position:absolute;right:0;top:-22px;font-family:var(--font-display);font-size:26px;color:var(--ok);text-shadow:2px 2px 0 #000;opacity:0;pointer-events:none}
 #cashPop.on{animation:cashpop 1.1s ease-out forwards}
 @keyframes cashpop{0%{opacity:0;transform:translateY(10px)}15%{opacity:1}100%{opacity:0;transform:translateY(-26px)}}
+[hidden]{display:none!important} /* the hidden attribute always wins over a component's display rule (the E prompt and the scanner panel rely on it) */
+/* backpack: a 3 x 3 grid; an item spans as many cells of one row as it is big */
+#invBox{width:min(660px,100%);max-height:calc(100% - 24px);display:flex;flex-direction:column;gap:12px;padding:16px 18px;overflow:auto}
+#invHead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:2px solid var(--line);padding-bottom:8px}
+#invHead h3{margin:0;font:30px var(--font-display);letter-spacing:.06em;color:var(--cash)}
+#invCap{font:34px/.9 var(--font-display);color:var(--fg);text-shadow:2px 2px 0 #000;font-variant-numeric:tabular-nums;text-align:right}
+#invCap small{display:block;font:600 10px var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-top:4px}
+#invBody{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start}
+#invGrid{display:grid;grid-template-columns:repeat(3,88px);grid-template-rows:repeat(3,88px);gap:6px;padding:8px;background:#0b0d14;border:2px solid var(--line);border-radius:4px}
+#invGrid .cell{border:1px dashed #2c2836;border-radius:3px}
+#invGrid .tile{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px;border:2px solid #4a4058;border-radius:3px;background:linear-gradient(#22202c,#16151d);color:var(--fg);cursor:pointer;font:600 10px/1.15 var(--font-ui);letter-spacing:.05em;text-transform:uppercase;text-align:center;min-width:0}
+#invGrid .tile:hover{border-color:#6c5f80}
+#invGrid .tile[aria-pressed="true"]{border-color:var(--cash);box-shadow:0 0 0 2px rgba(255,210,63,.25)}
+#invGrid .tile svg{width:34px;height:34px;flex:none}
+#invGrid .tile .nm{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#invGrid .tile .ct{position:absolute;right:5px;top:4px;font:15px var(--font-display);color:var(--cash)}
+#invGrid .tile .pips{position:absolute;left:5px;top:5px;display:flex;gap:2px}
+#invGrid .tile .pips i{width:5px;height:5px;background:#6c5f80;border-radius:1px}
+#invInfo{min-width:0;display:flex;flex-direction:column;gap:8px}
+#invInfo h4{margin:0;font:22px/1 var(--font-display);letter-spacing:.04em}
+#invInfo .meta{font:600 10px var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--cyan)}
+#invInfo p{margin:0;font-size:13px;line-height:1.45;color:#d8d2c5}
+#invInfo .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+#invInfo .warn{color:var(--warn)}
+#invOver{margin:0;padding:8px 10px;border:1px solid var(--warn);border-radius:2px;color:var(--warn);font-size:13px;line-height:1.4}
+#invPager{margin:0;font-size:12.5px;color:var(--mute);border-top:1px solid var(--line);padding-top:8px}
+#invPager b{color:var(--fg);font-weight:600}
+#invBox>.btn{align-self:flex-end;padding:6px 14px 4px;font-size:16px}
+#shopPack{margin-top:4px;text-align:right}
+#shopList .full{font:600 10px var(--font-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--warn)}
+@media (max-width:640px){#invBody{grid-template-columns:1fr}#invGrid{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,78px)}}
 /* Byte Mart */
 #shopBox{width:min(680px,100%);max-height:calc(100% - 24px);display:flex;flex-direction:column;gap:10px;padding:16px 18px}
 #shopHead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:2px solid var(--line);padding-bottom:8px}
@@ -297,7 +328,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
     <div id="cash"><div id="cashPop"></div><div class="num" id="hudCredits">000000</div><div class="name" id="hudName">...</div><div id="boost" hidden></div></div>
     <div id="carName"></div>
     <div id="prompt" class="card" hidden><kbd>E</kbd><span id="promptText"></span></div>
-    <div id="hints"><span><b>W S</b> run</span><span><b>A D</b> turn</span><span><b>Shift</b> stroll / run inside</span><span><b>E</b> interact / car</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> camera</span><span><b>B</b> drink</span><span><b>K</b> whistle car</span><span><b>F</b> phone</span><span><b>T</b> clock</span><span><b>P</b> missions</span><span><b>Q V X</b> mission card / map / keys</span><span><b>U</b> hide panels</span><span><b>G</b> room sweep</span><span><b>L</b> settings</span><span><b>M</b> sound</span><span><b>N</b> music</span><span><b>wheel</b> zoom</span></div>
+    <div id="hints"><span><b>W S</b> run</span><span><b>A D</b> turn</span><span><b>Shift</b> stroll / run inside</span><span><b>E</b> interact / car</span><span><b>Space</b> handbrake</span><span><b>H</b> horn</span><span><b>C</b> camera</span><span><b>B</b> drink</span><span><b>K</b> whistle car</span><span><b>F</b> phone</span><span><b>T</b> clock</span><span><b>P</b> missions</span><span><b>Q V X</b> mission card / map / keys</span><span><b>U</b> hide panels</span><span><b>G</b> room sweep</span><span><b>I</b> backpack</span><span><b>L</b> settings</span><span><b>M</b> sound</span><span><b>N</b> music</span><span><b>wheel</b> zoom</span></div>
     <canvas id="map" width="170" height="186" aria-label="Minimap"></canvas>
     <div id="notes" aria-live="polite"></div>
     <section id="sweep" class="card" hidden aria-label="SWEEP-4 room scanner">
@@ -314,6 +345,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
       <button id="togHints" class="btn ghost tog" type="button" aria-pressed="true">Keys<kbd>X</kbd></button>
       <button id="musicBtn" class="btn ghost" type="button" aria-pressed="true">Music on</button>
       <button id="soundBtn" class="btn ghost" type="button" aria-pressed="true">Sound on</button>
+      <button id="invBtn" class="btn ghost" type="button">Pack</button>
       <button id="journalBtn" class="btn ghost" type="button">Missions</button>
     </div>
   </div>
@@ -392,7 +424,8 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
     <div class="eyebrow" style="margin-top:6px">Credits</div><div id="credits" class="credits"></div>
     <p class="note">On foot: W and S run along the facing at 8.5 m/s, A and D turn, Shift strolls at 3.8 m/s. Indoors the default is a walk at 2.5 m/s and Shift runs at 5 m/s. In a car: W and S are gas and brake, A and D steer, Space is the handbrake. The camera rides overhead and climbs with speed.</p>
     <button class="btn" type="button" id="setClose">Done</button></div></div>
-  <div id="shop" class="overlay off" role="dialog" aria-label="Byte Mart"><div id="shopBox" class="card"><div id="shopHead"><div><div class="eyebrow">Byte Mart · hardware, software, caffeine</div><h3>What do you need?</h3></div><div id="shopCash">0 cr</div></div><div id="shopList"></div><p class="note" id="shopNote">Everything here changes how the street or the terminals behave. Credits: quests, the gig board by the door, and the chips on the sidewalks.</p><button class="btn" type="button" id="shopClose">Done</button></div></div>
+  <div id="inv" class="overlay off" role="dialog" aria-label="Backpack"><div id="invBox" class="card"><div id="invHead"><div><div class="eyebrow">Backpack · 3 rows of 3 slots</div><h3>What you are carrying</h3></div><div id="invCap">0 / 9<small>slots used</small></div></div><p id="invOver" hidden></p><div id="invBody"><div id="invGrid" role="group" aria-label="Backpack slots"></div><div id="invInfo"></div></div><p id="invPager"></p><button class="btn" type="button" id="invClose">Done</button></div></div>
+  <div id="shop" class="overlay off" role="dialog" aria-label="Byte Mart"><div id="shopBox" class="card"><div id="shopHead"><div><div class="eyebrow">Byte Mart · hardware, software, caffeine</div><h3>What do you need?</h3></div><div><div id="shopCash">0 cr</div><div id="shopPack" class="eyebrow"></div></div></div><div id="shopList"></div><p class="note" id="shopNote">Everything here changes how the street or the terminals behave. Credits: quests, the gig board by the door, and the chips on the sidewalks.</p><button class="btn" type="button" id="shopClose">Done</button></div></div>
   <div id="phone" class="overlay off" role="dialog" aria-label="Phone"><div id="phoneBox"><div class="notch"></div><div id="phoneState">BURNER</div><div id="phoneCaller">...</div><div id="phoneMsgs" hidden></div><div class="row"><button class="btn" type="button" id="phoneAnswer">Answer (E)</button><button class="btn ghost" type="button" id="phoneShell">Open shell</button><button class="btn ghost" type="button" id="phoneClose">Close</button></div></div></div>
   <div id="keypad" class="overlay off" role="dialog" aria-label="Keypad"><div id="kpBox" class="card"><div class="eyebrow">Building X · street door</div><h3>Keypad</h3><input id="kpIn" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Code"><div id="kpNote"></div><div class="row" style="display:flex;gap:8px"><button class="btn" type="button" id="kpGo">Enter</button><button class="btn ghost" type="button" id="kpClose">Step back</button></div></div></div>
   <div id="jr" role="dialog" aria-label="Journal"><div id="jrHead"><button class="tab on" data-tab="quests" type="button">Missions</button><button class="tab" data-tab="log" type="button">Log</button><button class="tab" data-tab="notebook" type="button">Notebook</button><button class="x" type="button" id="jrClose">Close</button></div><div id="jrBody"></div></div>
@@ -985,18 +1018,20 @@ Lineman's notebook, Meridian Exchange.
       ] }
   ];
 
-  /* ---- Byte Mart stock: every item changes how the game plays ---- */
+  /* ---- Byte Mart stock: every item changes how the game plays.
+     size: backpack slots (the pack is 3 x 3 and an item sits in one row, so a size-3 item needs a whole free row);
+     stack: how many fit in one slot; size 0 lives on the pager, not in the pack; keep: cannot be dropped ---- */
   const SHOP = [
-    { id: 'drink', name: 'OVERCLOCK energy drink', price: 15, kind: 'consumable', tag: 'Boost', desc: 'Taurine, caffeine and something the can calls a clock multiplier. Press B to drink one: 90 seconds of 40% faster running and a quicker car.' },
-    { id: 'ducky', name: 'USB Rubber Ducky', price: 110, kind: 'gear', tag: 'Terminal', desc: 'A keystroke injector disguised as a flash drive. Type duck on any terminal and it types the exact command the current objective needs, so you see it before you learn it.' },
-    { id: 'pineapple', name: 'Wi-Fi Pineapple', price: 90, kind: 'gear', tag: 'Network', desc: 'Rogue access point and recon kit in a yellow box. Adds the scan command: one sweep of 10.0.0.0/24 with every name, port and service, no DNS kit needed.' },
-    { id: 'cloner', name: 'Proxmark RFID cloner', price: 120, kind: 'gear', tag: 'Physical', desc: 'Reads a badge from across a lobby and writes a copy. The readers on Buildings F and D accept the clone, appointment or no appointment, keycard or no keycard.' },
-    { id: 'scanner', name: 'STYX scanner app', price: 60, kind: 'gear', tag: 'Map', desc: 'Side-loaded onto the pager. Every credit chip lying around the nine blocks shows on the minimap, so the street pays for the next purchase.' },
-    { id: 'sweep', name: 'SWEEP-4 room scanner', price: 120, kind: 'gear', tag: 'Sweep', desc: 'A counter-surveillance case with four tools: a thermal camera, a Wi-Fi and Bluetooth listener, an ARP sweeper and a junction detector. Press G inside any building for a map of every device in the room, and see what each tool can and cannot find.' },
-    { id: 'keys', name: 'Car keys: Caduceus Coupe', price: 220, kind: 'gear', tag: 'Wheels', desc: 'The fastest car on Meridian Row, in orange, parked outside Byte Mart. Lose it or wreck it and K whistles it back to the mart.' },
-    { id: 'book_grep', name: 'Book: grep, pipes and wc', price: 35, kind: 'book', tag: 'Manual', desc: 'A thin, well-thumbed paperback. Adds man grep, wc, sort, uniq, cat, head, tail and pipes to every terminal.' },
-    { id: 'book_net', name: 'Book: the Knock Knock set', price: 45, kind: 'book', tag: 'Manual', desc: 'Rosa’s workshop notes, bound. Adds man dig, ping, nmap, traceroute, curl, arp and ssh.' },
-    { id: 'book_sys', name: 'Book: what is running', price: 40, kind: 'book', tag: 'Manual', desc: 'Process and socket forensics for people in a hurry. Adds man ps, ss, find, cron, ls, cd and history.' }
+    { id: 'drink', size: 1, stack: 3, name: 'OVERCLOCK energy drink', price: 15, kind: 'consumable', tag: 'Boost', desc: 'Taurine, caffeine and something the can calls a clock multiplier. Press B to drink one: 90 seconds of 40% faster running and a quicker car.' },
+    { id: 'ducky', size: 1, name: 'USB Rubber Ducky', price: 110, kind: 'gear', tag: 'Terminal', desc: 'A keystroke injector disguised as a flash drive. Type duck on any terminal and it types the exact command the current objective needs, so you see it before you learn it.' },
+    { id: 'pineapple', size: 2, name: 'Wi-Fi Pineapple', price: 90, kind: 'gear', tag: 'Network', desc: 'Rogue access point and recon kit in a yellow box. Adds the scan command: one sweep of 10.0.0.0/24 with every name, port and service, no DNS kit needed.' },
+    { id: 'cloner', size: 1, name: 'Proxmark RFID cloner', price: 120, kind: 'gear', tag: 'Physical', desc: 'Reads a badge from across a lobby and writes a copy. The readers on Buildings F and D accept the clone, appointment or no appointment, keycard or no keycard.' },
+    { id: 'scanner', size: 0, name: 'STYX scanner app', price: 60, kind: 'gear', tag: 'Map', desc: 'Side-loaded onto the pager. Every credit chip lying around the nine blocks shows on the minimap, so the street pays for the next purchase.' },
+    { id: 'sweep', size: 3, name: 'SWEEP-4 room scanner', price: 120, kind: 'gear', tag: 'Sweep', desc: 'A counter-surveillance case with four tools: a thermal camera, a Wi-Fi and Bluetooth listener, an ARP sweeper and a junction detector. Press G inside any building for a map of every device in the room, and see what each tool can and cannot find.' },
+    { id: 'keys', size: 1, keep: true, name: 'Car keys: Caduceus Coupe', price: 220, kind: 'gear', tag: 'Wheels', desc: 'The fastest car on Meridian Row, in orange, parked outside Byte Mart. Lose it or wreck it and K whistles it back to the mart.' },
+    { id: 'book_grep', size: 1, name: 'Book: grep, pipes and wc', price: 35, kind: 'book', tag: 'Manual', desc: 'A thin, well-thumbed paperback. Adds man grep, wc, sort, uniq, cat, head, tail and pipes to every terminal.' },
+    { id: 'book_net', size: 1, name: 'Book: the Knock Knock set', price: 45, kind: 'book', tag: 'Manual', desc: 'Rosa’s workshop notes, bound. Adds man dig, ping, nmap, traceroute, curl, arp and ssh.' },
+    { id: 'book_sys', size: 1, name: 'Book: what is running', price: 40, kind: 'book', tag: 'Manual', desc: 'Process and socket forensics for people in a hurry. Adds man ps, ss, find, cron, ls, cd and history.' }
   ];
   const BOOKS = {
     book_grep: ['grep', 'wc', 'sort', 'uniq', 'cat', 'head', 'tail', 'pipes', 'pipe'],
@@ -1112,12 +1147,19 @@ Lineman's notebook, Meridian Exchange.
       nextQuest(id) { const i = QUESTS.findIndex(q => q.id === id); return i < 0 ? null : QUESTS[i + 1] || null; },
       // the next command the Rubber Ducky would type: the first open objective of the main quest, then of any gig
       duckCommand() { const qs = api.activeQuests().slice().sort((a, b) => (a.gig ? 1 : 0) - (b.gig ? 1 : 0)); for (const q of qs) { const o = q.objectives.find(x => !s.done[q.id].includes(x.id) && x.cmd); if (o) return { quest: q, objective: o, cmd: o.cmd }; } return null; },
+      // the backpack: 3 rows of 3 slots. Every item sits inside one row, so packing is first-fit by size, biggest first
+      pack(inv) { inv = inv || s.inv; const tiles = []; SHOP.forEach((it, order) => { const n = inv[it.id] || 0; if (!n || !it.size) return; if (it.stack) { for (let left = n; left > 0; left -= it.stack) tiles.push({ id: it.id, size: it.size, count: Math.min(it.stack, left), order }); } else tiles.push({ id: it.id, size: it.size, count: 1, order }); });
+        const rows = [0, 0, 0], placed = [], over = []; tiles.sort((a, b) => b.size - a.size || a.order - b.order).forEach(t => { const r = rows.findIndex(u => 3 - u >= t.size); if (r < 0) { over.push(t); return; } placed.push(Object.assign({ row: r, col: rows[r] }, t)); rows[r] += t.size; });
+        return { placed, over, used: tiles.reduce((a, t) => a + t.size, 0), cap: 9 }; },
+      fits(id, n) { const inv = Object.assign({}, s.inv); inv[id] = (inv[id] || 0) + (n || 1); return api.pack(inv).over.length === 0; },
+      add(id, n) { n = n || 1; if (!api.fits(id, n)) return false; s.inv[id] = (s.inv[id] || 0) + n; emit('change'); return true; },
+      remove(id, n) { if (!api.has(id)) return 0; const k = Math.min(n || 1, s.inv[id]); s.inv[id] -= k; emit('change'); return k; },
       // Byte Mart: inventory and purchases
       has(id) { return (s.inv[id] || 0) > 0; },
       count(id) { return s.inv[id] || 0; },
       buy(id) {
         const it = SHOP.find(x => x.id === id); if (!it) return 'unknown';
-        if (it.kind !== 'consumable' && api.has(id)) return 'owned'; if (s.credits < it.price) return 'broke';
+        if (it.kind !== 'consumable' && api.has(id)) return 'owned'; if (s.credits < it.price) return 'broke'; if (!api.fits(id)) return 'full';
         s.credits -= it.price; s.inv[id] = (s.inv[id] || 0) + 1; emit('toast', { kind: 'buy', title: 'Bought', text: it.name + '  -' + it.price + ' credits' }); emit('change'); emit('bought', id); return 'ok';
       },
       consume(id) { if (!api.has(id)) return false; s.inv[id]--; emit('change'); return true; },
@@ -2752,7 +2794,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (k === 'm' && state.ui !== 'term') { ui.setSound(SFX.toggle()); return; }
     if (k === 'n' && state.ui !== 'term') { ui.setMusic(SFX.toggleMusic()); return; }
     if (state.ui === 'phone' && PHONE.ringing) { if (k === 'e' || k === 'enter') answerPhone(); if (k === 'escape') declineRing(); return; }
-    if (state.ui) { if (k === 'escape' || ((k === 'j' || k === 'p') && state.ui === 'journal') || (k === 'l' && state.ui === 'settings')) ui.closeAll(); if ((k === 'e' || k === 'enter') && state.ui === 'dlg') ui.dlgAdvance(); if ((k === 'escape' || k === 'e' || k === 'enter') && state.ui === 'examine') ui.closeAll(); return; }
+    if (state.ui) { if (k === 'escape' || (k === 'i' && state.ui === 'inv') || ((k === 'j' || k === 'p') && state.ui === 'journal') || (k === 'l' && state.ui === 'settings')) ui.closeAll(); if ((k === 'e' || k === 'enter') && state.ui === 'dlg') ui.dlgAdvance(); if ((k === 'escape' || k === 'e' || k === 'enter') && state.ui === 'examine') ui.closeAll(); return; }
     if (!state.playing) return;
     keys[k] = true; if (k === 'e' || k === 'enter') interact(); if (k === 'j' || k === 'p') ui.openJournal(); if (k === 'l') ui.openSettings();
     if (k === 'h' && state.driving && !e.repeat) SFX.horn();
@@ -2762,6 +2804,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (k === 'k' && !e.repeat) whistleCar();
     if (k === 't' && !e.repeat) toggleClock();
     if (k === 'g' && !e.repeat) toggleSweep();
+    if (k === 'i' && !e.repeat) ui.openInv();
     if (!e.repeat) { if (k === 'q') ui.togglePanel('quest'); if (k === 'v') ui.togglePanel('map'); if (k === 'x') ui.togglePanel('hints'); if (k === 'u') ui.toggleAllPanels(); }
     if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
   });
@@ -2798,7 +2841,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (state.driving) { updateCar(dt, inp); p.moving = false; return; }
     // tank controls, as in the street build: W and S run along the facing, A and D turn
     const k = Math.min(1, dt * MOVE.smooth);
-    const targetSpeed = inp.fwd * (state.zone !== 'out' ? (inp.walk ? MOVE.insideRun : MOVE.inside) : inp.walk ? MOVE.walk : MOVE.run) * (state.boost > 0 ? 1.4 : 1); // indoors the default is a walk and Shift runs; outdoors it is the other way round
+    const targetSpeed = inp.fwd * (state.zone !== 'out' ? (inp.walk ? MOVE.insideRun : MOVE.inside) : inp.walk ? MOVE.walk : MOVE.run) * (state.boost > 0 ? 1.4 : 1) * (state.overloaded ? 0.55 : 1); // indoors the default is a walk and Shift runs; outdoors it is the other way round
     p.speed = (p.speed || 0) + (targetSpeed - (p.speed || 0)) * k;
     const targetTurn = inp.turn * MOVE.turn; p.turnRate = (p.turnRate || 0) + (targetTurn - (p.turnRate || 0)) * k;
     p.yaw += p.turnRate * dt; p.pivot.rotation.y = p.yaw;
@@ -2911,6 +2954,41 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     }
   }
 
+  /* ---------- the backpack's helpers: icons, short names, and items dropped on the floor (kept in the save) ---------- */
+  const INV_SHORT = { drink: 'Overclock', ducky: 'Ducky', pineapple: 'Pineapple', cloner: 'Proxmark', sweep: 'SWEEP-4 case', keys: 'Car keys', book_grep: 'grep book', book_net: 'Knock Knock', book_sys: 'What is running' };
+  const svgI = b => '<svg viewBox="0 0 34 34" aria-hidden="true">' + b + '</svg>';
+  const INV_ICON = {
+    drink: svgI('<rect x="11" y="5" width="12" height="25" rx="3" fill="#ff6a3d"/><rect x="11" y="12" width="12" height="7" fill="#1a1206"/><rect x="13" y="3" width="8" height="3" rx="1" fill="#9d94ad"/>'),
+    ducky: svgI('<rect x="7" y="12" width="17" height="10" rx="2" fill="#2b2e36" stroke="#9d94ad"/><rect x="24" y="14" width="6" height="6" fill="#c9ced8"/><circle cx="12" cy="17" r="2" fill="#ffd23f"/>'),
+    pineapple: svgI('<rect x="5" y="14" width="24" height="13" rx="2" fill="#ffd23f"/><path d="M9 14V5M17 14V3M25 14V5" stroke="#c9ced8" stroke-width="2"/><circle cx="10" cy="20" r="1.6" fill="#1a1206"/><circle cx="15" cy="20" r="1.6" fill="#1a1206"/>'),
+    cloner: svgI('<rect x="6" y="8" width="22" height="18" rx="3" fill="#3a3147" stroke="#9d94ad"/><path d="M11 17a6 6 0 0 1 12 0" stroke="#3ee8f0" stroke-width="2" fill="none"/><path d="M14 17a3 3 0 0 1 6 0" stroke="#3ee8f0" stroke-width="2" fill="none"/>'),
+    sweep: svgI('<rect x="3" y="10" width="28" height="18" rx="3" fill="#2a3550" stroke="#3ee8f0"/><rect x="12" y="6" width="10" height="5" rx="1" fill="none" stroke="#9d94ad" stroke-width="2"/><circle cx="10" cy="19" r="3" fill="#ff6a3d"/><circle cx="17" cy="19" r="3" fill="#3ee8f0"/><circle cx="24" cy="19" r="3" fill="#8cf28c"/>'),
+    keys: svgI('<circle cx="12" cy="13" r="6" fill="none" stroke="#ffd23f" stroke-width="3"/><path d="M16 17l11 11M22 23l3-3M25 26l2-2" stroke="#ffd23f" stroke-width="3"/>'),
+    book: svgI('<rect x="8" y="5" width="18" height="24" rx="1" fill="#5aa8ff"/><rect x="8" y="5" width="4" height="24" fill="#2457c9"/><path d="M15 12h8M15 16h6" stroke="#0a0b10" stroke-width="2"/>')
+  };
+  const drops = []; // live drops: { d (the saved record), mesh, inter }
+  function spawnDrop(d) {
+    const Zn = zones[d.zone]; if (!Zn) return;
+    const prev = Z; Z = Zn; const m = box(mat('dropBag', '#4a5a3a', { spec: 0.15 }), 0.5, 0.32, 0.38, 0, 0, 0, { cast: false, name: 'drop' });
+    box(mat('dropStrip', '#ffd23f', { emissive: '#ffd23f', unlit: true }), 0.52, 0.04, 0.06, 0, 0.16, 0, { cast: false, parent: m, name: 'dropStrip' }); Z = prev;
+    m.computeWorldMatrix(true); m.setAbsolutePosition(V3(d.x, d.y + 0.16, d.z)); m.rotation.y = d.ry || 0;
+    const it = ZD.SHOP.find(x => x.id === d.id), live = { d, mesh: m };
+    live.inter = addInter({ id: 'drop' + d.k, zone: d.zone, pos: V3(d.x, d.y, d.z), r: 1.2, label: 'Pick up ' + (d.n > 1 ? d.n + ' × ' : '') + (INV_SHORT[d.id] || it.name), run() { pickUpDrop(live); } });
+    drops.push(live);
+  }
+  function dropItem(id) {
+    const it = ZD.SHOP.find(x => x.id === id); if (!it || it.keep || !store.has(id)) return;
+    const p = chars.player.pivot.position, yaw = chars.player.yaw, x = p.x + Math.sin(yaw) * 0.8, z = p.z + Math.cos(yaw) * 0.8, gy = groundUnder(x, p.y, z);
+    const n = store.remove(id, 1); if (!n) return; if (id === 'sweep') closeSweep();
+    const F = store.state.flags; F.drops = F.drops || []; const d = { k: Date.now().toString(36) + Math.floor(rnd() * 1e4), id, n, zone: state.zone, x, y: gy == null ? p.y : gy, z, ry: rnd() * PI };
+    F.drops.push(d); spawnDrop(d); SFX.door(); ui.toast({ kind: '', title: 'Dropped', text: (INV_SHORT[id] || it.name) + ' is on the floor where you stood.' }); save();
+  }
+  function pickUpDrop(live) {
+    const d = live.d, it = ZD.SHOP.find(x => x.id === d.id);
+    if (!store.add(d.id, d.n)) { SFX.buzz(); ui.toast({ kind: 'warn', title: 'No room', text: 'The ' + (INV_SHORT[d.id] || it.name) + ' needs ' + it.size + ' free slot' + (it.size > 1 ? 's in one row' : '') + '. Press I and drop something first.' }); return; }
+    const i = inter.indexOf(live.inter); if (i >= 0) inter.splice(i, 1); live.mesh.dispose(); drops.splice(drops.indexOf(live), 1);
+    const F = store.state.flags; F.drops = (F.drops || []).filter(o => o.k !== d.k); SFX.tick(); ui.toast({ kind: 'ok', title: 'Picked up', text: it.name }); save();
+  }
   /* ---------- SWEEP-4 room scanner (Byte Mart, 120 cr): four passes, each with the strengths and blind spots of the real tool
      thermal   anything powered shows as heat; exact spot, no name; switched-off or very low-power things stay cold
      rf        listens for Wi-Fi and Bluetooth: names and MACs, but position only from signal strength. One reading is a
@@ -3828,7 +3906,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     carName(name) { const el = $('carName'); if (!name) { el.classList.remove('on'); return; } el.textContent = name; el.classList.add('on'); clearTimeout(ui.carT); ui.carT = setTimeout(() => el.classList.remove('on'), 3500); },
     prompt(text) { const p = $('prompt'); if (!text) { p.hidden = true; $('tE').hidden = true; return; } $('promptText').textContent = text; p.hidden = false; if (state.touch) $('tE').hidden = false; },
     refreshQuest() {
-      const st = store.state; $('sweepBtn').hidden = !store.has('sweep'); $('hudName').textContent = st.profile || 'Investigator'; $('hudCredits').textContent = String(st.credits).padStart(6, '0');
+      const st = store.state; $('sweepBtn').hidden = !store.has('sweep'); const ov = store.pack().over.length > 0; if (ov && !state.overloaded) ui.toast({ kind: 'warn', title: 'Overloaded', text: 'Your backpack holds more than fits. Half speed until you drop or sell something (I).' }); state.overloaded = ov; if (state.ui === 'inv') ui.renderInv(); $('hudName').textContent = st.profile || 'Investigator'; $('hudCredits').textContent = String(st.credits).padStart(6, '0');
       const q = store.trackedQuest(); const stt = st.quests[q.id];
       $('qEyebrow').textContent = q.category + ' · ' + (stt === 'available' ? 'available' : stt === 'completed' ? 'completed' : 'active') + ' · ' + q.reward + ' cr';
       $('qTitle').textContent = q.title;
@@ -3838,7 +3916,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       const next = $('qNext'); if (stt === 'completed') { const nq = store.nextQuest(q.id); next.hidden = false; next.textContent = nq ? 'Next: ' + nq.title + '. ' + nq.start : 'End of Act 2. The vault at 10.0.3.1 is the next build.'; } else next.hidden = true;
       if (state.ui === 'journal') ui.renderJournal();
     },
-    closeAll() { const wasDlg = state.ui === 'dlg', done = ui.dlgDone; ui.dlgDone = null; if (wasDlg) SFX.hush(); if (state.ui === 'term') SFX.termOff(); else if (state.ui === 'journal' || state.ui === 'examine' || state.ui === 'settings' || state.ui === 'shop') SFX.close(); ['term', 'examine', 'dlg', 'settings', 'shop', 'phone', 'keypad'].forEach(id => $(id).classList.add('off')); $('jr').classList.remove('on'); state.ui = null; if (state.touch) $('tE').hidden = !current; canvas.focus(); if (wasDlg && done) done(); },
+    closeAll() { const wasDlg = state.ui === 'dlg', done = ui.dlgDone; ui.dlgDone = null; if (wasDlg) SFX.hush(); if (state.ui === 'term') SFX.termOff(); else if (state.ui === 'journal' || state.ui === 'examine' || state.ui === 'settings' || state.ui === 'shop' || state.ui === 'inv') SFX.close(); ['term', 'examine', 'dlg', 'settings', 'shop', 'inv', 'phone', 'keypad'].forEach(id => $(id).classList.add('off')); $('jr').classList.remove('on'); state.ui = null; if (state.touch) $('tE').hidden = !current; canvas.focus(); if (wasDlg && done) done(); },
     openTerminal(which) {
       state.ui = 'term'; SFX.termOn(); const host = ZD.HOSTS[which];
       if (!ui.shells) ui.shells = {}; const first = !ui.shells[which]; if (first) ui.shells[which] = ZD.makeShell(store, host); ui.shell = ui.shells[which];
@@ -3863,14 +3941,43 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     setVoices(off) { $('voicesOn').checked = !off; },
     setMusic(off) { SFX.switch(); $('musicBtn').textContent = off ? 'Music off' : 'Music on'; $('musicBtn').setAttribute('aria-pressed', off ? 'false' : 'true'); $('musicOn').checked = !off; },
     // Byte Mart
+    // the backpack: a 3 x 3 grid. Select an item to read it, use it, drop it where you stand, or sell it back in Byte Mart
+    invSel: null, invConfirm: false,
+    openInv() { if (!state.playing || state.ui) return; state.ui = 'inv'; SFX.swish(); ui.invConfirm = false; ui.renderInv(); $('inv').classList.remove('off'); if (state.touch) $('tE').hidden = true; },
+    renderInv() {
+      const pk = store.pack(), grid = $('invGrid'); $('invCap').innerHTML = pk.used + ' / 9<small>slots used</small>';
+      if (ui.invSel && !store.has(ui.invSel)) ui.invSel = null;
+      let html = ''; for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) html += '<div class="cell" style="grid-row:' + (r + 1) + ';grid-column:' + (c + 1) + '"></div>';
+      const seen = {};
+      pk.placed.forEach(t => { const it = ZD.SHOP.find(x => x.id === t.id), first = !seen[t.id]; seen[t.id] = true; html += '<button type="button" class="tile" data-id="' + t.id + '" aria-pressed="' + (ui.invSel === t.id) + '" style="grid-row:' + (t.row + 1) + ';grid-column:' + (t.col + 1) + ' / span ' + t.size + '" title="' + esc(it.name) + '"><span class="pips">' + '<i></i>'.repeat(t.size) + '</span>' + (it.stack ? '<span class="ct">×' + t.count + '</span>' : '') + (INV_ICON[t.id] || INV_ICON.book) + '<span class="nm">' + esc(INV_SHORT[t.id] || it.name) + '</span></button>'; });
+      grid.innerHTML = html;
+      const over = pk.over.map(t => ZD.SHOP.find(x => x.id === t.id).name); $('invOver').hidden = !over.length; if (over.length) $('invOver').textContent = 'Too much to carry: ' + over.join(', ') + ' will not fit. You move at half speed until you drop or sell something.';
+      const apps = ZD.SHOP.filter(it => it.size === 0 && store.has(it.id)).map(it => it.name); $('invPager').innerHTML = apps.length ? 'On the pager, no slot needed: <b>' + apps.map(esc).join(', ') + '</b>' : 'Software you buy lives on the pager and takes no space here.';
+      const info = $('invInfo'), id = ui.invSel;
+      if (!id) { info.innerHTML = '<p>' + (pk.placed.length ? 'Select an item to read about it, use it, or drop it.' : 'Empty. Byte Mart, west of Building A, sells gear.') + '</p><p class="meta">Small things take one slot. The Pineapple takes two side by side and the SWEEP-4 case takes a whole row, so plan your space.</p>'; return; }
+      const it = ZD.SHOP.find(x => x.id === id), n = store.count(id), inMart = state.zone === 'mart', sell = Math.floor(it.price / 2);
+      const use = { drink: 'Drink one', sweep: 'Sweep this room', keys: 'Whistle the car' }[id];
+      info.innerHTML = '<h4>' + esc(it.name) + (it.stack ? ' ×' + n : '') + '</h4><div class="meta">' + esc(it.tag) + ' · ' + it.size + (it.size > 1 ? ' slots in one row' : ' slot') + (it.stack ? ' · ' + it.stack + ' per slot' : '') + '</div><p>' + esc(it.desc) + '</p>'
+        + (ui.invConfirm ? '<p class="warn">Drop ' + (it.stack ? 'one ' : 'the ') + esc(INV_SHORT[id] || it.name) + ' here? It stays on the floor where you stand, and you can pick it up again.' + (it.kind === 'book' ? ' Its man pages go with it.' : it.kind === 'gear' ? ' You lose what it does until you pick it back up.' : '') + '</p><div class="acts"><button class="btn small" type="button" data-act="dropyes">Drop it</button><button class="btn small ghost" type="button" data-act="dropno">Keep it</button></div>'
+          : '<div class="acts">' + (use ? '<button class="btn small" type="button" data-act="use">' + use + '</button>' : '') + (it.keep ? '' : '<button class="btn small ghost" type="button" data-act="drop">Drop</button>') + (inMart && !it.keep ? '<button class="btn small ghost" type="button" data-act="sell">Sell to Nadia · ' + sell + ' cr</button>' : '') + '</div>' + (it.keep ? '<p class="meta">Keys stay on the ring.</p>' : inMart ? '' : '<p class="meta">Nadia buys gear back at half price inside Byte Mart.</p>'));
+    },
+    invAction(act) {
+      const id = ui.invSel; if (!id) return; const it = ZD.SHOP.find(x => x.id === id);
+      if (act === 'drop') { ui.invConfirm = true; SFX.tick(); }
+      else if (act === 'dropno') ui.invConfirm = false;
+      else if (act === 'dropyes') { ui.invConfirm = false; dropItem(id); }
+      else if (act === 'sell') { if (state.zone !== 'mart' || it.keep) return; store.remove(id, 1); store.addCredits(Math.floor(it.price / 2), 'Sold to Nadia', it.name + '  +' + Math.floor(it.price / 2) + ' credits'); if (id === 'sweep') closeSweep(); }
+      else if (act === 'use') { ui.closeAll(); if (id === 'drink') drinkOverclock(); else if (id === 'sweep') openSweep(); else if (id === 'keys') whistleCar(); return; }
+      ui.renderInv();
+    },
     openShop() { state.ui = 'shop'; SFX.swish(); ui.renderShop(); $('shop').classList.remove('off'); if (state.touch) $('tE').hidden = true; },
     renderShop() {
-      const st = store.state; $('shopCash').textContent = st.credits + ' cr'; const list = $('shopList'); list.innerHTML = '';
+      const st = store.state; $('shopCash').textContent = st.credits + ' cr'; const pk = store.pack(); $('shopPack').textContent = 'Backpack ' + pk.used + ' / 9'; const list = $('shopList'); list.innerHTML = '';
       ZD.SHOP.forEach(it => {
-        const n = store.count(it.id); const owned = it.kind !== 'consumable' && n > 0; const afford = st.credits >= it.price;
+        const n = store.count(it.id); const owned = it.kind !== 'consumable' && n > 0; const afford = st.credits >= it.price; const room = owned || store.fits(it.id);
         const el = document.createElement('div'); el.className = 'item' + (owned ? ' owned' : '');
-        el.innerHTML = '<div class="tag">' + esc(it.tag) + '</div><div class="body"><h4>' + esc(it.name) + (n ? '<span class="own">' + (it.kind === 'consumable' ? 'x' + n + ' in bag' : 'owned') + '</span>' : '') + '</h4><p>' + esc(it.desc) + '</p></div><div class="buy"><div class="price">' + it.price + ' cr</div>' + (owned ? '<span class="have">yours</span>' : '<button class="btn small" type="button"' + (afford ? '' : ' disabled') + '>' + (it.kind === 'consumable' && n ? 'Buy another' : 'Buy') + '</button>') + '</div>';
-        const b = el.querySelector('button'); if (b) b.addEventListener('click', () => { const r = store.buy(it.id); if (r === 'broke') { SFX.buzz(); $('shopNote').textContent = 'Short by ' + (it.price - st.credits) + ' cr. The gig board pays, and so do the chips on the street.'; } else if (r === 'ok') { $('shopNote').textContent = it.kind === 'consumable' ? 'In the bag. Press B outside the menu to drink one.' : it.id === 'keys' ? 'Parked outside, on Meridian Row. K whistles it back to the mart if you lose it.' : it.kind === 'book' ? 'man ' + ZD.SHOP.find(x => x.id === it.id).desc.match(/man ([a-z]+)/)[1] + ' now works on every terminal.' : 'Equipped. ' + ({ ducky: 'Type duck on a terminal.', pineapple: 'Type scan on a terminal.', cloner: 'Walk up to any card reader.', scanner: 'Chips show on the minimap.' }[it.id] || ''); } ui.renderShop(); });
+        el.innerHTML = '<div class="tag">' + esc(it.tag) + '</div><div class="body"><h4>' + esc(it.name) + (n ? '<span class="own">' + (it.kind === 'consumable' ? 'x' + n + ' in bag' : 'owned') + '</span>' : '') + '</h4><p>' + esc(it.desc) + '</p></div><div class="buy"><div class="price">' + it.price + ' cr</div><span class="have">' + (it.size ? it.size + (it.size > 1 ? ' slots' : ' slot') + (it.stack ? ', ' + it.stack + ' per slot' : '') : 'pager app, no slot') + '</span>' + (owned ? '<span class="have">yours</span>' : !room ? '<span class="full">No room</span>' : '<button class="btn small" type="button"' + (afford ? '' : ' disabled') + '>' + (it.kind === 'consumable' && n ? 'Buy another' : 'Buy') + '</button>') + '</div>';
+        const b = el.querySelector('button'); if (b) b.addEventListener('click', () => { const r = store.buy(it.id); if (r === 'full') { SFX.buzz(); $('shopNote').textContent = 'No room: the ' + it.name + ' needs ' + it.size + ' free slots in one row of your backpack. Press I to drop or sell something.'; } else if (r === 'broke') { SFX.buzz(); $('shopNote').textContent = 'Short by ' + (it.price - st.credits) + ' cr. The gig board pays, and so do the chips on the street.'; } else if (r === 'ok') { $('shopNote').textContent = it.kind === 'consumable' ? 'In the bag. Press B outside the menu to drink one.' : it.id === 'keys' ? 'Parked outside, on Meridian Row. K whistles it back to the mart if you lose it.' : it.kind === 'book' ? 'man ' + ZD.SHOP.find(x => x.id === it.id).desc.match(/man ([a-z]+)/)[1] + ' now works on every terminal.' : 'Equipped. ' + ({ ducky: 'Type duck on a terminal.', pineapple: 'Type scan on a terminal.', cloner: 'Walk up to any card reader.', scanner: 'Chips show on the minimap.' }[it.id] || ''); } ui.renderShop(); });
         list.appendChild(el);
       });
     },
@@ -3920,6 +4027,9 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   $('soundBtn').addEventListener('click', () => ui.setSound(SFX.toggle()));
   $('musicBtn').addEventListener('click', () => ui.setMusic(SFX.toggleMusic()));
   $('sweepBtn').addEventListener('click', () => toggleSweep()); $('swClose').addEventListener('click', () => closeSweep());
+  $('invBtn').addEventListener('click', () => { if (state.ui === 'inv') ui.closeAll(); else ui.openInv(); }); $('invClose').addEventListener('click', () => ui.closeAll());
+  $('invGrid').addEventListener('click', e => { const b = e.target.closest('.tile'); if (!b) return; ui.invSel = ui.invSel === b.dataset.id ? null : b.dataset.id; ui.invConfirm = false; SFX.tick(); ui.renderInv(); });
+  $('invInfo').addEventListener('click', e => { const b = e.target.closest('button[data-act]'); if (b) ui.invAction(b.dataset.act); });
   $('swList').addEventListener('click', e => { const li = e.target.closest('li[data-id]'); if (li) swSelect(li.dataset.id); });
   $('swList').addEventListener('keydown', e => { const li = e.target.closest('li[data-id]'); if (li && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); swSelect(li.dataset.id); } });
   $('swMap').addEventListener('click', swMapClick);
@@ -4121,7 +4231,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     else { st.profile = ($('pname').value.trim() || 'Fresh Investigator').slice(0, 24); placePlayer(-5, 0, 0, 0); if (st.quests.quest_f1_cli === 'available') store.activateQuest('quest_f1_cli'); }
     if (sv && typeof sv.clock === 'number' && sv.clock >= START_MIN) CLOCK.total = sv.clock; else if (!resume) CLOCK.total = START_MIN; // a new profile starts on Saturday 10 October at 19:00
     CLOCK.shownMin = -1; syncLogs(); drawClock();
-    applyLook(LOOK.current); updateBeacon(); ensureOwnCar(); if (st.flags.hasPhone && !st.flags.called) state.ringAt = t + 14;
+    applyLook(LOOK.current); updateBeacon(); ensureOwnCar(); (store.state.flags.drops || []).forEach(d => { if (!drops.some(o => o.d.k === d.k)) spawnDrop(d); }); if (st.flags.hasPhone && !st.flags.called) state.ringAt = t + 14;
     $('start').classList.add('off'); state.playing = true; ui.refreshQuest(); save(); canvas.focus();
     setTimeout(() => $('fade').classList.add('clear'), 80);
     if (!resume) { setTimeout(() => ui.toast({ kind: '', title: longDate(), text: '19:00 on Meridian Row. Six days since anyone saw Dara. T shows the clock.' }), 600); setTimeout(() => ui.toast({ kind: '', title: 'Building A', text: 'The cyan arrow marks the door. W runs, A and D turn, E at a car takes it.' }), 1200); }
