@@ -953,7 +953,36 @@ Lineman's notebook, Meridian Exchange.
       start: 'Byte Mart gig board: Utilities wants to know how many processes the database box runs, header line included.',
       journalStart: 'Gig accepted: ps aux piped into wc -l on the Building D console.',
       journalDone: 'Gig done: six lines, five processes and a header.',
-      objectives: [{ id: 'o1', text: 'Count the process lines on the db console', cmd: 'ps aux | wc -l', sig: '\n      6 ', needs: ['ps', 'wc'], hint: 'In Building D: ps aux | wc -l. The pipe feeds the process list into the line counter.' }] }
+      objectives: [{ id: 'o1', text: 'Count the process lines on the db console', cmd: 'ps aux | wc -l', sig: '\n      6 ', needs: ['ps', 'wc'], hint: 'In Building D: ps aux | wc -l. The pipe feeds the process list into the line counter.' }] },
+    /* field kit jobs: each needs something from the Byte Mart shelves (item), and opens on the board once you own it */
+    { id: 'gig_cleanroom', title: 'Clean Room', category: 'Field kit', item: 'sweep', location: 'Building A, Building X, then Meridian Police', reward: 90, gig: true,
+      start: 'Byte Mart gig board, field kit: sweep two rooms for listening devices and report what you find. Needs the SWEEP-4 room scanner.',
+      journalStart: 'Gig accepted: sweep Dara’s studio and the Exchange with the SWEEP-4 (G inside a building). A device that is switched off gives no heat and no signal, so walk close with the junction detector. Do not remove anything: note it and report it.',
+      journalDone: 'Gig done: a dead bug under Dara’s desk and a line device on extension 4 at the Exchange, both written up and left in place for Meridian Police. Evidence you pull off the wall is evidence nobody can trust.',
+      objectives: [
+        { id: 'o1', text: 'Find the listening device in Dara’s studio', sig: 'SWEEP in bug', hint: 'Building A, G for the SWEEP-4. The bug is dead, so only the junction detector finds it: walk slowly past the desks.' },
+        { id: 'o2', text: 'Find the unlisted device on the Exchange lines', sig: 'SWEEP xch tap', hint: 'Building X. It is warm but silent on the air: watch the thermal pass, then walk the patch wall.' },
+        { id: 'o3', text: 'Report both at the Meridian Police front desk', sig: 'REPORT bugs', hint: 'The station is east of Building X. Ring the front-desk bell once both finds are on the SWEEP-4.' }
+      ] },
+    { id: 'gig_assets', title: 'Asset List', category: 'Field kit', item: 'sweep', location: 'Buildings D and H, Byte Mart', reward: 70, gig: true,
+      start: 'Byte Mart gig board, field kit: Utilities wants an inventory of things on its networks that nobody listed. Needs the SWEEP-4 room scanner.',
+      journalStart: 'Gig accepted: you cannot protect what you do not know you have. Sweep three rooms and find the devices that are on a network without being on anyone’s list.',
+      journalDone: 'Gig done: an unlabelled Raspberry Pi behind rack 3, a Bluetooth soil sensor in Rosa’s seed trays and a till that shares a network with the free Wi-Fi. Three lines for the asset register, and three things to fix.',
+      objectives: [
+        { id: 'o1', text: 'Find the unlabelled computer in Building D', sig: 'SWEEP util pi', hint: 'Building D, G for the SWEEP-4. The radio pass hears a Bluetooth name; the network pass sees a host with no DNS name.' },
+        { id: 'o2', text: 'Find the Bluetooth sensor in Building H', sig: 'SWEEP lab soil', hint: 'Building H. It is too cold for the thermal camera; listen for it with the radio pass near the seed trays.' },
+        { id: 'o3', text: 'Find the till on Byte Mart’s network', sig: 'SWEEP mart till', hint: 'Sweep Byte Mart itself and let the network pass finish. Look at what shares 192.168.8.0/24 with the customer Wi-Fi.' }
+      ] },
+    { id: 'gig_timeline', title: 'Timeline', category: 'Field kit', item: 'book_grep', location: 'Caduceus ops terminal (Building F)', reward: 70, gig: true,
+      start: 'Byte Mart gig board, field kit: build a login timeline from the Caduceus auth log. Needs the book on grep, pipes and wc.',
+      journalStart: 'Gig accepted: an investigator’s first job is a timeline. Read the grep manual, count the logins, take out the noise and find the last time Dara logged in.',
+      journalDone: 'Gig done: 15 successful logins, nine of them the 03:12 visitor. Strip those out and Dara’s last login stands alone: Oct 4, 23:40, from her own workstation. The same minute Meridian Police have her last seen at Building F.',
+      objectives: [
+        { id: 'o1', text: 'Read the grep manual', cmd: 'man grep', sig: 'GREP(1)', needs: ['man'], hint: 'Any terminal, once you own the book: man grep. Note the -c and -v options.' },
+        { id: 'o2', text: 'Count every successful login', cmd: 'grep Accepted /var/log/auth.log | wc -l', sig: '     15 ', needs: ['wc'], hint: 'On the Caduceus ops terminal: grep Accepted /var/log/auth.log | wc -l.' },
+        { id: 'o3', text: 'Filter out the 03:12 visitor', cmd: 'grep Accepted /var/log/auth.log | grep -v 10.0.0.254', sig: 'Accepted password for julien from 10.0.1.60 port 49101', needs: ['-v'], hint: 'grep -v keeps the lines that do NOT match: grep Accepted /var/log/auth.log | grep -v 10.0.0.254.' },
+        { id: 'o4', text: 'Pin down Dara’s last login', cmd: 'grep dara /var/log/auth.log', sig: 'Oct  4 23:40:12 caduceus sshd[4231]: Accepted publickey for dara', needs: ['dara'], hint: 'grep dara /var/log/auth.log. Compare the time with the notice on the police station door.' }
+      ] }
   ];
 
   /* ---- Byte Mart stock: every item changes how the game plays ---- */
@@ -1025,7 +1054,7 @@ Lineman's notebook, Meridian Exchange.
     breaker: { title: 'Breaker panel', style: 'plain', text: 'Rows of breakers, all on. One is labelled in Dara’s handwriting: RACK 3, DO NOT TOUCH, SHE KNOWS. The hum is loudest here.', discovery: { id: 'UTIL-BREAKER', title: 'Breaker panel in Building D', text: 'Rack 3 in Meridian Utilities is labelled in Dara’s hand: do not touch, she knows.' } },
     mlog: { title: 'Maintenance clipboard', style: 'paper', text: 'Sep 12  generator 2 service\nSep 28  rack 3 fan swap\nOct 2   23:50  visitor D.OKAFOR, rack 3, 40 min, no ticket\nOct 3   03:12  db load spike (nightly, ignore)\n\nSomebody has underlined “nightly, ignore” three times, and written beside it: the console on the cart. ps aux. Then look for what listens.' },
     // Byte Mart
-    gigboard: { title: 'Gig board', style: 'paper', text: 'CASH FOR COMMANDS. Pin a card, pay on proof.\n\nLOST SCRIPT, 40 cr: find knock.sh on dara-ws with find.\nDOTFILES, 60 cr: list Dara’s hidden files, read the token.\nBRUTE FORCE, 50 cr: count the failed root logins at Caduceus.\nHEADCOUNT, 50 cr: ps aux | wc -l on the Building D console.\n\nProof is automatic. The terminals talk to Nadia.', discovery: { id: 'MART-GIGS', title: 'Byte Mart gig board', text: 'Four paid gigs: find a script, read a dotfile, count failed logins, count processes. Each pays in credits the moment the command runs.' } },
+    gigboard: { title: 'Gig board', style: 'paper', text: 'CASH FOR COMMANDS. Pin a card, pay on proof.\n\nLOST SCRIPT, 40 cr: find knock.sh on dara-ws with find.\nDOTFILES, 60 cr: list Dara’s hidden files, read the token.\nBRUTE FORCE, 50 cr: count the failed root logins at Caduceus.\nHEADCOUNT, 50 cr: ps aux | wc -l on the Building D console.\n\nFIELD KIT (bring the gear, the card pins itself when you own it):\nCLEAN ROOM, 90 cr: sweep Dara’s studio and the Exchange for bugs, report them. SWEEP-4.\nASSET LIST, 70 cr: find three devices nobody listed. SWEEP-4.\nTIMELINE, 70 cr: build a login timeline from the Caduceus log. Book: grep, pipes and wc.\n\nProof is automatic. The terminals talk to Nadia.', discovery: { id: 'MART-GIGS', title: 'Byte Mart gig board', text: 'Four paid gigs: find a script, read a dotfile, count failed logins, count processes. Each pays in credits the moment the command runs. Three field kit jobs need gear from the shelves: a SWEEP-4 for Clean Room and Asset List, the grep book for Timeline.' } },
     fridge: { title: 'Drinks fridge', style: 'plain', text: 'OVERCLOCK in three flavours that all taste of battery. A hand-written card on the glass: ONE PER CUSTOMER PER HOUR, I AM NOT CLEANING THAT UP AGAIN. Behind the cans, a single bottle of water nobody has bought since the shop opened.' },
     bargain: { title: 'Bargain bin', style: 'plain', text: 'Floppy disks labelled DOOM (shareware), a mouse with a ball in it, three serial cables, a copy of Hacking Exposed with the spine broken at chapter 4, and a pager identical to yours with a dead battery. A sticker on the bin: EVERYTHING 5 CR, NOTHING WORKS.' },
     martposter: { title: 'Poster behind the counter', style: 'plain', text: 'A fake movie poster: NULL ROUTE, starring a person in a hoodie lit entirely by a terminal. Under it, in marker: THIS IS NOT WHAT IT LOOKS LIKE. IT LOOKS LIKE READING LOGS AT 3 AM. Nadia has drawn a small heart next to the 3.' },
@@ -2633,7 +2662,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   addInter({ id: 'mlog', zone: 'util', pos: V3(IXD + 1.4, 0, -4.3), r: 1.3, label: 'Read maintenance clipboard', run() { ui.examine('mlog'); } });
   addInter({ id: 'rack3', zone: 'util', pos: V3(IXD + 5.0, 0, 0.0), r: 1.5, label: 'Look at rack 3', run() { ui.examine('rack3'); } });
   // Meridian Police interior interactables, in world coordinates (IXP + local x).
-  addInter({ id: 'frontDesk', zone: 'police', pos: V3(IXP + 0.8, 0, -1.35), r: 1.1, label: 'Ring the front-desk bell', run() { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The bell rings once. A tired voice calls from the back: “Cybercrime is closed until Monday. Leave the logs.”' }); } });
+  addInter({ id: 'frontDesk', zone: 'police', pos: V3(IXP + 0.8, 0, -1.35), r: 1.1, label: 'Ring the front-desk bell', run() { const q = 'gig_cleanroom'; if (store.state.quests[q] === 'active' && store.isDone(q, 'o1') && store.isDone(q, 'o2') && !store.isDone(q, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant writes it all down: what, where, when you found it, and that you left both devices in place. “Good. Touch them and they stop being evidence.”' }); store.checkText('REPORT bugs'); return; } ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The bell rings once. A tired voice calls from the back: “Cybercrime is closed until Monday. Leave the logs.”' }); } });
   addInter({ id: 'caseBoard', zone: 'police', pos: V3(IXP + 1.5, 0, 5.75), r: 1.1, label: 'Look at the case board', run() { ui.examine('policeNotice'); } });
   addInter({ id: 'cyberDesk', zone: 'police', pos: V3(IXP + 5.2, 0, 3.85), r: 1.1, label: 'Use the cybercrime terminal', run() { ui.toast({ kind: 'ok', title: 'Cybercrime desk', text: 'Case MP-2610-044: Dara Okafor. Preserve original logs, write down the time, and record the host or address.' }); } });
   addInter({ id: 'policeCells', zone: 'police', pos: V3(IXP - 6.5, 0, 3.5), r: 1.5, label: 'Look into the holding cell', run() { ui.toast({ kind: '', title: 'Holding cell', text: 'Empty tonight. The lock display blinks 03:12, then resets.' }); } });
@@ -3091,6 +3120,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   }
   function listSweep() {
     const room = swRoom(SW.zone); if (!room) return; const F = SW.found[SW.zone] || {}, N = room.R.net;
+    room.devs.forEach(d => { const f = F[d.id]; if (f && (f.th || f.rf || f.net || f.nj)) store.checkText('SWEEP ' + SW.zone + ' ' + d.id); });
     const cnt = { th: 0, rf: 0, net: 0, nj: 0 }; room.devs.forEach(d => { const f = F[d.id]; if (f) ['th', 'rf', 'net', 'nj'].forEach(t => { if (f[t]) cnt[t]++; }); });
     const passes = [['th', 'Thermal', SW.passTh ? cnt.th + ' warm' : 'settling'], ['rf', 'Radio', cnt.rf + ' heard'], ['net', 'Network', !SW.passNet ? 'sweeping' : N.closed ? 'no access' : cnt.net + (room.R.others ? ' + ' + room.R.others.length : '') + ' hosts'], ['nj', 'Junction', cnt.nj + ' up close']];
     $('swPasses').innerHTML = passes.map(q => '<button type="button" data-pass="' + q[0] + '" aria-pressed="' + (SW.filter === q[0]) + '" title="Show only what the ' + q[1].toLowerCase() + ' pass found" class="' + q[0] + (q[0] === 'net' && SW.passNet && N.closed ? ' off' : '') + '">' + q[1] + '<b>' + esc(q[2]) + '</b></button>').join('');
@@ -3328,7 +3358,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     addInter({ id: 'exitM', zone: 'mart', pos: W(-1, -4.6), r: 1.5, label: 'Leave Byte Mart', run() { transition(() => { setZone('out'); placePlayer(-22.5, 0, -12.4, 0); }); } });
     addInter({ id: 'nadia', zone: 'mart', pos: W(1.5, 2.6), r: 2.0, label: 'Talk to Nadia (Byte Mart)', run() { const st = store.state; const lines = ZD.DIALOGUE.nadia(st); ui.dialogue('Nadia Sow', lines, () => { st.flags.metNadia = true; ui.openShop(); }, 'nadia'); faceNadia(); } });
     addInter({ id: 'shelves', zone: 'mart', pos: W(-1.3, -0.5), r: 2.2, label: 'Browse the shelves', run() { ui.openShop(); } });
-    addInter({ id: 'gigboard', zone: 'mart', pos: W(2.2, -4.2), r: 1.5, label: 'Read the gig board', run() { ui.examine('gigboard'); let n = 0; ZD.GIGS.forEach(g => { if (store.state.quests[g.id] === 'available') { store.activateQuest(g.id); n++; } }); if (n) ui.toast({ kind: '', title: 'Gigs', text: n + ' gigs added to your missions (P). Each pays when its command runs.' }); } });
+    addInter({ id: 'gigboard', zone: 'mart', pos: W(2.2, -4.2), r: 1.5, label: 'Read the gig board', run() { ui.examine('gigboard'); store.state.flags.boardRead = true; let n = 0; ZD.GIGS.forEach(g => { if (store.state.quests[g.id] === 'available' && (!g.item || store.has(g.item))) { store.activateQuest(g.id); n++; } }); if (n) ui.toast({ kind: '', title: 'Gigs', text: n + ' gigs added to your missions (P). Each pays when its command runs.' }); } });
     addInter({ id: 'fridge', zone: 'mart', pos: W(5.0, 1.0), r: 1.5, label: 'Look in the fridge', run() { ui.examine('fridge'); } });
     addInter({ id: 'bargain', zone: 'mart', pos: W(-4.6, -3.3), r: 1.3, label: 'Dig through the bargain bin', run() { ui.examine('bargain'); } });
     addInter({ id: 'martposter', zone: 'mart', pos: W(3.6, 2.6), r: 1.3, label: 'Look at the poster', run() { ui.examine('martposter'); } });
@@ -3902,7 +3932,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
 
   // the quest store drives the HUD: every notice goes to the corner stack, every change redraws the mission card and saves, a finished quest moves the beacon
   store.on('toast', o => { ui.toast(o); if (o.kind === 'ok') SFX.objective(); else if (o.kind === 'quest') SFX.quest(); else if (o.kind === 'found') SFX.discovery(); else if (o.kind === 'warn') SFX.warn(); else if (o.kind === 'buy') SFX.buy(); else if (o.kind === 'cash') SFX.coin(); else SFX.tick(); });
-  store.on('bought', id => { if (id === 'keys') ensureOwnCar(); });
+  store.on('bought', id => { if (id === 'keys') ensureOwnCar(); if (store.state.flags.boardRead) ZD.GIGS.forEach(g => { if (g.item === id && store.state.quests[g.id] === 'available') store.activateQuest(g.id); }); });
   store.on('change', () => { ui.refreshQuest(); updateBeacon(); save(); });
   store.on('questComplete', (qid) => { if (qid === 'quest_i3_ghost') setTimeout(() => ui.toast({ kind: 'quest', title: 'Zero Day', text: 'Rosa has one more thing to say. Someone is waiting in the park.' }), 4200); if (qid === 'quest_z3_exchange') { const f = store.state.flags; f.deadline = null; if (f.labDark) { f.labDark = false; setTimeout(() => ui.toast({ kind: 'ok', title: 'Building H', text: 'The lights in the lab come back on. Whatever the 1337 line was holding over the street, it let go.' }), 2500); } setTimeout(() => { store.state.flags.call2Due = true; save(); }, 6000); } });
 
