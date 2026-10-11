@@ -12,7 +12,7 @@ The game plays its clips (`anim-m-walk`, `anim-f-idle` and the rest) by copying 
 2. Bends it bone by bone into the reference rig's rest pose, swinging each limb segment onto the reference direction (the A-pose arms become T-pose arms).
 3. Builds a skeleton with the reference rig's bone names, hierarchy and orientations, placed at the Rocketbox character's own joints, so each body keeps its proportions.
 4. Moves the skin weights from Biped bones to the new bones. Face bones fold into `Head`, and end bones such as `HeadTop_End` are placed by proportion.
-5. Writes a compact GLB (KHR_mesh_quantization): colour textures as 512 px JPEG, and the hair and eyelash cards as PNG with alpha.
+5. Writes a GLB in the same vertex layout as the Ready Player Me rigs (interleaved floats, 52 bytes a vertex), with colour textures as 512 px JPEG and the hair and eyelash cards as PNG with alpha. An earlier build used byte normals to save space; that format has no direct DirectX equivalent and is the suspected cause of very low frame rates on some graphics cards.
 
 Men are matched to `avatar-player`, women to `avatar-rosa`. Rocketbox bodies have shorter legs than those rigs, so the game scales the clips' hip height by each body's own hip height (`ch.hipsY` in `makeAvatar`, used in `retarget`).
 

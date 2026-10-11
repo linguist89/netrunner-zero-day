@@ -11,7 +11,8 @@ local axes as the Ready Player Me rig the clips were made for. This script:
   3. builds a new skeleton with the reference rig's bone names, hierarchy and world orientations,
      but at the Rocketbox character's own joint positions (so proportions are kept);
   4. remaps the skin weights from Biped bones to the new bones (face bones fold into Head);
-  5. writes a GLB with small textures: colour as JPEG, the hair/eyelash cards as PNG with alpha.
+  5. writes a GLB in the same vertex layout as the reference rigs, with small textures: colour as JPEG, the
+     hair/eyelash cards as PNG with alpha.
 
 usage: rb2rpm.py raw.glb reference.glb[.txt] textures_dir out.glb [--tex 512]
 """
@@ -260,15 +261,17 @@ def main():
         if tf: m['pbrMetallicRoughness']['baseColorTexture'] = {'index': add_image(tf, 'alpha' if alpha else 'rgb')}
         if alpha: m['alphaMode'] = 'MASK'; m['alphaCutoff'] = 0.45; m['doubleSided'] = True
         materials.append(m)
-        # compact vertex data (KHR_mesh_quantization): normals as bytes, UVs as shorts, weights as bytes summing to 255
-        n8 = np.c_[np.clip(np.round(p['N'] * 127), -127, 127).astype(np.int8), np.zeros(len(p['N']), np.int8)]
-        uv = p['uv']; uv_ok = uv.min() >= 0 and uv.max() <= 1
-        w8 = np.floor(p['wt'] * 255).astype(int); w8[np.arange(len(w8)), w8.argmax(1)] += 255 - w8.sum(1)
-        prim_out.append({'attributes': {'POSITION': add_acc(p['P'].astype(np.float32), 5126, 'VEC3', 34962, True),
-                                        'NORMAL': add_acc_strided(n8, 5120, 'VEC3', 4, True),
-                                        'TEXCOORD_0': add_acc(np.round(uv * 65535).astype(np.uint16), 5123, 'VEC2', 34962, normalized=True) if uv_ok else add_acc(uv.astype(np.float32), 5126, 'VEC2', 34962),
-                                        'JOINTS_0': add_acc(p['jt'].astype(np.uint8), 5121, 'VEC4', 34962),
-                                        'WEIGHTS_0': add_acc(w8.astype(np.uint8), 5121, 'VEC4', 34962, normalized=True)},
+        # vertex data in the same layout as the Ready Player Me rigs: one interleaved block per primitive, float
+        # position, normal, uv and weights plus byte joints, 52 bytes a vertex (compact byte normals made some GPUs crawl)
+        nv = len(p['P']); rec = np.zeros(nv, dtype=[('p', '<f4', 3), ('n', '<f4', 3), ('t', '<f4', 2), ('j', 'u1', 4), ('w', '<f4', 4)])
+        rec['p'] = p['P']; rec['n'] = p['N']; rec['t'] = p['uv']; rec['j'] = p['jt']; rec['w'] = p['wt']
+        v = add_view(rec.tobytes(), 34962); views[v]['byteStride'] = 52
+        def ia(off, ctype, typ, mm=None):
+            a = {'bufferView': v, 'byteOffset': off, 'componentType': ctype, 'count': nv, 'type': typ}
+            if mm is not None: a['min'] = [float(x) for x in mm.min(0)]; a['max'] = [float(x) for x in mm.max(0)]
+            accs.append(a); return len(accs) - 1
+        prim_out.append({'attributes': {'POSITION': ia(0, 5126, 'VEC3', p['P']), 'NORMAL': ia(12, 5126, 'VEC3'), 'TEXCOORD_0': ia(24, 5126, 'VEC2'),
+                                        'JOINTS_0': ia(32, 5121, 'VEC4'), 'WEIGHTS_0': ia(36, 5126, 'VEC4')},
                          'indices': add_acc(p['idx'].astype(np.uint16 if p['idx'].max() < 65535 else np.uint32), 5123 if p['idx'].max() < 65535 else 5125, 'SCALAR', 34963),
                          'material': len(materials) - 1})
     mesh_i = len(nodes); nodes.append({'name': 'RB_Body', 'mesh': 0, 'skin': 0}); nodes[0]['children'].append(mesh_i)
@@ -277,7 +280,7 @@ def main():
           'scene': 0, 'scenes': [{'nodes': [0]}], 'nodes': nodes, 'meshes': [{'name': 'RB_Body', 'primitives': prim_out}],
           'skins': [{'joints': [ni[b] for b in bones], 'inverseBindMatrices': ibm_acc, 'skeleton': ni['Hips']}],
           'materials': materials, 'textures': textures, 'images': images, 'samplers': [{'magFilter': 9729, 'minFilter': 9987}],
-          'accessors': accs, 'bufferViews': views, 'extensionsUsed': ['KHR_mesh_quantization'], 'extensionsRequired': ['KHR_mesh_quantization'], 'buffers': [{'byteLength': len(blob)}],
+          'accessors': accs, 'bufferViews': views, 'buffers': [{'byteLength': len(blob)}],
           'extras': {'hipsY': float(newp['Hips'][1]), 'height': float(allP[:, 1].max() - allP[:, 1].min())}}
     js = json.dumps(gl, separators=(',', ':')).encode()
     while len(js) % 4: js += b' '
