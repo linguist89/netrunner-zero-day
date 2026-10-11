@@ -3512,7 +3512,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const lampsOn = (1 - sstep(0.25, 0.7, d)) * stutter; // lamps switch off a little after sunrise and back on before dark
     L.labLamps.forEach(([l, i0]) => { l.intensity = i0 * (dark ? 0.12 : 1); }); if (L.grow) L.grow.emissiveColor.copyFrom(dark ? BABYLON.Color3.Black() : L.growC);
     if (state.zone !== 'out') { // interiors keep their own lamps; only shared materials go back to their night values
-      if (glowDisc) glowDisc.alpha = 1; if (coneMat) coneMat.alpha = 1; if (glow) glow.intensity = 0.5; ipc.exposure = 1.2; if (scene.environmentTexture) scene.environmentIntensity = 0.7; return;
+      if (glowDisc) glowDisc.alpha = 1; if (coneMat) coneMat.alpha = 1; if (glow) glow.intensity = 0.5; if (ipc.exposure !== 1.2) ipc.exposure = 1.2; if (scene.environmentTexture && scene.environmentIntensity !== 0.7) scene.environmentIntensity = 0.7; return;
     }
     // sky and haze
     const warm = gold * 0.85;
@@ -3524,9 +3524,14 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     L.dir.intensity = N.dirI * night + (0.5 + 1.25 * Math.max(0, s.elev)) * d;
     const sunV = new BABYLON.Vector3(-Math.cos(s.az), -(0.3 + 0.7 * Math.max(0, s.elev)), -0.3).normalize();
     const dv = BABYLON.Vector3.Lerp(N.dirV, sunV, d).normalize(); L.dir.direction.copyFrom(dv); L.dir.position.copyFrom(dv.scale(-100));
-    ipc.exposure = 1.2 - 0.18 * d; if (scene.environmentTexture) scene.environmentIntensity = 0.7 + 0.35 * d;
+    // in steps of 0.01 and only on a change: each new exposure or environment intensity makes Babylon mark every material in the scene dirty,
+    // and setting a slightly different value every frame from dawn to dusk dropped the game to about one frame a second
+    const ex = Math.round((1.2 - 0.18 * d) * 100) / 100, env = Math.round((0.7 + 0.35 * d) * 100) / 100;
+    if (ipc.exposure !== ex) ipc.exposure = ex; if (scene.environmentTexture && scene.environmentIntensity !== env) scene.environmentIntensity = env;
     // what the city switches on after dark
-    L.lamps.forEach(([l, i0]) => { l.intensity = i0 * lampsOn; l.setEnabled(lampsOn > 0.02); });
+    // only switch a lamp when it changes: Babylon's light.setEnabled resyncs the light with every mesh in the scene on each call,
+    // and calling it every frame for every lamp stalled the game for about a second a frame from dawn onwards
+    L.lamps.forEach(([l, i0]) => { l.intensity = i0 * lampsOn; const on = lampsOn > 0.02; if (l.isEnabled(false) !== on) l.setEnabled(on); });
     if (glowDisc) glowDisc.alpha = lampsOn; if (coneMat) coneMat.alpha = 0.35 + 0.65 * lampsOn; if (glow) glow.intensity = 0.15 + 0.35 * night;
     const win = 0.12 + 0.88 * (1 - sstep(0.15, 0.85, d)); L.facades.forEach(m => m.emissiveColor.set(win, win, win));
     L.heads.forEach(([m, c]) => m.emissiveColor.copyFrom(c.scale(0.25 + 0.75 * lampsOn)));
@@ -3771,7 +3776,9 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   function copCarTaken(car) { if (car.reported) return; car.reported = true; car.flash = true; ui.toast({ kind: 'warn', title: 'Meridian PD', text: 'Dispatch: cruiser ' + car.unit + ' taken on ' + (Math.abs(car.z) < 8 ? 'Meridian Row' : 'the grid') + '. All units, eyes open.' }); }
   function updateCops(dt, t) {
     const phase = Math.floor(t * 6) % 4;
-    copCars.forEach(c => { const on = c.flash || c === state.driving; c.barR.material = on && phase === 0 ? mat('copRedOn', '#ff3030', { emissive: '#ff2020', unlit: true }) : mat('copRedOff'); c.barB.material = on && phase === 2 ? mat('copBlueOn', '#3070ff', { emissive: '#2a66ff', unlit: true }) : mat('copBlueOff'); });
+    copCars.forEach(c => { const on = c.flash || c === state.driving; // swap a light-bar material only when it changes: every assignment re-binds the mesh
+      const r = on && phase === 0 ? mat('copRedOn', '#ff3030', { emissive: '#ff2020', unlit: true }) : mat('copRedOff'), bl = on && phase === 2 ? mat('copBlueOn', '#3070ff', { emissive: '#2a66ff', unlit: true }) : mat('copBlueOff');
+      if (c.barR.material !== r) c.barR.material = r; if (c.barB.material !== bl) c.barB.material = bl; });
     COPS.warnT -= dt; const car = state.driving; if (!car || COPS.warnT > 0 || Math.abs(car.speed) < 6) return;
     const w = peds.find(p => p.cop && Math.hypot(p.x - car.x, p.z - car.z) < 5); if (!w) return;
     COPS.warnT = 25; ui.toast({ kind: 'warn', title: w.name, text: car.cop ? 'That is one of OUR cars. Pull over. Now.' : 'Slow down! This is a street, not a racetrack.' });
