@@ -2178,6 +2178,15 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (!o.noChair) { const c = chair(0, 0, 0); c.parent = n; c.position.set(0, 0, -0.75); c.rotation.y = 0; }
     return n;
   }
+  function workstation(x, z, ry, lines, color) {
+    const n = new BABYLON.TransformNode('workstation', scene); n.parent = Z.root; n.position.set(x, 0, z); n.rotation.y = ry;
+    const top = box(mat('worktop', '#d9d2c4', { spec: 0.2 }), 2.1, 0.03, 0.9, 0, 0.72, 0, { parent: n, collide: true });
+    [[-0.95, -0.38], [0.95, -0.38], [-0.95, 0.38], [0.95, 0.38]].forEach(p => box(mat('workLeg', '#3c3f45', { spec: 0.35, power: 48 }), 0.05, 0.72, 0.05, p[0], 0, p[1], { parent: n, cast: false }));
+    const m = monitor(0, 0.75, 0.22, PI, lines, color); m.parent = n; m.position.set(0, 0.75, 0.22); m.rotation.y = PI;
+    box(mat('keyboard', '#17181c', { spec: 0.25 }), 0.58, 0.025, 0.22, 0, 0.75, -0.16, { parent: n, cast: false, name: 'workstationKeyboard' });
+    const c = chair(0, 0, 0); c.parent = n; c.position.set(0, 0, -0.92); c.rotation.y = 0;
+    return { node: n, chair: c, monitor: m, top };
+  }
   function plantPot(x, z, s) { s = s || 1; box(mat('plantPot', '#8a5a3a'), 0.3 * s, 0.3 * s, 0.3 * s, x, 0, z, { collide: true }); sphere(mat('plant', '#3b7d4a'), 0.7 * s, x, 0.6 * s, z, { seg: 10 }); }
 
   function buildCaduceus() {
@@ -2315,11 +2324,11 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     room({ name: 'P', X0, X1, Z0, Z1, H, wallM, floorM, door: 0, windows: [[-6, 1.0, Z0 + 0.1, 2.7, 1.5, 0, 'front'], [X1 - 0.1, 1.0, 2, 2.2, 1.5, PI / 2, 'side']] });
     const navy = mat('policeNavy', '#202c4a', { spec: 0.3 }); const steel = mat('policeSteel', '#8d98a8', { spec: 0.45 }); const glass = mat('policeGlass', '#9ec9ed', { alpha: 0.28, spec: 0.8 });
     // Front desk at the civic lobby, facing south toward the entry.
-    desk(0, -0.8, 0, ['MERIDIAN PD', 'front desk', 'bell: ring once'], '#8fc5ff');
+    workstation(0, -0.8, 0, ['MERIDIAN PD', 'front desk', 'bell: ring once'], '#8fc5ff');
     box(mat('bell', '#e8bd63', { emissive: '#6a4d1d' }), 0.12, 0.08, 0.12, 0.8, 1.08, -0.55, { cast: false, name: 'frontBell' });
     [[-7.7, -3.6], [-7.7, -1.4]].forEach(p => { box(mat('bench', '#34415b'), 1.8, 0.08, 0.45, p[0], 0.46, p[1], { collide: true }); box(steel, 0.05, 0.46, 0.05, p[0] - 0.7, 0, p[1], { cast: false }); box(steel, 0.05, 0.46, 0.05, p[0] + 0.7, 0, p[1], { cast: false }); });
     // Cybercrime desk and evidence side behind the glass partition.
-    desk(5.2, 4.0, 0, ['cybercrime desk', 'MP-2610-044', 'case: OKAFOR'], '#61a5ff');
+    workstation(5.2, 4.0, 0, ['cybercrime desk', 'MP-2610-044', 'case: OKAFOR'], '#61a5ff');
     plane(texMat('policeBoard', textTex('CASE BOARD\nOKAFOR  ·  MP-2610-044\nPRESERVE LOGS  ·  NOTE TIME', { w: 768, h: 256, color: '#cfe0ff', bg: '#1b2440', font: '600 34px "JetBrains Mono", monospace', lineH: 54 }), { unlit: true, emissive: '#ffffff' }), 3.0, 1.4, 1.5, 5.98, { ry: 0, single: true });
     // Evidence lockers sit against the far wall; the cell block stays to the northwest.
     for (let i = 0; i < 3; i++) { box(steel, 0.9, 1.9, 0.52, -2.5 + i * 1.05, 0, 5.65, { collide: true }); box(mat('evidenceLabel' + i, i === 1 ? '#d4a64b' : '#566985'), 0.62, 0.18, 0.03, -2.5 + i * 1.05, 1.25, 5.35, { cast: false }); }
@@ -2445,10 +2454,9 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   addInter({ id: 'mlog', zone: 'util', pos: V3(IXD + 1.4, 0, -4.3), r: 1.3, label: 'Read maintenance clipboard', run() { ui.examine('mlog'); } });
   addInter({ id: 'rack3', zone: 'util', pos: V3(IXD + 5.0, 0, 0.0), r: 1.5, label: 'Look at rack 3', run() { ui.examine('rack3'); } });
   // Meridian Police interior interactables, in world coordinates (IXP + local x).
-  addInter({ id: 'frontDesk', zone: 'police', pos: V3(IXP, 0, -2.0), r: 1.4, label: 'Ring the front-desk bell', run() { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The bell rings once. A tired voice calls from the back: “Cybercrime is closed until Monday. Leave the logs.”' }); } });
-  addInter({ id: 'noticeIn', zone: 'police', pos: V3(IXP + 6.8, 0, -3.0), r: 1.2, label: 'Read the notice board', run() { ui.examine('policeNotice'); } });
-  addInter({ id: 'caseBoard', zone: 'police', pos: V3(IXP + 1.5, 0, 4.8), r: 1.3, label: 'Look at the case board', run() { ui.examine('policeNotice'); } });
-  addInter({ id: 'cyberDesk', zone: 'police', pos: V3(IXP + 5.2, 0, 4.9), r: 1.4, label: 'Use the cybercrime terminal', run() { ui.toast({ kind: 'ok', title: 'Cybercrime desk', text: 'Case MP-2610-044: Dara Okafor. Preserve original logs, write down the time, and record the host or address.' }); } });
+  addInter({ id: 'frontDesk', zone: 'police', pos: V3(IXP + 0.8, 0, -1.35), r: 1.1, label: 'Ring the front-desk bell', run() { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The bell rings once. A tired voice calls from the back: “Cybercrime is closed until Monday. Leave the logs.”' }); } });
+  addInter({ id: 'caseBoard', zone: 'police', pos: V3(IXP + 1.5, 0, 5.75), r: 1.1, label: 'Look at the case board', run() { ui.examine('policeNotice'); } });
+  addInter({ id: 'cyberDesk', zone: 'police', pos: V3(IXP + 5.2, 0, 3.85), r: 1.1, label: 'Use the cybercrime terminal', run() { ui.toast({ kind: 'ok', title: 'Cybercrime desk', text: 'Case MP-2610-044: Dara Okafor. Preserve original logs, write down the time, and record the host or address.' }); } });
   addInter({ id: 'policeCells', zone: 'police', pos: V3(IXP - 6.5, 0, 3.5), r: 1.5, label: 'Look into the holding cell', run() { ui.toast({ kind: '', title: 'Holding cell', text: 'Empty tonight. The lock display blinks 03:12, then resets.' }); } });
   martInteractables(); exchangeInteractables();
   // the two people on the street
