@@ -2408,12 +2408,12 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   addInter({ id: 'doorF', zone: 'out', pos: V3(12, 0, -15), r: 2.2, label: 'Enter Building F', run() { const st = store.state.quests.quest_i1_logs; if (st === 'locked' || st === 'available') { if (!store.has('cloner')) { ui.toast({ kind: 'warn', title: 'Caduceus Analytics', text: 'By appointment only. Julien is right here; he decides who gets in.' }); return; } ui.toast({ kind: 'ok', title: 'Proxmark', text: 'Cloned visitor badge accepted. The reader never asked who you were.' }); } transition(() => { setZone('cad'); placePlayer(IXF + 1.0, 0, 5.0, PI); }); } });
   addInter({ id: 'doorH', zone: 'out', pos: V3(-9, 0, 15), r: 2.2, label: 'Enter Building H', run() { transition(() => { setZone('lab'); placePlayer(IXH - 1.0, 0, -4.8, 0); }); } });
   addInter({ id: 'doorD', zone: 'out', pos: V3(13, 0, 15), r: 2.2, label: 'Enter Building D', run() { if (!store.state.flags.utilKey) { if (!store.has('cloner')) { ui.toast({ kind: 'warn', title: 'Meridian Utilities', text: 'A card reader blinks red. A hum behind the door, nothing else.' }); return; } ui.toast({ kind: 'ok', title: 'Proxmark', text: 'Cloned contractor card accepted. The reader blinks green.' }); } transition(() => { setZone('util'); placePlayer(IXD - 1.0, 0, -5.2, 0); if (store.state.quests.quest_i2_utilities === 'available') store.activateQuest('quest_i2_utilities'); }); } });
-  addInter({ id: 'doorP', zone: 'out', pos: V3(54, 0, 10.2), r: 2.5, label: 'Enter Meridian Police', run() { transition(() => { setZone('police'); placePlayer(IXP, 0, -5.2, PI); }); } });
+  addInter({ id: 'enterP', zone: 'out', pos: V3(54, 0, 10.2), r: 2.5, label: 'Enter Meridian Police', run() { transition(() => { setZone('police'); placePlayer(IXP, 0, -5.2, PI); }); } });
   addInter({ id: 'exitA', zone: 'in', pos: V3(IX + 1, 0, 7.2), r: 1.5, label: 'Leave Building A', run() { transition(() => { setZone('out'); placePlayer(-8.5, 0, -12.4, 0); }); } });
   addInter({ id: 'exitF', zone: 'cad', pos: V3(IXF + 1, 0, 5.6), r: 1.5, label: 'Leave Building F', run() { transition(() => { setZone('out'); placePlayer(12, 0, -12.4, 0); }); } });
   addInter({ id: 'exitH', zone: 'lab', pos: V3(IXH - 1, 0, -5.0), r: 1.5, label: 'Leave Building H', run() { transition(() => { setZone('out'); placePlayer(-9, 0, 12.4, PI); }); } });
   addInter({ id: 'exitD', zone: 'util', pos: V3(IXD - 1, 0, -5.5), r: 1.5, label: 'Leave Building D', run() { transition(() => { setZone('out'); placePlayer(13, 0, 12.4, PI); }); } });
-  addInter({ id: 'exitP', zone: 'police', pos: V3(IXP, 0, -5.5), r: 1.5, label: 'Leave Meridian Police', run() { transition(() => { setZone('out'); placePlayer(54, 0, 12.4, PI); }); } });
+  addInter({ id: 'exitP', zone: 'police', pos: V3(IXP, 0, -5.5), r: 1.5, label: 'Leave Meridian Police', run() { transition(() => { setZone('out'); placePlayer(54, 0, 14.2, PI); }); } });
   // Building A
   addInter({ id: 'comp-a-01', zone: 'in', pos: V3(IX - 7.6, 0, 3.5), r: 1.8, label: 'Use workstation (dara-ws)', run() { ui.openTerminal('ws'); } });
   addInter({ id: 'comp-a-02', zone: 'in', pos: V3(IX + 2, 3.1, -6.1), r: 1.8, label: 'Use terminal (dara-mezz)', run() { ui.openTerminal('mezz'); } });
@@ -2996,7 +2996,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const w = peds.find(p => p.cop && Math.hypot(p.x - car.x, p.z - car.z) < 5); if (!w) return;
     COPS.warnT = 25; ui.toast({ kind: 'warn', title: w.name, text: car.cop ? 'That is one of OUR cars. Pull over. Now.' : 'Slow down! This is a street, not a racetrack.' });
   }
-  addInter({ id: 'doorP', zone: 'out', pos: V3(STATION.x, 0, STATION.z - STATION.d / 2 - 1.2), r: 2.2, label: 'Read the notice on the police station door', run() { ui.examine('policeNotice'); } });
+  addInter({ id: 'policeNotice', zone: 'out', pos: V3(STATION.x, 0, STATION.z - STATION.d / 2 - 1.2), r: 2.2, label: 'Read the notice on the police station door', run() { ui.examine('policeNotice'); } });
 
   /* ---------- Act 2: the courier in the park, the burner phone, the call, and Building X, the Meridian Exchange ---------- */
   function COURIER() { return [-50.5, 23.2]; } function XDOOR() { return [24.5, 15]; } // functions, not consts: the interactables below register before this file's statements run
