@@ -1942,13 +1942,9 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       peds.push(w);
     }
   }
-  const COMBAT = { range: 2.35, cooldown: 0, swing: 0, damage: 1 };
   function updatePeds(dt) {
-    COMBAT.cooldown = Math.max(0, COMBAT.cooldown - dt); COMBAT.swing = Math.max(0, COMBAT.swing - dt);
     const pcar = state.driving; const pp = chars.player ? chars.player.pivot.position : null;
     peds.forEach(w => {
-      if (w.hp == null) w.hp = 3;
-      if (w.defeated) { w.ch.moving = false; w.ch.speedVis = 0; animateChar(w.ch, dt); return; }
       let speed = w.speed; w.ch.moving = true;
       // a car bearing down on them: run away sideways, fast
       if (pcar && Math.hypot(pcar.x - w.x, pcar.z - w.z) < 5 && Math.abs(pcar.speed) > 3) { if (!w.flee) { w.flee = 1.2; SFX.yelp(w.x, w.z); } }
@@ -2472,16 +2468,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   }
   const carInter = { id: 'car', zone: 'out', label: 'Enter car', car: null, run() { enterCar(carInter.car); } };
   const pedInter = { id: 'ped', zone: 'out', label: 'Talk', ped: null, run() { const w = pedInter.ped; if (!w) return; w.talk = 7; w.pause = 7; SFX.setVoice('ped', SFX.pedVoice(w.seed, w.female)); ui.dialogue(w.name, ZD.DIALOGUE.ped(w.mood, store.state, w.scared > 0), () => { w.talk = 0; w.pause = 0.5; }, 'ped'); } };
-  function nearestPed(x, z, r) { let best = null, bd = r; peds.forEach(w => { if (w.flee > 0 || w.defeated) return; const d = Math.hypot(w.x - x, w.z - z); if (d < bd) { bd = d; best = w; } }); return best; }
-  function punchNPC() {
-    if (state.ui || state.driving || !chars.player || COMBAT.cooldown > 0) return;
-    const p = chars.player.pivot.position; const w = nearestPed(p.x, p.z, COMBAT.range); if (!w) { ui.toast({ kind: '', title: 'Strike', text: 'Move closer to an NPC.' }); COMBAT.cooldown = 0.35; return; }
-    const dx = w.x - p.x, dz = w.z - p.z; const d = Math.hypot(dx, dz) || 1; const facing = (Math.sin(chars.player.yaw) * dx + Math.cos(chars.player.yaw) * dz) / d;
-    if (facing < 0.05) { ui.toast({ kind: '', title: 'Strike', text: 'Face the NPC before swinging.' }); COMBAT.cooldown = 0.35; return; }
-    COMBAT.cooldown = 0.55; COMBAT.swing = 0.18; w.hp = (w.hp == null ? 3 : w.hp) - COMBAT.damage; w.hitT = 0.28; w.pause = Math.max(w.pause || 0, 0.45); w.scared = 8; w.ch.yaw = Math.atan2(p.x - w.x, p.z - w.z);
-    SFX.bump(); ui.toast({ kind: w.hp <= 0 ? 'warn' : 'ok', title: 'Melee hit', text: w.hp <= 0 ? w.name + ' is down.' : w.name + ' took a hit. ' + w.hp + ' stamina left.' });
-    if (w.hp <= 0) { w.defeated = true; w.ch.pivot.rotation.z = PI / 2; w.ch.pivot.position.y = 0.35; }
-  }
+  function nearestPed(x, z, r) { let best = null, bd = r; peds.forEach(w => { if (w.flee > 0) return; const d = Math.hypot(w.x - x, w.z - z); if (d < bd) { bd = d; best = w; } }); return best; }
   const leaveInter = { id: 'leave', zone: 'out', label: 'Leave car', run() { leaveCar(); } };
 
   function faceNPC(name) { const ch = chars[name]; if (!ch) return; const p = chars.player.pivot.position; ch.yaw = Math.atan2(p.x - ch.pivot.position.x, p.z - ch.pivot.position.z); }
@@ -2548,7 +2535,6 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (state.ui) { if (k === 'escape' || ((k === 'j' || k === 'p') && state.ui === 'journal') || (k === 'l' && state.ui === 'settings')) ui.closeAll(); if ((k === 'e' || k === 'enter') && state.ui === 'dlg') ui.dlgAdvance(); if ((k === 'escape' || k === 'e' || k === 'enter') && state.ui === 'examine') ui.closeAll(); return; }
     if (!state.playing) return;
     keys[k] = true; if (k === 'e' || k === 'enter') interact(); if (k === 'j' || k === 'p') ui.openJournal(); if (k === 'l') ui.openSettings();
-    if (k === 'g' && !e.repeat) punchNPC();
     if (k === 'h' && state.driving && !e.repeat) SFX.horn();
     if (k === 'c' && !e.repeat) toggleCamera();
     if (k === 'b' && !e.repeat) drinkOverclock();
@@ -2610,7 +2596,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     else {
       inter.forEach(o => { if (o.zone !== state.zone) return; const d = Math.hypot(o.pos.x - pos.x, o.pos.z - pos.z); const dy = Math.abs(o.pos.y - pos.y); if (d < o.r && dy < 1.6 && d < bd) { bd = d; best = o; } });
       if (!best && state.zone === 'out') { const c = nearestCar(pos.x, pos.z, 3.0); if (c) { carInter.car = c; carInter.label = (c.driver ? 'Jack the ' : 'Enter the ') + c.type.name.toLowerCase(); best = carInter; } }
-      if (!best && state.zone === 'out') { const w = nearestPed(pos.x, pos.z, 2.3); if (w) { pedInter.ped = w; pedInter.label = 'Talk to ' + w.name + '  ·  G to strike'; best = pedInter; } }
+      if (!best && state.zone === 'out') { const w = nearestPed(pos.x, pos.z, 2.3); if (w) { pedInter.ped = w; pedInter.label = 'Talk to ' + w.name; best = pedInter; } }
     }
     if (best !== current || (best && best.label !== currentLabel)) { const same = best === current; current = best; currentLabel = best ? best.label : null; ui.prompt(currentLabel); if (best && !same) SFX.tick(); }
   }
