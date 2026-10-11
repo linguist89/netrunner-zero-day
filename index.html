@@ -1859,6 +1859,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       const ahead = (x, z, r) => { const dx = x - c.x, dz = z - c.z; const f = dx * d[0] + dz * d[1]; const s = Math.abs(dx * d[1] - dz * d[0]); return f > 0.5 && f < look && s < r; };
       cars.forEach(o => { if (o === c || o.deck) return; if (ahead(o.x, o.z, 2.4)) blocked = true; });
       if (pp && state.zone === 'out' && !pcar && ahead(pp.x, pp.z, 2.2)) blocked = true;
+      if (!blocked) peds.forEach(w => { if (ahead(w.x, w.z, 1.6)) blocked = true; }); // stop for people crossing in the lane
       const want = blocked ? 0 : c.cruise || (c.cruise = 6 + rnd() * 5);
       c.speed += (want - c.speed) * Math.min(1, dt * (blocked ? 6 : 1.5));
       if (blocked && c.honk <= 0 && rnd() < 0.004) { c.honk = 3; SFX.hornAt(c.x, c.z); } c.honk -= dt;
@@ -2652,10 +2653,74 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (inside) { c.fillStyle = '#ffd23f'; c.font = '10px "Oswald", sans-serif'; c.fillText(pin[0] === 'M' ? 'INSIDE BYTE MART' : 'INSIDE BUILDING ' + pin[0], W / 2, H - 6); }
   }
 
+  /* ---------- bodies: on the street, people and cars push each other apart instead of passing through ----------
+     People are circles on the ground, cars are boxes turned to their heading. The pass runs after everything has moved:
+     the player on foot is pushed out of cars and shoulders past people, people keep out of each other and out of cars,
+     cars that overlap are separated, and the player's car knocks people aside and loses speed when it hits one. */
+  const BODY = { player: 0.35, ped: 0.3 };
+  function carBox(c) { return { hw: c.type.wid * 0.46, hl: c.type.len * 0.475, cs: Math.cos(c.heading), sn: Math.sin(c.heading) }; }
+  // how far a circle at (x, z) with radius r must move to leave car c, or null if it is clear. Local axes: lx across the car, lz along it.
+  function circleOutOfCar(c, x, z, r) {
+    const b = carBox(c), dx = x - c.x, dz = z - c.z;
+    if (Math.abs(dx) > b.hl + b.hw + r || Math.abs(dz) > b.hl + b.hw + r) return null;
+    const lx = dx * b.cs - dz * b.sn, lz = dx * b.sn + dz * b.cs;
+    const qx = Math.max(-b.hw, Math.min(b.hw, lx)), qz = Math.max(-b.hl, Math.min(b.hl, lz));
+    let nx = lx - qx, nz = lz - qz, d = Math.hypot(nx, nz), pen;
+    if (d >= r) return null;
+    if (d > 1e-4) { nx /= d; nz /= d; pen = r - d; }
+    else { const ex = b.hw - Math.abs(lx), ez = b.hl - Math.abs(lz); if (ex < ez) { nx = Math.sign(lx) || 1; nz = 0; pen = ex + r; } else { nx = 0; nz = Math.sign(lz) || 1; pen = ez + r; } } // centre is inside: leave by the nearest side
+    return { x: (nx * b.cs + nz * b.sn) * pen, z: (-nx * b.sn + nz * b.cs) * pen };
+  }
+  // true if any corner or end-midpoint of car a lies inside car b
+  function carsOverlap(a, b) {
+    if (Math.hypot(a.x - b.x, a.z - b.z) > (a.type.len + b.type.len) / 2) return false;
+    const A = carBox(a), pts = [[A.hw, A.hl], [-A.hw, A.hl], [A.hw, -A.hl], [-A.hw, -A.hl], [0, A.hl], [0, -A.hl]];
+    return pts.some(q => circleOutOfCar(b, a.x + q[0] * A.cs + q[1] * A.sn, a.z - q[0] * A.sn + q[1] * A.cs, 0.01));
+  }
+  const onGround = c => !c.deck && c.y < 1;
+  function resolveBodies(dt) {
+    const p = chars.player, pos = p ? p.pivot.position : null, drive = state.driving, onFoot = pos && !drive && pos.y < 1.5;
+    // 1. the player on foot against cars and people (moveWithCollisions so a shove never puts them inside a wall)
+    if (onFoot) {
+      cars.forEach(c => { if (!onGround(c)) return; const m = circleOutOfCar(c, pos.x, pos.z, BODY.player); if (m) p.pivot.moveWithCollisions(V3(m.x, 0, m.z)); });
+      peds.forEach(w => { const dx = w.x - pos.x, dz = w.z - pos.z, d = Math.hypot(dx, dz), min = BODY.player + BODY.ped; if (d >= min || d < 1e-4) return; const pen = min - d, ux = dx / d, uz = dz / d; w.x += ux * pen * 0.7; w.z += uz * pen * 0.7; p.pivot.moveWithCollisions(V3(-ux * pen * 0.3, 0, -uz * pen * 0.3)); });
+    }
+    // 2. people keep a shoulder's width from each other
+    for (let i = 0; i < peds.length; i++) for (let j = i + 1; j < peds.length; j++) {
+      const a = peds[i], b = peds[j], dx = b.x - a.x, dz = b.z - a.z, d = Math.hypot(dx, dz), min = BODY.ped * 2; if (d >= min) continue;
+      const ux = d > 1e-4 ? dx / d : 1, uz = d > 1e-4 ? dz / d : 0, h = (min - d) / 2; a.x -= ux * h; a.z -= uz * h; b.x += ux * h; b.z += uz * h;
+    }
+    // 3. people step out of cars; the player's car knocks them aside, they yelp and run, the car loses speed
+    peds.forEach(w => {
+      w.hitT = (w.hitT || 0) - dt;
+      cars.forEach(c => {
+        if (!onGround(c)) return; const m = circleOutOfCar(c, w.x, w.z, BODY.ped); if (!m) return;
+        w.x += m.x; w.z += m.z;
+        if (c === drive && Math.abs(c.speed) > 1.5 && w.hitT <= 0) {
+          w.hitT = 1; const k = Math.min(1, Math.abs(c.speed) / 12), ml = Math.hypot(m.x, m.z) || 1;
+          w.x += m.x / ml * 0.6 * k; w.z += m.z / ml * 0.6 * k; w.flee = 1.4; w.scared = 12; SFX.yelp(w.x, w.z); SFX.bump();
+          c.speed *= 0.55; c.vx *= 0.55; c.vz *= 0.55;
+        }
+      });
+      w.ch.pivot.position.x = w.x; w.ch.pivot.position.z = w.z;
+    });
+    // 4. cars that overlap (two traffic cars meeting at a crossing) separate; parked cars and the player's car hold their ground
+    for (let i = 0; i < cars.length; i++) for (let j = i + 1; j < cars.length; j++) {
+      const a = cars[i], b = cars[j]; if (!onGround(a) || !onGround(b)) continue;
+      const am = !a.parked && a !== drive, bm = !b.parked && b !== drive; if (!am && !bm) continue;
+      if (!carsOverlap(a, b) && !carsOverlap(b, a)) continue;
+      let dx = b.x - a.x, dz = b.z - a.z; const d = Math.hypot(dx, dz) || 1; dx /= d; dz /= d; const step = Math.min(0.5, 6 * dt);
+      const sa = am && bm ? 0.5 : am ? 1 : 0, sb = 1 - sa;
+      a.x -= dx * step * sa; a.z -= dz * step * sa; b.x += dx * step * sb; b.z += dz * step * sb;
+      if (am) a.speed *= 0.5; if (bm) b.speed *= 0.5;
+      a.root.position.set(a.x, a.y, a.z); b.root.position.set(b.x, b.y, b.z);
+    }
+  }
+
   let t = 0; let blinkT = 0; let mapT = 0;
   scene.onBeforeRenderObservable.add(() => {
     const dt = Math.min(engine.getDeltaTime() / 1000, 0.05); t += dt;
-    if (state.playing) { updatePlayer(dt); updateCamera(dt); updateInteract(); updateNPCs(dt, t); updateMart(dt, t); updateAct2(dt, t); if (state.zone === 'out') { updateTraffic(dt); updatePeds(dt); rollWheels(dt); updateCops(dt, t); } mapT += dt; if (mapT > 0.08) { mapT = 0; drawMap(t); } }
+    if (state.playing) { updatePlayer(dt); updateCamera(dt); updateInteract(); updateNPCs(dt, t); updateMart(dt, t); updateAct2(dt, t); if (state.zone === 'out') { updateTraffic(dt); updatePeds(dt); rollWheels(dt); updateCops(dt, t); resolveBodies(dt); } mapT += dt; if (mapT > 0.08) { mapT = 0; drawMap(t); } }
     blinkT += dt; if (blinkT > 0.4) { blinkT = 0; const z = zones[state.zone]; if (z && z !== zones.out) z.meshes.forEach(m => { if (m.metadata && m.metadata.blink) m.setEnabled(!m.isEnabled()); }); }
   });
 
