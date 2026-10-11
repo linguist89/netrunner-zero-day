@@ -1599,6 +1599,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     }));
     // the crosswalk on Meridian Row itself, in front of Building A, kept from the street build
     for (let z = -3.6; z <= 3.6; z += 0.9) box(zebraM, 3.2, 0.06, 0.5, -8.5, 0, z, { cast: false, merge: 'zebra' });
+    buildSignals();
 
     // the four buildings that matter, on the central blocks either side of Meridian Row
     building({ name: 'A', label: 'BUILDING A', sign: 'OKAFOR', signColor: '#ffd23f', x: -8.5, z: -21, w: 12, d: 12, h: 9.6, wall: '#7d5a3e', frame: '#3a2a1e', lit: '#ffc67a', cols: 8, rows: 6, seed: 21, face: 1, roof: 'tank', roofCol: '#4a3a30' });
@@ -1815,56 +1816,166 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     cars.push(car); return car;
   }
   function spawnTraffic(n) {
+    let tries = 0;
     for (let i = 0; i < n; i++) {
       const alongX = rnd() < 0.5; const dir = alongX ? (rnd() < 0.5 ? 0 : 2) : (rnd() < 0.5 ? 1 : 3);
       const road = alongX ? CITY.roadsZ[Math.floor(rnd() * CITY.roadsZ.length)] : CITY.roadsX[Math.floor(rnd() * CITY.roadsX.length)];
       const along = (alongX ? CITY.bounds.x0 : CITY.bounds.z0) + 10 + rnd() * ((alongX ? CITY.bounds.x1 - CITY.bounds.x0 : CITY.bounds.z1 - CITY.bounds.z0) - 20);
       const d = DIRS[dir]; const rx = d[1], rz = -d[0]; // right-hand lane offset
       const x = alongX ? along : road + rx * CITY.lane, z = alongX ? road + rz * CITY.lane : along;
+      if (cars.some(o => Math.hypot(o.x - x, o.z - z) < 10) || CITY.roadsX.some(X => Math.abs(X - x) < 12) && CITY.roadsZ.some(Z => Math.abs(Z - z) < 12)) { i--; if (++tries > 200) break; continue; } // room to move, and not in a junction
       const c = spawnCar({ x, z, heading: Math.atan2(d[0], d[1]), dir }); c.speed = 6 + rnd() * 4;
     }
   }
   function dirHeading(dir) { return Math.atan2(DIRS[dir][0], DIRS[dir][1]); }
-  function nextCross(pos, dir) {
-    // the next road crossing in direction of travel, or null at the edge of the grid
-    const d = DIRS[dir]; const list = d[0] !== 0 ? CITY.roadsX : CITY.roadsZ; const along = d[0] !== 0 ? pos.x : pos.z; const sgn = d[0] !== 0 ? d[0] : d[1];
-    let best = null; list.forEach(v => { if ((v - along) * sgn > 0.5 && (best == null || Math.abs(v - along) < Math.abs(best - along))) best = v; }); return best;
+
+  /* ---------- street paths: every crossing has traffic lights, cars follow lanes and turn on curves, people walk the
+     pavements from corner to corner and use the zebra crossings only on their green.
+     Signals run a 26 s cycle per crossing: traffic along x has 10 s green and 2.5 s amber, then traffic along z gets the same,
+     with half a second of all-red between. People crossing a road walk with the traffic that runs parallel to them. ---------- */
+  const PATH = { walk: 6.4, box: 4, stop: 7.6, cycle: 26 }; // walk: pavement line from the road centre (zebras sit at 5.5); box: junction half-size; stop: stop line
+  const SIG = { t: 0, heads: [] };
+  const axisOf = dir => DIRS[dir][0] !== 0 ? 'x' : 'z';
+  const roadNear = (list, v) => list.reduce((a, b) => Math.abs(b - v) < Math.abs(a - v) ? b : a);
+  function sigOffset(X, Z) { return (CITY.roadsX.indexOf(X) * 7 + CITY.roadsZ.indexOf(Z) * 11) % PATH.cycle; } // staggered, so the city does not blink in unison
+  function signal(X, Z, axis) {
+    const p = (SIG.t + sigOffset(X, Z)) % PATH.cycle, q = axis === 'x' ? p : (p + 13) % PATH.cycle;
+    return q < 10 ? { s: 'G', left: 10 - q } : q < 12.5 ? { s: 'A', left: 0 } : { s: 'R', left: 0 };
   }
-  function laneWalker(w, dt, offset, speed) {
-    // shared road-following logic for traffic and pedestrians: drive to the next crossing, then pick a lane out of it
-    const d = DIRS[w.dir]; const rx = d[1], rz = -d[0]; const alongX = d[0] !== 0;
-    const road = alongX ? CITY.roadsZ.reduce((a, b) => Math.abs(b - (w.z - rz * offset)) < Math.abs(a - (w.z - rz * offset)) ? b : a) : CITY.roadsX.reduce((a, b) => Math.abs(b - (w.x - rx * offset)) < Math.abs(a - (w.x - rx * offset)) ? b : a);
-    const cross = nextCross(w, w.dir);
-    const step = speed * dt;
-    if (cross == null) { w.dir = (w.dir + 2) % 4; return; } // ran off the grid: U-turn
-    const along = alongX ? w.x : w.z; const dist = Math.abs(cross - along);
-    if (dist <= step + 0.01) {
-      // at the crossing: choose straight, left or right, keeping to the grid
-      const opts = []; [0, 1, 3].forEach(turn => { const nd = (w.dir + turn) % 4; const p2 = alongX ? { x: cross, z: road } : { x: road, z: cross }; if (nextCross(p2, nd) != null) opts.push(nd); });
-      const straight = opts.indexOf(w.dir) >= 0; const nd = (straight && rnd() < 0.6) ? w.dir : opts[Math.floor(rnd() * opts.length)];
-      const n = DIRS[nd]; const nrx = n[1], nrz = -n[0]; const over = step - dist;
-      if (alongX) { if (nd === w.dir) { w.x = cross + n[0] * over; w.z = road + rz * offset; } else { w.x = cross + nrx * offset; w.z = road + n[1] * over; } }
-      else { if (nd === w.dir) { w.z = cross + n[1] * over; w.x = road + rx * offset; } else { w.z = cross + nrz * offset; w.x = road + n[0] * over; } }
-      w.dir = nd;
-    } else { w.x += d[0] * step; w.z += d[1] * step; if (alongX) w.z += ((road + rz * offset) - w.z) * Math.min(1, dt * 4); else w.x += ((road + rx * offset) - w.x) * Math.min(1, dt * 4); }
+  // the next crossing centre ahead of (x, z) along dir, at least min metres away, on the road the point is on
+  function crossAhead(x, z, dir, min) {
+    const d = DIRS[dir], alongX = d[0] !== 0, sgn = alongX ? d[0] : d[1], here = alongX ? x : z; let best = null;
+    (alongX ? CITY.roadsX : CITY.roadsZ).forEach(v => { if ((v - here) * sgn > min && (best == null || Math.abs(v - here) < Math.abs(best - here))) best = v; });
+    if (best == null) return null; return alongX ? { x: best, z: roadNear(CITY.roadsZ, z) } : { x: roadNear(CITY.roadsX, x), z: best };
+  }
+  const laneR = dir => [DIRS[dir][1], -DIRS[dir][0]]; // right-hand side of the direction of travel
+  function entryPt(C, dir) { const d = DIRS[dir], r = laneR(dir); return { x: C.x - d[0] * PATH.box + r[0] * CITY.lane, z: C.z - d[1] * PATH.box + r[1] * CITY.lane }; }
+  function exitPt(C, dir) { const d = DIRS[dir], r = laneR(dir); return { x: C.x + d[0] * PATH.box + r[0] * CITY.lane, z: C.z + d[1] * PATH.box + r[1] * CITY.lane }; }
+  // straight on or right; left only where nothing else leads anywhere (the edge of the grid), so turning cars never cut across oncoming traffic
+  function pickExit(C, dir) {
+    const st = crossAhead(C.x, C.z, dir, 1) ? dir : -1, rt = crossAhead(C.x, C.z, (dir + 3) % 4, 1) ? (dir + 3) % 4 : -1;
+    if (st >= 0 && rt >= 0) return rnd() < 0.65 ? st : rt; if (st >= 0) return st; if (rt >= 0) return rt;
+    return crossAhead(C.x, C.z, (dir + 1) % 4, 1) ? (dir + 1) % 4 : (dir + 2) % 4;
+  }
+  function headingDir(h) { const sx = Math.sin(h), cz = Math.cos(h); return Math.abs(sx) > Math.abs(cz) ? (sx > 0 ? 0 : 2) : (cz > 0 ? 1 : 3); }
+  function onCarriageway(x, z) { const B = CITY.bounds; if (x < B.x0 || x > B.x1 || z < B.z0 || z > B.z1) return false; return Math.abs(z - roadNear(CITY.roadsZ, z)) < 4.3 || Math.abs(x - roadNear(CITY.roadsX, x)) < 4.3; }
+  // walk o (a car or a person) along its waypoints by step metres; returns what is left over when the list runs out
+  function followPath(o, step) {
+    while (step > 1e-4 && o.wi < o.wps.length) {
+      const q = o.wps[o.wi], dx = q.x - o.x, dz = q.z - o.z, d = Math.hypot(dx, dz);
+      if (d > 1e-3) o.mvh = Math.atan2(dx, dz);
+      if (d <= step) { o.x = q.x; o.z = q.z; step -= d; o.wi++; } else { o.x += dx / d * step; o.z += dz / d * step; step = 0; }
+    }
+    return step;
+  }
+  function initCarRoute(c) {
+    let dir = c.dir >= 0 ? c.dir : headingDir(c.heading);
+    for (let k = 0; k < 2; k++, dir = (dir + 2) % 4) {
+      const C = crossAhead(c.x, c.z, dir, 0.5); if (!C) continue;
+      const r = laneR(dir); if (DIRS[dir][0] !== 0) c.z = C.z + r[1] * CITY.lane; else c.x = C.x + r[0] * CITY.lane; // into the right-hand lane
+      c.dir = dir; c.C = C; c.wps = [entryPt(C, dir)]; c.wi = 0; c.turnNext = pickExit(C, dir); c.heading = c.mvh = dirHeading(dir); return;
+    }
+    c.parked = true; c.driver = false; // no road leads anywhere from here
+  }
+  // the car has reached the junction entry: queue the curve (or straight line) through it and the lane to the next junction
+  function nextCarLeg(c) {
+    const C = c.C, from = c.dir, nd = c.turnNext, E = entryPt(C, from), X = exitPt(C, nd), wps = [];
+    if (nd !== from) { const a = laneR(from), b = laneR(nd), K = { x: C.x + (a[0] + b[0]) * CITY.lane, z: C.z + (a[1] + b[1]) * CITY.lane };
+      for (let i = 1; i <= 8; i++) { const t = i / 8, u = 1 - t; wps.push({ x: u * u * E.x + 2 * u * t * K.x + t * t * X.x, z: u * u * E.z + 2 * u * t * K.z + t * t * X.z }); } }
+    else wps.push(X);
+    const C2 = crossAhead(C.x, C.z, nd, 1); c.dir = nd; c.wi = 0; c.held = c.committed = false;
+    if (!C2) { c.wps = wps; c.C = null; return; }
+    wps.push(entryPt(C2, nd)); c.wps = wps; c.C = C2; c.turnNext = pickExit(C2, nd);
+  }
+  function driveRoute(c, step) {
+    for (let g = 0; g < 4 && step > 1e-4; g++) { step = followPath(c, step); if (c.wi < c.wps.length) break; if (c.C) nextCarLeg(c); else { c.wps = null; initCarRoute(c); if (!c.wps) break; } }
+  }
+  // pavement corners: four per crossing, (X + sx * walk, Z + sz * walk)
+  function pedNode(X, Z, sx, sz) { return { X, Z, sx, sz, x: X + sx * PATH.walk, z: Z + sz * PATH.walk, key: X + ',' + Z + ',' + sx + ',' + sz }; }
+  function pedEdges(n) {
+    const out = [], ix = CITY.roadsX.indexOf(n.X), iz = CITY.roadsZ.indexOf(n.Z), X2 = CITY.roadsX[ix + n.sx], Z2 = CITY.roadsZ[iz + n.sz];
+    if (X2 != null) out.push({ to: pedNode(X2, n.Z, -n.sx, n.sz), kind: 'walk', w: 3 }); // along the block, away from this crossing
+    if (Z2 != null) out.push({ to: pedNode(n.X, Z2, n.sx, -n.sz), kind: 'walk', w: 3 });
+    out.push({ to: pedNode(n.X, n.Z, -n.sx, n.sz), kind: 'cross', axis: 'x', w: 2 }); // over the road that runs along z: walks with the x traffic
+    out.push({ to: pedNode(n.X, n.Z, n.sx, -n.sz), kind: 'cross', axis: 'z', w: 2 });
+    return out;
+  }
+  function nextPedEdge(w) {
+    const from = w.at, opts = pedEdges(from).filter(e => !w.prev || e.to.key !== w.prev.key); let r = rnd() * opts.reduce((a, e) => a + e.w, 0), e = opts[0];
+    for (const o of opts) { r -= o.w; if (r <= 0) { e = o; break; } }
+    w.prev = from; w.at = e.to; w.edge = e.kind; w.axis = e.axis || null; w.waiting = e.kind === 'cross'; w.crossing = false; w.wps = [e.to]; w.wi = 0;
+  }
+  function initPedRoute(w) {
+    let dir = w.dir >= 0 ? w.dir : 0;
+    for (let k = 0; k < 2; k++, dir = (dir + 2) % 4) {
+      const d = DIRS[dir], alongX = d[0] !== 0, sgn = alongX ? d[0] : d[1];
+      const road = alongX ? roadNear(CITY.roadsZ, w.z) : roadNear(CITY.roadsX, w.x), side = Math.sign((alongX ? w.z : w.x) - road) || 1, here = alongX ? w.x : w.z;
+      let best = null; (alongX ? CITY.roadsX : CITY.roadsZ).forEach(v => [-1, 1].forEach(s2 => { const c = v + s2 * PATH.walk; if ((c - here) * sgn > 0.1 && (!best || Math.abs(c - here) < Math.abs(best.c - here))) best = { v, s2, c }; }));
+      if (!best) continue;
+      const line = road + side * PATH.walk; if (alongX) { if (Math.abs(w.z - line) < 2) w.z = line; } else if (Math.abs(w.x - line) < 2) w.x = line;
+      w.at = alongX ? pedNode(best.v, road, best.s2, side) : pedNode(road, best.v, side, best.s2); w.prev = null; w.dir = dir;
+      const onZebra = best.s2 === sgn; w.edge = onZebra ? 'cross' : 'walk'; w.axis = onZebra ? axisOf(dir) : null; w.waiting = false; w.crossing = onZebra; w.wps = [w.at]; w.wi = 0; return;
+    }
+  }
+  // traffic lights: a pole on the right-hand pavement before each approach, its lamp facing the queue and a cap that reads from the overhead camera
+  function buildSignals() {
+    const pole = mat('sigPole', '#23262c', { spec: 0.3 }), head = mat('sigHead', '#121418', { spec: 0.2 });
+    const col = { G: '#3dff7a', A: '#ffb020', R: '#ff3a30' };
+    CITY.roadsX.forEach(X => CITY.roadsZ.forEach(Zc => {
+      const h = { X, Z: Zc, mx: mat('sigX' + X + '_' + Zc, '#3dff7a', { emissive: '#3dff7a', unlit: true, fresh: true }), mz: mat('sigZ' + X + '_' + Zc, '#ff3a30', { emissive: '#ff3a30', unlit: true, fresh: true }), sx: '', sz: '', col };
+      [0, 1, 2, 3].forEach(dir => {
+        const d = DIRS[dir], r = laneR(dir), px = X - d[0] * (PATH.stop + 0.4) + r[0] * 4.9, pz = Zc - d[1] * (PATH.stop + 0.4) + r[1] * 4.9, m = dir % 2 === 0 ? h.mx : h.mz;
+        cyl(pole, 0.12, 3.0, px, 0, pz, { collide: true, cast: false, tess: 8, merge: 'sigPoles' });
+        box(head, 0.32, 0.75, 0.32, px, 3.0, pz, { cast: false, merge: 'sigHeads' });
+        box(m, 0.36, 0.06, 0.36, px, 3.75, pz, { cast: false, name: 'sigCap' });                           // cap: what the overhead camera sees
+        box(m, 0.22, 0.22, 0.04, px - d[0] * 0.17, 3.42, pz - d[1] * 0.17, { cast: false, name: 'sigLens', ry: dir % 2 === 0 ? PI / 2 : 0 }); // lens facing the approaching cars
+      });
+      SIG.heads.push(h);
+    }));
+  }
+  function updateSignals() {
+    SIG.heads.forEach(h => { ['x', 'z'].forEach(a => { const st = signal(h.X, h.Z, a).s, k = 's' + a; if (h[k] === st) return; h[k] = st; const m = a === 'x' ? h.mx : h.mz, c = C3(h.col[st]); m.diffuseColor = c; m.emissiveColor = c; }); });
+  }
+  function rejoinTraffic(c) {
+    c.abandoned = false; if (!onCarriageway(c.x, c.z)) return; // left in a car park or a bay: it can stay there
+    c.parked = false; c.driver = true; c.dir = headingDir(c.heading); c.wps = null; c.speed = 0; c.cruise = 6 + rnd() * 5; if (c.cone) c.cone.setEnabled(true);
   }
   function rollWheels(dt) { cars.forEach(c => { if (!c.wheels || !c.wheels.length || !c.speed) return; c.roll += c.speed * dt / 0.32; const a = c.roll % (2 * PI); c.wheels.forEach(w => { w.rotation.x = a; }); }); }
   function updateTraffic(dt) {
-    const pl = chars.player; const pp = pl ? pl.pivot.position : null; const pcar = state.driving;
+    SIG.t += dt; updateSignals();
+    const pl = chars.player, pcar = state.driving, pp = pl && !pcar ? pl.pivot.position : null;
+    // cars the player abandoned in a lane go back into the flow once the player has walked off; the coupe is towed home
+    if (pl) cars.forEach(c => {
+      if (!c.parked || c.deck || c === pcar) return; const pos = pl.pivot.position, far = Math.hypot(pos.x - c.x, pos.z - c.z);
+      if (c.abandoned && far > 35) rejoinTraffic(c);
+      else if (c.own && c.leftInLane && far > 60) { c.leftInLane = false; c.x = MART_SPOT.x; c.z = MART_SPOT.z; c.heading = MART_SPOT.heading; c.root.position.set(c.x, c.y, c.z); c.root.rotation.y = c.heading; ui.toast({ kind: '', title: 'Coupe towed', text: 'You left it in a traffic lane. It is back in its bay by Byte Mart.' }); }
+    });
     cars.forEach(c => {
-      if (c.parked || c === pcar) return;
+      if (c.parked || c === pcar || c.deck) return;
       if (c.stunned > 0) { c.stunned -= dt; c.root.position.set(c.x, c.y, c.z); return; }
-      // look ahead for anything in the lane: another car, the player's car or the player on foot
-      const d = DIRS[c.dir]; let blocked = false; const look = 6 + c.speed * 0.5;
-      const ahead = (x, z, r) => { const dx = x - c.x, dz = z - c.z; const f = dx * d[0] + dz * d[1]; const s = Math.abs(dx * d[1] - dz * d[0]); return f > 0.5 && f < look && s < r; };
-      cars.forEach(o => { if (o === c || o.deck) return; if (ahead(o.x, o.z, 2.4)) blocked = true; });
-      if (pp && state.zone === 'out' && !pcar && ahead(pp.x, pp.z, 2.2)) blocked = true;
-      if (!blocked) peds.forEach(w => { if (ahead(w.x, w.z, 1.6)) blocked = true; }); // stop for people crossing in the lane
-      const want = blocked ? 0 : c.cruise || (c.cruise = 6 + rnd() * 5);
-      c.speed += (want - c.speed) * Math.min(1, dt * (blocked ? 6 : 1.5));
-      if (blocked && c.honk <= 0 && rnd() < 0.004) { c.honk = 3; SFX.hornAt(c.x, c.z); } c.honk -= dt;
-      laneWalker(c, dt, CITY.lane, c.speed);
-      const goal = dirHeading(c.dir); let dh = goal - c.heading; while (dh > PI) dh -= 2 * PI; while (dh < -PI) dh += 2 * PI; c.heading += dh * Math.min(1, dt * 6);
+      if (!c.wps) { initCarRoute(c); if (!c.wps) return; }
+      let want = c.cruise || (c.cruise = 6 + rnd() * 5);
+      // keep a gap to whatever is ahead in the car's own path: cars, the player on foot, people on a crossing
+      const hx = Math.sin(c.heading), hz = Math.cos(c.heading), look = 7 + c.speed * 1.2; let gap = Infinity;
+      const ahead = (x, z, lat, half) => { const dx = x - c.x, dz = z - c.z, f = dx * hx + dz * hz, sd = Math.abs(dx * hz - dz * hx); if (f > 0.3 && f < look && sd < lat) gap = Math.min(gap, f - c.type.len / 2 - half - 1.3); };
+      cars.forEach(o => { if (o !== c && onGround(o)) ahead(o.x, o.z, 1.5, o.type.len / 2); });
+      if (pp && state.zone === 'out' && pp.y < 1.5) ahead(pp.x, pp.z, 1.5, 0.35);
+      peds.forEach(w => { if (w.crossing || !w.at) ahead(w.x, w.z, 1.6, 0.3); });
+      if (gap < Infinity) want = Math.min(want, Math.sqrt(Math.max(0, gap) * 6)); // brake to a stop at about 3 m/s²
+      // the lights: on the approach lane, stop at the line on red, and on amber unless it is too late to stop
+      if (c.C && c.wi === c.wps.length - 1) {
+        const E = c.wps[c.wi], rem = Math.hypot(E.x - c.x, E.z - c.z), line = rem - (PATH.stop - PATH.box + c.type.len / 2), sg = signal(c.C.x, c.C.z, axisOf(c.dir));
+        // the decision is taken once, when the light leaves green: stop if that is comfortable (under 4.5 m/s²), otherwise carry on through
+        if (sg.s === 'G') c.held = c.committed = false;
+        else if (!c.held && !c.committed) { if (line > 0 && c.speed * c.speed / (2 * line) < 4.5) c.held = true; else c.committed = true; }
+        let hold = c.held;
+        if (!hold && sg.s === 'G' && line < 3) { const X = exitPt(c.C, c.turnNext), n = DIRS[c.turnNext], px = X.x + n[0] * 3, pz = X.z + n[1] * 3; hold = cars.some(o => o !== c && onGround(o) && Math.abs(o.speed) < 1.5 && Math.hypot(o.x - px, o.z - pz) < 3.2); } // do not block the junction
+        if (hold) want = Math.min(want, Math.sqrt(Math.max(0, line - 0.3) * 6));
+      }
+      c.speed += (want - c.speed) * Math.min(1, dt * (want < c.speed ? 5 : 1.5)); if (c.speed < 0.02) c.speed = 0;
+      if (gap < 0.5 && c.honk <= 0 && rnd() < 0.003) { c.honk = 4; SFX.hornAt(c.x, c.z); } c.honk -= dt;
+      driveRoute(c, c.speed * dt);
+      let dh = (c.mvh == null ? c.heading : c.mvh) - c.heading; while (dh > PI) dh -= 2 * PI; while (dh < -PI) dh += 2 * PI; c.heading += dh * Math.min(1, dt * 9);
       c.root.position.set(c.x, c.y, c.z); c.root.rotation.y = c.heading;
     });
   }
@@ -1959,16 +2070,23 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   function updatePeds(dt) {
     const pcar = state.driving; const pp = chars.player ? chars.player.pivot.position : null;
     peds.forEach(w => {
-      let speed = w.speed; w.ch.moving = true;
-      // a car bearing down on them: run away sideways, fast
+      let speed = w.speed;
+      // a car bearing down on them: hurry on, fast
       if (pcar && Math.hypot(pcar.x - w.x, pcar.z - w.z) < 5 && Math.abs(pcar.speed) > 3) { if (!w.flee) { w.flee = 1.2; SFX.yelp(w.x, w.z); } }
       if (w.flee > 0) { w.flee -= dt; speed = 5.5; w.scared = 12; } else if (w.scared > 0) w.scared -= dt;
       if (w.talk > 0) { w.talk -= dt; w.pause = Math.max(w.pause, 0.2); }
-      if (w.pause > 0) { w.pause -= dt; w.ch.moving = false; speed = 0; } else if (rnd() < 0.0015) w.pause = 1.5 + rnd() * 3;
-      const d = DIRS[w.dir];
-      // walkers keep to their own side: the offset alternates sign with w.side, and crossings happen in a straight line across the road
-      laneWalker(w, dt, CITY.walk * w.side, speed);
-      const goal = w.talk > 0 && pp ? Math.atan2(pp.x - w.x, pp.z - w.z) : dirHeading(w.dir); let dh = goal - w.ch.yaw; while (dh > PI) dh -= 2 * PI; while (dh < -PI) dh += 2 * PI; w.ch.yaw += dh * Math.min(1, dt * 8);
+      if (w.pause > 0) { w.pause -= dt; speed = 0; } else if (!w.crossing && rnd() < 0.0015) w.pause = 1.5 + rnd() * 3; // window shopping, never in the road
+      if (!w.at) initPedRoute(w);
+      if (w.at) {
+        // at the kerb: wait for the green, and only step out with enough of it left to get across
+        if (w.waiting) { const sg = signal(w.at.X, w.at.Z, w.axis); if (w.flee > 0 || (sg.s === 'G' && sg.left > 5)) { w.waiting = false; w.crossing = true; } else speed = 0; }
+        if (w.crossing && signal(w.at.X, w.at.Z, w.axis).s !== 'G') speed *= 1.7; // caught by the amber: hurry
+        let left = followPath(w, speed * dt);
+        if (w.wi >= w.wps.length) { nextPedEdge(w); if (left > 0 && !w.waiting) followPath(w, left); }
+      }
+      w.ch.moving = speed > 0;
+      const tgt = w.at || w, goal = w.talk > 0 && pp ? Math.atan2(pp.x - w.x, pp.z - w.z) : (Math.hypot(tgt.x - w.x, tgt.z - w.z) > 0.05 ? Math.atan2(tgt.x - w.x, tgt.z - w.z) : w.ch.yaw);
+      let dh = goal - w.ch.yaw; while (dh > PI) dh -= 2 * PI; while (dh < -PI) dh += 2 * PI; w.ch.yaw += dh * Math.min(1, dt * 8);
       w.ch.pivot.position.x = w.x; w.ch.pivot.position.z = w.z; w.ch.pivot.rotation.y = w.ch.yaw; w.ch.speedVis = speed; animateChar(w.ch, dt);
     });
   }
@@ -2511,7 +2629,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   }
   function leaveCar() {
     const car = state.driving; if (!car) return; const p = chars.player;
-    car.speed = 0; car.vx = car.vz = 0; car.parked = true; car.cone.setEnabled(false); state.driving = null;
+    car.speed = 0; car.vx = car.vz = 0; car.parked = true; car.cone.setEnabled(false); state.driving = null; car.wps = null;
+    if (car.own) car.leftInLane = onCarriageway(car.x, car.z); else car.abandoned = true; // see updateTraffic: it rejoins the traffic, or the coupe is towed
     const side = Math.cos(car.heading), sidez = -Math.sin(car.heading); const ox = car.x - side * (car.type.wid / 2 + 0.9), oz = car.z - sidez * (car.type.wid / 2 + 0.9);
     p.pivot.setEnabled(true); p.pivot.position.set(ox, 0, oz); p.baseY = 0; p.yaw = car.heading; p.pivot.rotation.y = p.yaw;
     SFX.door(); SFX.engine(0, false); SFX.skid(0); ui.carName(null); if (state.touch) { $('tBrake').hidden = true; $('tRun').hidden = false; }
@@ -2852,7 +2971,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   scene.onBeforeRenderObservable.add(() => { if (state.playing) updateClock(Math.min(engine.getDeltaTime() / 1000, 0.05)); });
 
   /* ---------- Byte Mart: the shop on the west end of the north block, its interior, the gear it sells, and the credit chips that pay for it ---------- */
-  var MART_SPOT = { x: -26, z: -3.6, heading: PI / 2 }, chips = []; // hoisted: the interactables below are registered before this file's statements run
+  var MART_SPOT = { x: -26, z: -5, heading: PI / 2 }, chips = []; // hoisted: the interactables below are registered before this file's statements run
   function W(lx, lz) { return V3(IXM - lx, 0, -lz); } // the mart zone is turned around like Building F, so local x and z are both negated
   function buildMart() {
     Z = makeZone('mart', IXM); Z.root.rotation.y = PI;
@@ -3665,7 +3784,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     [rosa, jul].forEach(ch => { const c = BABYLON.MeshBuilder.CreateCylinder('npcCol', { height: 1.8, diameter: 0.7 }, scene); c.position.set(ch.pivot.position.x, 0.9, ch.pivot.position.z); c.isVisible = false; c.isPickable = false; c.checkCollisions = true; c.parent = Z.root; });
     placeNadia(); placeCourier();
     spawnTraffic(22); spawnPeds(AV.ready ? 18 : 28); spawnPolice();
-    [[-20, -3.6, PI / 2], [26, 3.6, -PI / 2], [-30, 3.6, -PI / 2], [-40, -20, 0], [40, 22, PI], [-40, 60, 0], [40, -60, PI], [-76, 20, 0], [76, -20, PI]].forEach(p => spawnCar({ x: p[0], z: p[1], heading: p[2], parked: true }));
+    [[-20, -5, PI / 2], [26, 5, -PI / 2], [-24, 5, -PI / 2], [-41, -20, 0], [41, 22, PI], [-41, 60, 0], [41, -60, PI], [-77, 20, 0], [77, -20, PI]].forEach(p => spawnCar({ x: p[0], z: p[1], heading: p[2], parked: true }));
     if (!NULL_ENGINE && AV.ready) { const sg = zones.out.sg; Object.values(chars).forEach(ch => { if (ch.kind === 'avatar' && ch !== chars.nadia) charMeshes(ch).forEach(m => sg.addShadowCaster(m)); }); }
     // the clip rigs' meshes have done their job; the animation groups stay, because the character creator rebuilds the player and retargets them again
     Object.values(AV.clips).forEach(clip => { clip.animationGroups.forEach(g => g.stop()); clip.meshes.forEach(m => m.dispose(false, false)); });
