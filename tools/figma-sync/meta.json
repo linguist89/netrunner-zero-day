@@ -1,0 +1,21 @@
+{
+  "figmaFile": "KtENECHclGSx4xZaRcXhSL",
+  "zones": {
+    "in":     { "id": "A", "title": "Building A · Dara Okafor's studio", "sign": "#ffd23f", "fill": "#FFFBF0", "slot": [0, 1800], "plans": "mezzanine", "quest": "Dara's workstation (dara-ws) and the mezzanine terminal (dara-mezz). Sticky note, journal, coffee machine, box, server case, poster.", "feel": "Personal, lived in. Warm 2700 to 3000 K pendants." },
+    "cad":    { "id": "F", "title": "Building F · Caduceus Analytics ops floor", "sign": "#3ee8f0", "fill": "#F1FEFD", "slot": [2140, 1800], "quest": "Locked until quest_i1_logs (needs the Proxmark cloner). Ops terminal (caduceus), keycard, cheat sheet, reception logbook, badge printer.", "feel": "Corporate SOC. Cool 5000 K panels, cyan accents." },
+    "lab":    { "id": "H", "title": "Building H · Solarpunk Lab", "sign": "#8cf28c", "fill": "#EBFFEE", "slot": [3560, 1800], "quest": "Workshop box (lab-h), whiteboard, seed shelves, 3D printer. Rosa Tavares waits outside by the planters.", "feel": "Maker space. Daylight, green accents." },
+    "util":   { "id": "D", "title": "Building D · Meridian Utilities machine room", "sign": "#e9d8ff", "fill": "#F8F5FF", "slot": [4900, 1800], "quest": "Card reader: needs flags.utilKey or the cloner. Entering activates quest_i2_utilities. Service console (db), rack 3, breaker panel, maintenance clipboard.", "feel": "Machine room. Dim, LED blinks, one work lamp." },
+    "mart":   { "id": "M", "title": "Byte Mart · shop floor", "sign": "#ff6a3d", "fill": "#FFF7F0", "slot": [0, 2900], "quest": "Nadia at the till, shelves (shop), gig board, fridge, bargain bin, poster.", "feel": "Shop. Bright, orange accents." },
+    "xch":    { "id": "X", "title": "Building X · Meridian Exchange", "sign": "#c77dff", "fill": "#F8F5FF", "slot": [1240, 2900], "quest": "Keypad on the street door (flags.xchOpen). Entering activates quest_z3_exchange. Lineman console (exchange), notebook, call printout, patch wall, relays, payphone.", "feel": "Telco. Neutral light, red status lamps." },
+    "police": { "id": "P", "title": "Meridian Police · station interior", "sign": "#5aa8ff", "fill": "#F5FBFF", "slot": [2560, 2900], "quest": "Front-desk bell, case board, cybercrime terminal, holding cell.", "feel": "Civic. Cool 4000 to 5000 K, blue accents." }
+  },
+  "buildings": {
+    "A": { "zone": "in",     "short": "OKAFOR",    "name": "BUILDING A · OKAFOR" },
+    "F": { "zone": "cad",    "short": "CADUCEUS",  "name": "BUILDING F · CADUCEUS ANALYTICS" },
+    "M": { "zone": "mart",   "short": "BYTE MART", "name": "BYTE MART" },
+    "H": { "zone": "lab",    "short": "SOLARPUNK", "name": "BUILDING H · SOLARPUNK LAB" },
+    "D": { "zone": "util",   "short": "UTILITIES", "name": "BUILDING D · MERIDIAN UTILITIES" },
+    "X": { "zone": "xch",    "short": "EXCHANGE",  "name": "BUILDING X · MERIDIAN EXCHANGE" },
+    "P": { "zone": "police", "short": "POLICE",    "name": "MERIDIAN POLICE" }
+  }
+}

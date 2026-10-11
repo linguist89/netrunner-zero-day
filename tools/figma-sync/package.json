@@ -1,0 +1,1 @@
+{ "name": "figma-sync", "private": true, "description": "Keeps the Figma world-layout board in sync with index.html", "dependencies": { "babylonjs": "8.56.2", "jsdom": "^26.0.0" } }
