@@ -3466,7 +3466,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   }
   function updateInteract() {
     const p = chars.player; if (!p) return; const pos = p.pivot.position; let best = null, bd = 1e9;
-    if (state.driving) { best = Math.abs(state.driving.speed) < 2.5 ? leaveInter : null; }
+    if (state.driving) { best = leaveInter; } // E always gets you out, at any speed
     else {
       inter.forEach(o => { if (o.zone !== state.zone) return; const d = Math.hypot(o.pos.x - pos.x, o.pos.z - pos.z); const dy = Math.abs(o.pos.y - pos.y); if (d < o.r && dy < 1.6 && d < bd) { bd = d; best = o; } });
       if (!best && state.zone === 'out') { const c = nearestCar(pos.x, pos.z, 3.0); if (c) { carInter.car = c; carInter.label = (c.driver ? 'Jack the ' : 'Enter the ') + c.type.name.toLowerCase(); best = carInter; } }
@@ -3474,7 +3474,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     }
     if (best !== current || (best && best.label !== currentLabel)) { const same = best === current; current = best; currentLabel = best ? best.label : null; ui.prompt(currentLabel); if (best && !same) SFX.tick(); }
   }
-  function interact() { if (state.ui || !current) return; current.run(); }
+  function interact() { if (state.ui) return; if (state.driving) { leaveCar(); return; } if (!current) return; current.run(); } // in a car, E leaves it straight away, whatever the prompt shows this frame
   function updateNPCs(dt, t) {
     ['rosa', 'julien', 'nadia', 'courier', 'mara', 'agnes', 'bram'].forEach(n => { const ch = chars[n]; if (!ch) return; let d = ch.yaw - ch.pivot.rotation.y; while (d > PI) d -= 2 * PI; while (d < -PI) d += 2 * PI; ch.pivot.rotation.y += d * Math.min(1, dt * 4); ch.talking = state.ui === 'dlg' && ui.dlgWho === n; ch.moving = false; animateChar(ch, dt); });
     if (beacon.node && beacon.node.isEnabled()) { beacon.arrow.position.y = 4.0 + Math.sin(t * 2.2) * 0.4; beacon.arrow.rotation.y = t * 1.5; beacon.ring.scaling.setAll(1 + Math.sin(t * 2.2) * 0.06); } // the beacon is silent in this cut; the minimap carries the objective
