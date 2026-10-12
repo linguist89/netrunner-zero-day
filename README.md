@@ -110,7 +110,7 @@ Music (CC0, via the Free Music Archive through the SoundSafari CC0 corpus): Holi
 
 Ambience: hmoosher (machine-room drone, CC0, freesound.org). The street bed is synthesised.
 
-Effects: Kenney.nl Interface Sounds and UI Audio (CC0). Horns and impacts from the Godot demo projects (MIT). Footsteps, engine and interface sounds are synthesised with Web Audio.
+Effects: Kenney.nl Interface Sounds and UI Audio (CC0). Horns and impacts from the Godot demo projects (MIT). Footsteps, the car engine and the tyre skid are Kenney recordings from the Godot Starter Kit FPS and Starter Kit Racing (MIT, `audio/sfx/LICENSE-kenney-starter-kits.txt`); the engine is retuned live to a five-speed gearbox, with synthesised tyre roar and wind. Interface sounds and the fallbacks are synthesised with Web Audio.
 
 Textures: building facades and roofs, and the car skins, are drawn in code at startup (no image files); oak, brick and carbon maps from the three.js examples (MIT); moss from "dark grass" on OpenGameArt (CC-BY 3.0); studio environment map from the Babylon.js Assets repository (CC-BY 4.0).
 
