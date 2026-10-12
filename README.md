@@ -112,6 +112,6 @@ Ambience: hmoosher (machine-room drone, CC0, freesound.org). The street bed is s
 
 Effects: Kenney.nl Interface Sounds and UI Audio (CC0). Horns and impacts from the Godot demo projects (MIT). Footsteps, engine and interface sounds are synthesised with Web Audio.
 
-Textures: oak, brick and carbon maps from the three.js examples (MIT); moss from "dark grass" on OpenGameArt (CC-BY 3.0); studio environment map from the Babylon.js Assets repository (CC-BY 4.0).
+Textures: building facades and roofs, and the car skins, are drawn in code at startup (no image files); oak, brick and carbon maps from the three.js examples (MIT); moss from "dark grass" on OpenGameArt (CC-BY 3.0); studio environment map from the Babylon.js Assets repository (CC-BY 4.0).
 
 Characters: Ready Player Me avatars and animation clips. Passers-by, officers, Nadia and Ines from the Microsoft Rocketbox library (MIT, `models/LICENSE-microsoft-rocketbox.txt`).

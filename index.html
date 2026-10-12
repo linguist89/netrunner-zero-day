@@ -1947,7 +1947,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     Z.meshes.push(m); return m;
   }
   const mergeGroups = {}; // small static pieces (road paint, curbs, lamp parts) are merged per material after the city is built, which keeps the draw-call count sane
-  function box(material, w, h, d, x, y, z, o) { o = o || {}; const m = BABYLON.MeshBuilder.CreateBox(o.name || 'box', { width: w, height: h, depth: d, faceUV: o.faceUV }, scene); m.position.set(x, y + h / 2, z); if (o.ry) m.rotation.y = o.ry; if (o.rx) m.rotation.x = o.rx; if (o.rz) m.rotation.z = o.rz; m.material = material; if (o.merge) { (mergeGroups[o.merge] = mergeGroups[o.merge] || { list: [], cast: o.cast !== false }).list.push(m); return m; } reg(m, o); if (o.collide && h < 1.1) blocker(BABYLON.MeshBuilder.CreateBox('blk', { width: w, height: 1.2, depth: d }, scene), m, x, y, z, material); return m; }
+  function box(material, w, h, d, x, y, z, o) { o = o || {}; const m = BABYLON.MeshBuilder.CreateBox(o.name || 'box', { width: w, height: h, depth: d, faceUV: o.faceUV, wrap: !!o.wrap }, scene); m.position.set(x, y + h / 2, z); if (o.ry) m.rotation.y = o.ry; if (o.rx) m.rotation.x = o.rx; if (o.rz) m.rotation.z = o.rz; m.material = material; if (o.merge) { (mergeGroups[o.merge] = mergeGroups[o.merge] || { list: [], cast: o.cast !== false }).list.push(m); return m; } reg(m, o); if (o.collide && h < 1.1) blocker(BABYLON.MeshBuilder.CreateBox('blk', { width: w, height: 1.2, depth: d }, scene), m, x, y, z, material); return m; }
   function blocker(b, m, x, y, z, material) { b.position.set(x, y + 0.6, z); b.rotation.copyFrom(m.rotation); b.isVisible = false; b.isPickable = false; b.checkCollisions = true; b.material = material; b.parent = m.parent; Z.meshes.push(b); return b; }
   function cyl(material, dia, h, x, y, z, o) { o = o || {}; const m = BABYLON.MeshBuilder.CreateCylinder(o.name || 'cyl', { height: h, diameter: dia, diameterTop: o.top == null ? dia : o.top, diameterBottom: o.bottom == null ? dia : o.bottom, tessellation: o.tess || 24 }, scene); m.position.set(x, y + h / 2, z); if (o.rx) m.rotation.x = o.rx; if (o.rz) m.rotation.z = o.rz; m.material = material; if (o.merge) { (mergeGroups[o.merge] = mergeGroups[o.merge] || { list: [], cast: o.cast !== false }).list.push(m); return m; } reg(m, o); if (o.collide && h < 1.1) blocker(BABYLON.MeshBuilder.CreateCylinder('blk', { height: 1.2, diameter: Math.max(dia, o.bottom || 0), tessellation: 12 }, scene), m, x, y, z, material); return m; }
   function sphere(material, dia, x, y, z, o) { o = o || {}; const m = BABYLON.MeshBuilder.CreateSphere(o.name || 'sph', { diameter: dia, segments: o.seg || 16 }, scene); m.position.set(x, y, z); if (o.sy) m.scaling.y = o.sy; m.material = material; return reg(m, o); }
@@ -2115,15 +2115,137 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       slab({ x: cx, z: cz, w: cw, d: cd, h, wall: pal[0], frame: pal[1], lit: pal[2], roofCol: pal[3], seed: 17 + k * 7 + i * 3 + j, cols: Math.max(3, Math.round(cw / 2)), rows: Math.max(2, Math.round(h / 1.8)), neon: NEON[(k + i + j) % NEON.length], roof: rnd() < 0.3 ? 'tank' : rnd() < 0.5 ? 'masts' : 'units' });
     }
   }
+  /* ---------- building skins: facades and roofs drawn at real proportions, as PBR maps ----------
+     A facade texture is a strip of `bays` window bays, the building's full height, painted three times with the same geometry:
+     albedo, roughness and metal (G and B, the glTF order) and the lit windows (emissive, scaled by the clock through L.facades).
+     Storeys are 3.2 m, the ground floor 4.2 m. Facades with the same style, tone, storeys and light share their textures. */
+  const SKIN_PX = 20, FLOOR_H = 3.2, GROUND_H = 4.2;
+  const SKINS = {
+    brick:    { bay: 2.6, tones: ['#9a4f37', '#7e4433', '#a8705a', '#6f5a50'], frame: '#e9e4da' },   // red, brown and buff brick, white painted frames
+    render:   { bay: 2.6, tones: ['#e3dccf', '#d6c6ab', '#c4c9cb', '#e2cdb9', '#b7c0b4'], frame: '#3a3d42' },
+    concrete: { bay: 3.6, tones: ['#a9a69e', '#8f9395', '#b9b3a6', '#7c7e80'], frame: '#2f3337' },
+    glass:    { bay: 1.5, tones: ['#30353c', '#454a51', '#8d939a'], frame: '#30353c' },                // the tone is the mullion colour
+    works:    { bay: 3.0, tones: ['#6d7378', '#585e64', '#8a8c85'], frame: '#2a2d31' }               // ribbed metal cladding, plant rooms and exchanges
+  };
+  const GLASS = ['#1c2732', '#232c35', '#1e2a2a', '#2a2d35'];
+  const WARM = ['#ffd29a', '#ffc47e', '#ffe2b8', '#ffcf8a'], COOL = ['#e4eeff', '#d2e2ff', '#f2f4ff'], SCREEN = '#9eb6ff';
+  const FACADES = {};
+  function skinRng(seed) { let s = (Math.abs(seed | 0) % 2147483646) + 1; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
+  function hexMix(a, b, t) { const x = C3(a), y = C3(b); return 'rgb(' + [[x.r, y.r], [x.g, y.g], [x.b, y.b]].map(p => Math.round((p[0] + (p[1] - p[0]) * t) * 255)).join(',') + ')'; }
+  function skinStyle(c) {
+    if (c.style) return c.style;
+    const r = skinRng(c.seed * 31 + 7)(); if (c.h > 20) return r < 0.55 ? 'glass' : 'concrete';
+    return r < 0.3 ? 'brick' : r < 0.55 ? 'render' : r < 0.8 ? 'concrete' : 'glass';
+  }
+  function facadeSkin(c) {
+    const style = skinStyle(c), S = SKINS[style], r0 = skinRng(c.seed * 13 + 5);
+    const tone = S.tones[Math.floor(r0() * S.tones.length)], storeys = Math.max(1, Math.round((c.h - GROUND_H) / FLOOR_H)) + 1;
+    const office = style === 'glass' || style === 'concrete' || style === 'works';
+    const lit = c.hero ? c.lit : null; const key = [style, tone, storeys, c.h.toFixed(1), lit || (office ? 'cool' : 'warm'), c.hero ? c.seed : c.seed % 3].join('|');
+    if (FACADES[key]) return FACADES[key];
+    const bays = style === 'glass' ? 8 : 6, Wm = bays * S.bay, Hm = c.h;
+    const pxW = Math.round(Wm * SKIN_PX), pxH = Math.min(1024, Math.round(Hm * SKIN_PX)), sx = pxW / Wm, sy = pxH / Hm;
+    const mk = n => new BABYLON.DynamicTexture(n + key, { width: pxW, height: pxH }, scene, true, BABYLON.Texture.TRILINEAR_SAMPLINGMODE);
+    const tA = mk('facA'), tM = mk('facM'), tE = mk('facE'); const A = tA.getContext(), M = tM.getContext(), E = tE.getContext();
+    const r = skinRng(c.seed * 97 + storeys);
+    // one rectangle in metres from the bottom-left corner, painted into all three maps
+    const R = (x, y, w, h, alb, rough, metal, em) => { const px = x * sx, py = pxH - (y + h) * sy, pw = w * sx, ph = h * sy;
+      if (alb) { A.fillStyle = alb; A.fillRect(px, py, pw, ph); }
+      if (rough != null) { M.fillStyle = 'rgb(255,' + Math.round(rough * 255) + ',' + Math.round((metal || 0) * 255) + ')'; M.fillRect(px, py, pw, ph); }
+      if (em !== undefined) { E.fillStyle = em || '#000'; E.fillRect(px, py, pw, ph); } };
+    const speckle = (n, a) => { for (let i = 0; i < n; i++) { A.fillStyle = (r() < 0.5 ? 'rgba(255,255,255,' : 'rgba(0,0,0,') + (a * (0.4 + r() * 0.6)) + ')'; A.fillRect(r() * pxW, r() * pxH, 1 + r() * 2, 1 + r() * 2); } };
+    // the wall
+    R(0, 0, Wm, Hm, tone, style === 'works' ? 0.55 : 0.92, style === 'works' ? 0.45 : 0, '#000');
+    if (style === 'brick') { for (let y = 0; y < Hm; y += 0.15) for (let x = (Math.round(y / 0.15) % 2) * 0.11; x < Wm; x += 0.22) { A.fillStyle = hexMix(tone, r() < 0.5 ? '#000000' : '#ffffff', r() * 0.16); A.fillRect(x * sx, pxH - (y + 0.15) * sy, 0.21 * sx, 0.14 * sy); } speckle(pxW * pxH / 40, 0.06); }
+    else if (style === 'render') speckle(pxW * pxH / 25, 0.05);
+    else if (style === 'concrete') { for (let x = 0; x < Wm; x += S.bay) for (let y = 0; y < Hm; y += FLOOR_H) R(x, y, S.bay, FLOOR_H, hexMix(tone, r() < 0.5 ? '#000000' : '#ffffff', r() * 0.07)); speckle(pxW * pxH / 30, 0.05); A.fillStyle = 'rgba(0,0,0,.25)'; for (let x = 0; x < Wm; x += S.bay) A.fillRect(x * sx, 0, 1, pxH); }
+    else if (style === 'works') { for (let x = 0; x < Wm; x += 0.3) { R(x, 0, 0.06, Hm, hexMix(tone, '#ffffff', 0.12), 0.45, 0.6); R(x + 0.2, 0, 0.05, Hm, hexMix(tone, '#000000', 0.25), 0.6, 0.4); } }
+    // the windows of one storey; returns nothing, paints all three maps
+    const lightCol = () => lit ? (r() < 0.75 ? lit : WARM[Math.floor(r() * WARM.length)]) : office ? (r() < 0.85 ? COOL[Math.floor(r() * COOL.length)] : WARM[0]) : (r() < 0.88 ? WARM[Math.floor(r() * WARM.length)] : SCREEN);
+    const litShare = c.hero ? 0.5 : office ? 0.55 : 0.4;
+    const pane = (x, y, w, h) => { // glass that reflects the sky in daylight and, sometimes, a room lit behind it at night
+      const g = A.createLinearGradient(0, pxH - (y + h) * sy, 0, pxH - y * sy); const gc = GLASS[Math.floor(r() * GLASS.length)]; g.addColorStop(0, hexMix(gc, '#8fa3b8', 0.35 + r() * 0.15)); g.addColorStop(1, gc);
+      R(x, y, w, h, g, 0.05, 0.1);
+      const blinds = r() < 0.2, on = r() < litShare;
+      if (blinds) { const down = h * (0.3 + r() * 0.6); A.fillStyle = 'rgba(178,170,152,.8)'; A.fillRect(x * sx, pxH - (y + h) * sy, w * sx, down * sy); }
+      if (on) { const col = lightCol(); const eg = E.createLinearGradient(0, pxH - (y + h) * sy, 0, pxH - y * sy); eg.addColorStop(0, col); eg.addColorStop(1, hexMix(col, '#000000', 0.45)); E.fillStyle = eg; E.fillRect(x * sx, pxH - (y + h) * sy, w * sx, h * sy);
+        if (blinds) { E.fillStyle = 'rgba(0,0,0,.35)'; for (let k = 0; k < h * sy; k += 2) E.fillRect(x * sx, pxH - (y + h) * sy + k, w * sx, 1); } }
+      else R(x, y, w, h, null, null, null, '#000');
+    };
+    const storey = (y0, h) => {
+      for (let b = 0; b < bays; b++) {
+        const x0 = b * S.bay;
+        if (style === 'brick' || style === 'render') { const w = S.bay * 0.5, hh = 1.6, x = x0 + (S.bay - w) / 2, y = y0 + 0.9;
+          R(x - 0.08, y - 0.12, w + 0.16, 0.12, style === 'brick' ? '#cfc6b6' : hexMix(tone, '#ffffff', 0.2), 0.8, 0); // sill
+          if (style === 'brick') R(x - 0.06, y + hh, w + 0.12, 0.18, '#c9bfae', 0.85, 0); // stone lintel
+          R(x, y, w, hh, S.frame, 0.45, 0); pane(x + 0.06, y + 0.06, w - 0.12, hh - 0.12); R(x + w / 2 - 0.03, y, 0.06, hh, S.frame, 0.45, 0); // a two-pane sash
+          A.fillStyle = 'rgba(0,0,0,.07)'; A.fillRect((x + 0.1) * sx, pxH - (y - 0.12) * sy, (w - 0.2) * sx, (0.6 + r() * 1.2) * sy); // the grime that runs down from a sill
+          if (style === 'render' && r() < 0.12) R(x + w + 0.1, y + 0.2, 0.7, 0.5, '#d9dbdc', 0.5, 0.3); // an air conditioner on the wall
+        } else if (style === 'concrete') { const y = y0 + 1.0, hh = 1.8;
+          for (let m = 0; m < 3; m++) { const w = S.bay / 3; R(x0 + m * w, y, w, hh, S.frame, 0.4, 0.5); pane(x0 + m * w + 0.05, y + 0.05, w - 0.1, hh - 0.1); }
+        } else if (style === 'glass') { R(x0, y0, S.bay, h, tone, 0.35, 0.8); pane(x0 + 0.05, y0 + 0.9, S.bay - 0.1, h - 0.95); R(x0 + 0.05, y0 + 0.05, S.bay - 0.1, 0.8, hexMix(GLASS[0], '#000000', 0.3), 0.1, 0.2, '#000'); // vision glass over a dark spandrel at each slab
+        } else if (style === 'works' && b % 2 === 0) { const y = y0 + h - 1.3; R(x0 + 0.4, y, S.bay - 0.8, 0.8, S.frame, 0.4, 0.4); pane(x0 + 0.45, y + 0.05, S.bay - 0.9, 0.7);
+          if (r() < 0.4) { R(x0 + 0.6, y0 + 0.6, 1.2, 1.0, '#3a3f44', 0.6, 0.5); A.fillStyle = 'rgba(0,0,0,.45)'; for (let k = 0; k < 1.0 * sy; k += 3) A.fillRect((x0 + 0.6) * sx, pxH - (y0 + 1.6) * sy + k, 1.2 * sx, 1); } } // a louvred vent
+      }
+    };
+    // the ground floor: a shopfront or lobby on the street, a solid base on plant buildings
+    if (style === 'works') { R(0, 0, Wm, 0.6, hexMix(tone, '#000000', 0.35), 0.9, 0); }
+    else { R(0, 3.6, Wm, GROUND_H - 3.6, hexMix(S.frame, '#000000', 0.2), 0.6, 0.2); // the fascia
+      for (let b = 0; b < bays; b++) { const x0 = b * S.bay; R(x0, 0.3, S.bay, 3.2, S.frame, 0.4, 0.6); pane(x0 + 0.08, 0.38, S.bay - 0.16, 3.04); }
+      R(0, 0, Wm, 0.3, hexMix(tone, '#000000', 0.3), 0.9, 0); }
+    for (let f = 1; f < storeys; f++) { const y0 = GROUND_H + (f - 1) * FLOOR_H; if (y0 + 2.6 > Hm) break; storey(y0, Math.min(FLOOR_H, Hm - y0)); }
+    // weathering: a darker splash band at the foot and a soft fade under the roof edge
+    const gB = A.createLinearGradient(0, pxH, 0, pxH - 1.2 * sy); gB.addColorStop(0, 'rgba(0,0,0,.28)'); gB.addColorStop(1, 'rgba(0,0,0,0)'); A.fillStyle = gB; A.fillRect(0, pxH - 1.2 * sy, pxW, 1.2 * sy);
+    const gT = A.createLinearGradient(0, 0, 0, 0.8 * sy); gT.addColorStop(0, 'rgba(0,0,0,.25)'); gT.addColorStop(1, 'rgba(0,0,0,0)'); A.fillStyle = gT; A.fillRect(0, 0, pxW, 0.8 * sy);
+    [tA, tM, tE].forEach(t => { t.update(true); t.hasAlpha = false; t.wrapU = BABYLON.Texture.WRAP_ADDRESSMODE; t.anisotropicFilteringLevel = 4; });
+    return (FACADES[key] = { tA, tM, tE, Wm, style });
+  }
+  // flat roofs, seen from above most of the time: four kinds, each an albedo and a normal map, shared by every roof of that kind
+  const ROOFS = {};
+  const ROOF_KIND = { membrane: { base: '#999c9a', rough: 0.7 }, gravel: { base: '#8a857b', rough: 0.95 }, bitumen: { base: '#3c3d40', rough: 0.85 }, green: { base: '#55663e', rough: 0.95 } };
+  function roofSkin(kind) {
+    if (ROOFS[kind]) return ROOFS[kind];
+    const N = 512, TILE = 10, K = ROOF_KIND[kind], r = skinRng(kind.length * 977 + 3); // one tile is 10 m square
+    const tA = new BABYLON.DynamicTexture('roofA_' + kind, { width: N, height: N }, scene, true); const A = tA.getContext();
+    const hc = document.createElement('canvas'); hc.width = hc.height = N; const Hc = hc.getContext('2d'); // a height map, turned into normals below
+    A.fillStyle = K.base; A.fillRect(0, 0, N, N); Hc.fillStyle = '#808080'; Hc.fillRect(0, 0, N, N);
+    const blot = (ctx, x, y, rad, col) => { const g = ctx.createRadialGradient(x, y, 0, x, y, rad); g.addColorStop(0, col); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.fillRect(x - rad, y - rad, rad * 2, rad * 2); };
+    if (kind === 'gravel' || kind === 'bitumen') { const img = A.getImageData(0, 0, N, N), hd = Hc.getImageData(0, 0, N, N); const amp = kind === 'gravel' ? 46 : 18;
+      for (let i = 0; i < N * N; i++) { const v = (r() - 0.5) * amp, t = r() < 0.08 ? (r() - 0.5) * amp * 1.6 : 0; for (let k = 0; k < 3; k++) img.data[i * 4 + k] = Math.max(0, Math.min(255, img.data[i * 4 + k] + v + t + (k === 2 ? -4 : 0))); hd.data[i * 4] = hd.data[i * 4 + 1] = hd.data[i * 4 + 2] = 128 + v * 1.6; }
+      A.putImageData(img, 0, 0); Hc.putImageData(hd, 0, 0); }
+    if (kind === 'membrane') { for (let y = 0; y < N; y += N / TILE * 1.8) { A.fillStyle = 'rgba(255,255,255,.18)'; A.fillRect(0, y, N, 3); A.fillStyle = 'rgba(0,0,0,.12)'; A.fillRect(0, y + 3, N, 2); Hc.fillStyle = '#a0a0a0'; Hc.fillRect(0, y, N, 4); }
+      for (let i = 0; i < 6000; i++) { A.fillStyle = 'rgba(0,0,0,' + (0.02 + r() * 0.04) + ')'; A.fillRect(r() * N, r() * N, 2, 2); } }
+    if (kind === 'bitumen') { for (let y = 0; y < N; y += N / TILE) { A.fillStyle = 'rgba(0,0,0,.18)'; A.fillRect(0, y, N, 2); Hc.fillStyle = '#9a9a9a'; Hc.fillRect(0, y, N, 3); }
+      for (let i = 0; i < 5; i++) { const x = r() * N, y = r() * N, w = 30 + r() * 60, h = 20 + r() * 40; A.fillStyle = 'rgba(20,20,22,.55)'; A.fillRect(x, y, w, h); Hc.fillStyle = '#909090'; Hc.fillRect(x, y, w, h); } } // patched repairs
+    if (kind === 'green') { const greens = ['#4f6a35', '#617a3c', '#6e6a38', '#7a4a3a', '#3f5a32', '#8a8a4a'];
+      for (let i = 0; i < 2600; i++) { const x = r() * N, y = r() * N, rad = 3 + r() * 10; blot(A, x, y, rad, greens[Math.floor(r() * greens.length)]); blot(Hc, x, y, rad, 'rgba(200,200,200,.6)'); } }
+    for (let i = 0; i < 7; i++) blot(A, r() * N, r() * N, 30 + r() * 70, kind === 'green' ? 'rgba(30,40,20,.25)' : 'rgba(0,0,0,.13)'); // ponding and weather stains
+    if (kind !== 'green') { const dx = N * 0.5, dy = N * 0.5; blot(A, dx, dy, 26, 'rgba(0,0,0,.35)'); A.fillStyle = '#1a1b1d'; A.beginPath(); A.arc(dx, dy, 5, 0, PI * 2); A.fill(); } // a roof drain in each tile
+    tA.update(true);
+    // normals from the height map, by central differences
+    const hd = Hc.getImageData(0, 0, N, N).data, tN = new BABYLON.DynamicTexture('roofN_' + kind, { width: N, height: N }, scene, true); const nC = tN.getContext(); const nd = nC.createImageData(N, N);
+    const hAt = (x, y) => hd[(((y + N) % N) * N + ((x + N) % N)) * 4] / 255;
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const ddx = (hAt(x + 1, y) - hAt(x - 1, y)) * 2.2, ddy = (hAt(x, y + 1) - hAt(x, y - 1)) * 2.2, l = Math.hypot(ddx, ddy, 1), o = (y * N + x) * 4;
+      nd.data[o] = (-ddx / l * 0.5 + 0.5) * 255; nd.data[o + 1] = (ddy / l * 0.5 + 0.5) * 255; nd.data[o + 2] = (1 / l * 0.5 + 0.5) * 255; nd.data[o + 3] = 255; }
+    nC.putImageData(nd, 0, 0); tN.update(true); [tA, tN].forEach(t => { t.wrapU = t.wrapV = BABYLON.Texture.WRAP_ADDRESSMODE; t.anisotropicFilteringLevel = 8; }); // dynamic textures clamp by default; roofs tile
+    const pm = new BABYLON.PBRMaterial('roofP_' + kind, scene); pm.albedoTexture = tA; pm.bumpTexture = tN; pm.bumpTexture.level = 0.8; pm.metallic = 0; pm.roughness = K.rough; pm.environmentIntensity = 0.5; pm.maxSimultaneousLights = 8;
+    return (ROOFS[kind] = { mat: pm, tile: TILE });
+  }
+  function roofKind(c) { if (c.roofKind) return c.roofKind; const v = skinRng(c.seed * 7 + 11)(); return v < 0.4 ? 'membrane' : v < 0.7 ? 'gravel' : 'bitumen'; }
   function slab(c) {
-    const core = mat('core_' + c.seed, c.wall, { spec: 0.02, fresh: true });
-    const { diff, emis } = facadeTex(c.wall, c.lit, c.cols, c.rows, c.seed, c.frame); core.diffuseTexture = diff; core.emissiveTexture = emis; core.emissiveColor = C3('#ffffff');
-    const tw = Math.max(1, Math.round(c.w / c.cols * 2)), th = 1; const tz = Math.max(1, Math.round(c.d / c.cols * 2));
-    const roofM = texMat('roofM' + c.seed, roofTex(c.roofCol, c.seed), { spec: 0.02 });
+    const skin = facadeSkin(c);
+    const core = new BABYLON.PBRMaterial('core_' + c.seed, scene); core.albedoTexture = skin.tA; core.metallicTexture = skin.tM;
+    core.useRoughnessFromMetallicTextureGreen = true; core.useMetallnessFromMetallicTextureBlue = true; core.useRoughnessFromMetallicTextureAlpha = false; core.useAmbientOcclusionFromMetallicTextureRed = false; core.metallic = 1; core.roughness = 1;
+    core.emissiveTexture = skin.tE; core.emissiveColor = C3('#ffffff'); core.environmentIntensity = 0.85; core.maxSimultaneousLights = 8;
+    const tw = c.w / skin.Wm, tz = c.d / skin.Wm, th = 1; // each face shows the real number of bays its width holds
     const m0 = Z.meshes.length;
-    const coreMesh = box(core, c.w, c.h, c.d, c.x, 0, c.z, { collide: true, recv: false, occlude: true, faceUV: [V4(0, 0, tw, th), V4(0, 0, tw, th), V4(0, 0, tz, th), V4(0, 0, tz, th), V4(0, 0, 0.02, 0.02), V4(0, 0, 0.02, 0.02)] });
-    decal(roofM, c.w - 0.2, c.d - 0.2, c.x, c.h + 0.06, c.z, { recv: true });
-    box(mat('parapet', '#1b1d23'), c.w + 0.3, 0.5, c.d + 0.3, c.x, c.h, c.z, { cast: false });
+    const coreMesh = box(core, c.w, c.h, c.d, c.x, 0, c.z, { collide: true, recv: false, occlude: true, wrap: true, faceUV: [V4(0, 0, tw, th), V4(0, 0, tw, th), V4(0, 0, tz, th), V4(0, 0, tz, th), V4(0, 0, 0.02, 0.02), V4(0, 0, 0.02, 0.02)] }); // wrap: every side shows its texture upright
+    // the roof: the skin inside a parapet wall, so the roof surface, the painted letter and the sign on it all show from above
+    const roof = roofSkin(roofKind(c)); const rd = decal(roof.mat, c.w - 0.2, c.d - 0.2, c.x, c.h + 0.06, c.z, { recv: true });
+    const uv = rd.getVerticesData(BABYLON.VertexBuffer.UVKind); for (let i = 0; i < uv.length; i += 2) { uv[i] *= (c.w - 0.2) / roof.tile; uv[i + 1] *= (c.d - 0.2) / roof.tile; } rd.setVerticesData(BABYLON.VertexBuffer.UVKind, uv);
+    const capM = pbr('parapetCap', { color: '#8d8c87', roughness: 0.9 }); const PT = 0.3, PH = 0.6;
+    box(capM, c.w + PT, PH, PT, c.x, c.h, c.z - c.d / 2, { cast: false }); box(capM, c.w + PT, PH, PT, c.x, c.h, c.z + c.d / 2, { cast: false });
+    box(capM, PT, PH, c.d - PT, c.x - c.w / 2, c.h, c.z, { cast: false }); box(capM, PT, PH, c.d - PT, c.x + c.w / 2, c.h, c.z, { cast: false });
     roofFurniture(c);
     // everything built for this slab fades together when it stands between the camera and the player
     coreMesh.metadata = Object.assign({}, coreMesh.metadata || {}, { occ: occGroups.length }); occGroups.push(Z.meshes.slice(m0)); mapBlocks.push([c.x - c.w / 2, c.x + c.w / 2, c.z - c.d / 2, c.z + c.d / 2, c.mapCol || c.roofCol]);
@@ -2140,7 +2262,9 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   }
   function building(c) {
     // the four hero buildings: a textured slab, a lit street-facing door, a neon sign on the facade and the building letter painted on the roof
-    slab(Object.assign({}, c, { neon: null, mapCol: c.signColor }));
+    const HERO_SKIN = { A: ['brick', 'bitumen'], F: ['glass', 'membrane'], H: ['render', 'green'], M: ['brick', 'bitumen'], X: ['works', 'gravel'], D: ['works', 'gravel'], P: ['concrete', 'membrane'] }; // Dara's old brick studio, a glass SOC, a planted lab, two plant buildings, a civic station
+    const hs = HERO_SKIN[c.name] || [];
+    slab(Object.assign({ style: hs[0], roofKind: hs[1] }, c, { neon: null, mapCol: c.signColor, hero: true }));
     const fz = c.z + c.face * (c.d / 2); const ry = c.face > 0 ? PI : 0;
     const frameM = mat('doorFrame', '#1d1f26');
     [-1.3, 1.3].forEach(dx => box(frameM, 0.3, 3.4, 0.5, c.x + dx, 0, fz + c.face * 0.15, { collide: true, cast: false }));
@@ -2152,7 +2276,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     plane(texMat('sign' + c.name, textTex(c.sign, { w: 1024, h: 160, color: c.signColor, glow: true }), { unlit: true, alpha: true, emissive: '#ffffff' }), Math.min(c.w - 1, 9), Math.min(c.w - 1, 9) * 0.156, c.x, c.h - 1.6, fz + c.face * 0.08, { ry });
     box(mat('neonS' + c.name, c.signColor, { emissive: c.signColor, unlit: true }), Math.min(c.w - 1, 9), 0.1, 0.1, c.x, c.h - 2.5, fz + c.face * 0.2, { cast: false });
     decal(texMat('roofLetter' + c.name, textTex(c.name, { w: 256, h: 256, color: c.signColor, font: '220px "Bebas Neue", sans-serif' }), { unlit: true, alpha: true, emissive: '#ffffff' }), 5, 5, c.x - c.w / 2 + 3.4, c.h + 0.08, c.z + (c.face > 0 ? 1 : -1) * (c.d / 2 - 3.4));
-    decal(texMat('roofSign' + c.name, textTex(c.sign, { w: 1024, h: 160, color: '#ffffff' }), { unlit: true, alpha: true, emissive: '#ffffff' }), Math.min(c.w - 2, 10), Math.min(c.w - 2, 10) * 0.156, c.x + 1.5, c.h + 0.08, c.z, { ry: c.face > 0 ? 0 : PI });
+    decal(texMat('roofSign' + c.name, textTex(c.sign, { w: 1024, h: 160, color: '#ffffff', font: Math.min(112, Math.floor(1500 / c.sign.length)) + 'px "Bebas Neue", "Oswald", "Arial Narrow", sans-serif' }), { unlit: true, alpha: true, emissive: '#ffffff' }), Math.min(c.w - 2, 10), Math.min(c.w - 2, 10) * 0.156, c.x + 1.5, c.h + 0.08, c.z, { ry: 0 }); // text top to the north, upright from the overhead camera
   }
   function dumpster(x, z) { box(mat('dumpster', '#2f5a3a', { spec: 0.2 }), 2.0, 1.3, 1.2, x, 0, z, { collide: true }); box(mat('dumpsterLid', '#234a2e', { spec: 0.3 }), 2.04, 0.1, 1.24, x, 1.3, z, { cast: false }); block(x - 1.05, x + 1.05, z - 0.65, z + 0.65); }
   function tree(x, z, s) {
@@ -4765,7 +4889,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (hot && hot.appearance) LOOK.current = normalizeLook(hot.appearance);
     if (hot && hot.save && hot.playing) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(hot)); } catch (e) { /* ignore */ } begin(true); }
   }
-  window.__zdDebug = { scene, store, chars, zones, state, cam, inter, cars, peds, ui, SFX, chips, CAM, LOOK, creator };
+  window.__zdDebug = { scene, store, chars, zones, state, cam, inter, cars, peds, ui, SFX, chips, CAM, LOOK, creator, CLOCK };
   const hot = window.claude && window.claude.hot;
   if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
 })();
