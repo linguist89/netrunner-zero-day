@@ -36,4 +36,8 @@ Each section is stored as separate hashed pieces:
 
 A typical one-object edit sends one or two tiles plus the panel text, a few kB, instead of the whole building.
 
+## Skills section
+
+`node skills.js` writes `out/skills-section.js`, which redraws the "Skills and training" section below the interiors from the game data. It sits outside the hashed sync, so run it whenever skills, classes or skill checks change.
+
 The `netrunner-total-update` skill drives this.
