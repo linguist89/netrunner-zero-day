@@ -38,6 +38,6 @@ A typical one-object edit sends one or two tiles plus the panel text, a few kB, 
 
 ## Skills section
 
-`node skills.js` writes `out/skills-section.js`, which redraws the "Skills and training" section below the interiors from the game data. It sits outside the hashed sync, so run it whenever skills, classes or skill checks change.
+`node skills.js` writes `out/skills-section.js`, which redraws the "Skills and training" section on the Character Abilities page from the game data. It sits outside the hashed sync, so run it whenever skills, classes or skill checks change.
 
 The `netrunner-total-update` skill drives this.
