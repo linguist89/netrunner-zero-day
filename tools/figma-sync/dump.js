@@ -20,7 +20,7 @@ w.__BABYLON_NULL__ = true;
 w.fetch = () => Promise.reject(new Error('no fetch'));
 w.matchMedia = w.matchMedia || (() => ({ matches: false, addListener() {}, addEventListener() {} }));
 const noop = () => {}, grad = { addColorStop: noop };
-const ctx = new Proxy({}, { get(t, k) { if (/^create(Radial|Linear)Gradient$|^createPattern$/.test(k)) return () => grad; if (k === 'measureText') return () => ({ width: 10 }); if (k === 'getImageData') return (x, y, ww, hh) => ({ data: new Uint8ClampedArray(ww * hh * 4) }); return k in t ? t[k] : noop; }, set(t, k, v) { t[k] = v; return true; } });
+const ctx = new Proxy({}, { get(t, k) { if (/^create(Radial|Linear)Gradient$|^createPattern$/.test(k)) return () => grad; if (k === 'measureText') return () => ({ width: 10 }); if (k === 'getImageData') return (x, y, ww, hh) => ({ data: new Uint8ClampedArray(ww * hh * 4) }); if (k === 'createImageData') return (ww, hh) => ({ width: ww, height: hh, data: new Uint8ClampedArray(ww * hh * 4) }); return k in t ? t[k] : noop; }, set(t, k, v) { t[k] = v; return true; } });
 w.HTMLCanvasElement.prototype.getContext = () => ctx;
 w.eval(fs.readFileSync(require.resolve('babylonjs/babylon.js'), 'utf8'));
 
