@@ -2205,23 +2205,62 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     { name: 'MERIDIAN HATCH', model: 'hatchback-sports', cell: 3, len: 3.9, wid: 1.8, h: 0.62, cab: 0.55, top: 165, acc: 9, cols: ['#c73a3a', '#2b6cb0', '#d4d0c4', '#6a8a3a', '#e07a2a'] },
     { name: 'KORTEX SEDAN', model: 'sedan', cell: 6, len: 4.6, wid: 2.0, h: 0.66, cab: 0.55, top: 190, acc: 10, cols: ['#1d2a44', '#3a3a3a', '#8a2a4a', '#b8b0a0', '#2f5d8c'] },
     { name: 'STYX CAB', model: 'taxi', cell: 4, len: 4.5, wid: 2.0, h: 0.7, cab: 0.6, top: 175, acc: 10, cols: ['#f2c21c'] },
-    { name: 'OKAFOR PANEL VAN', model: 'van', cell: 7, len: 5.3, wid: 2.2, h: 1.3, cab: 0.6, top: 140, acc: 7, cols: ['#e8e4d8', '#4a5a6a', '#8a4a2a', '#2f3a4a'] },
+    { name: 'HARBOUR LINE PANEL VAN', model: 'van', cell: 7, len: 5.3, wid: 2.2, h: 1.3, cab: 0.6, top: 140, acc: 7, cols: ['#e8e4d8', '#4a5a6a', '#8a4a2a', '#2f3a4a'] },
     { name: 'CADUCEUS COUPE', model: 'sedan-sports', cell: 6, len: 4.3, wid: 1.9, h: 0.6, cab: 0.5, top: 230, acc: 13, cols: ['#3ee8f0', '#ff3d7f', '#101216', '#ffd23f'] },
     { name: 'HALCYON SUV', model: 'suv', cell: 3, len: 4.5, wid: 2.1, h: 0.9, cab: 0.6, top: 170, acc: 9, cols: ['#3a4a44', '#8a2a2a', '#d4d0c4', '#2a2a3a'] },
     { name: 'KORTEX LUXE', model: 'suv-luxury', cell: 4, len: 4.9, wid: 2.1, h: 0.9, cab: 0.6, top: 205, acc: 11, cols: ['#101216', '#5a4a3a', '#b8b0a0', '#1d2a44'] },
-    { name: 'OKAFOR DELIVERY', model: 'delivery', cell: 6, len: 5.2, wid: 2.2, h: 1.4, cab: 0.6, top: 135, acc: 7, cols: ['#e8e4d8', '#ffd23f', '#2f5d8c'] }
+    { name: 'HARBOUR LINE DELIVERY', model: 'delivery', cell: 3, len: 5.2, wid: 2.2, h: 1.4, cab: 0.6, top: 135, acc: 7, cols: ['#e8e4d8', '#ffd23f', '#2f5d8c'] }
   ];
   const cars = []; const peds = [];
-  // car paint: the Kenney palette with the body swatch repainted in the car's colour, one texture per model and colour
-  const CARTEX = { img: null, cache: {} };
-  function carPaint(type, color) {
-    const key = type.cell + color; if (CARTEX.cache[key]) return CARTEX.cache[key];
-    const t = new BABYLON.DynamicTexture('paint' + key, { width: 512, height: 512 }, scene, true, BABYLON.Texture.TRILINEAR_SAMPLINGMODE, BABYLON.Engine.TEXTUREFORMAT_RGBA, false); // invertY false: glTF UVs start at the top
-    const c = t.getContext(); if (CARTEX.img) c.drawImage(CARTEX.img, 0, 0);
-    const base = C3(color); const mix = (k, w) => 'rgb(' + [base.r, base.g, base.b].map(v => Math.round(Math.min(1, Math.max(0, v * (1 - w) + k * w)) * 255)).join(',') + ')';
-    const x0 = type.cell * 64; [[x0, 0.32, 0.0], [x0 + 32, 0.08, 0.28]].forEach(h => { const g = c.createLinearGradient(0, 128, 0, 256); g.addColorStop(0, mix(1, h[1])); g.addColorStop(1, mix(0, h[2])); c.fillStyle = g; c.fillRect(h[0], 128, 32, 128); }); // the swatch is two 32 px columns, lighter and darker, each a top to bottom gradient
-    t.update(false); t.hasAlpha = false; CARTEX.cache[key] = t; return t;
+  // traffic paint: the 2025 global colour mix (Axalta: white 29%, black 23%, grey 22%, silver 7%, blue 6%, the rest red, beige, green).
+  // [hex, weight, metallic, roughness of the paint under its clearcoat]; taxis stay yellow, vans lean white like real fleets
+  const PAINTS = {
+    car: [['#e6e6e2', 18, 0.05, 0.22], ['#dcdcd6', 11, 0.45, 0.3], ['#131417', 15, 0.1, 0.18], ['#1b1d22', 8, 0.6, 0.28], ['#5d6166', 12, 0.65, 0.3], ['#3f4246', 10, 0.6, 0.3], ['#b9bcbf', 7, 0.85, 0.28], ['#1f3a64', 4, 0.65, 0.3], ['#2c4f7c', 2, 0.6, 0.3], ['#8e1418', 5, 0.35, 0.25], ['#a6977c', 4, 0.5, 0.3], ['#3c4a3e', 4, 0.55, 0.3]],
+    taxi: [['#e3a81b', 1, 0.15, 0.25]],
+    van: [['#ecebe6', 60, 0.05, 0.25], ['#b9bcbf', 12, 0.8, 0.3], ['#5d6166', 10, 0.6, 0.3], ['#1f3a64', 10, 0.55, 0.3], ['#e8b81c', 8, 0.1, 0.25]]
+  };
+  const paintKind = type => type.model === 'taxi' ? 'taxi' : (type.model === 'van' || type.model === 'delivery') ? 'van' : 'car';
+  function pickPaint(type) { const list = PAINTS[paintKind(type)]; let t = rnd() * list.reduce((a, p) => a + p[1], 0); for (const p of list) { t -= p[1]; if (t <= 0) return p[0]; } return list[0][0]; }
+  function paintSpec(color) { for (const k in PAINTS) { const p = PAINTS[k].find(q => q[0] === color); if (p) return p; } return [color, 0, 0.4, 0.3]; } // a colour from elsewhere (the cops, your coupe) gets a mid metallic
+  // car skins: every Kenney car samples one 512 px palette; each part gets its own surface by drawing four maps from it.
+  // Palette cells (x, y, w, h), found by recolouring them one at a time: paint cell*64,128,64,128 (CARS[].cell); glass 0,384;
+  // headlights 64,384; taillights 128,384 (all 64 x 128); tyres 128,256 (wheel meshes only); lower trim 192,256; rims 320,256; plate 384,256
+  const CARTEX = { img: null, cache: {} }; const CARMATS = []; // CARMATS: the body materials, whose lamps follow the clock
+  const CCELL = { glass: [0, 384], head: [64, 384], tail: [128, 384], tyre: [128, 256], trim: [192, 256], rim: [320, 256], plate: [384, 256] };
+  function carTex(name, draw) {
+    const t = new BABYLON.DynamicTexture(name, { width: 512, height: 512 }, scene, true, BABYLON.Texture.TRILINEAR_SAMPLINGMODE, BABYLON.Engine.TEXTUREFORMAT_RGBA, false); // invertY false: glTF UVs start at the top
+    draw(t.getContext()); t.update(false); t.hasAlpha = false; return t;
   }
+  // one body material and one wheel material per model and colour, shared by every car that has them
+  function carPaint(type, color, src) {
+    const key = type.cell + color; if (CARTEX.cache[key]) return CARTEX.cache[key];
+    const spec = paintSpec(color), metal = spec[2], rough = spec[3], pc = [type.cell * 64, 128];
+    const fill = (c, xy, style, w = 64, h = 128) => { c.fillStyle = style; c.fillRect(xy[0], xy[1], w, h); };
+    const rgb = (g, b) => 'rgb(255,' + Math.round(g * 255) + ',' + Math.round(b * 255) + ')'; // G roughness, B metallic, the glTF order
+    const base = C3(color); const mix = (k, w) => 'rgb(' + [base.r, base.g, base.b].map(v => Math.round(Math.min(1, Math.max(0, v * (1 - w) + k * w)) * 255)).join(',') + ')';
+    const albedo = carTex('paint' + key, c => {
+      if (CARTEX.img) c.drawImage(CARTEX.img, 0, 0);
+      const g = c.createLinearGradient(0, 128, 0, 256); g.addColorStop(0, mix(1, 0.05)); g.addColorStop(0.7, mix(0, 0.04)); g.addColorStop(1, mix(0, 0.16)); fill(c, pc, g); // a gentle top-to-bottom fall-off
+      fill(c, CCELL.glass, '#1c2530'); fill(c, CCELL.head, '#f4efe2'); fill(c, CCELL.tail, '#9a0f14');
+      fill(c, CCELL.tyre, '#202124'); fill(c, CCELL.trim, '#26282c'); fill(c, CCELL.rim, '#a7acb3'); fill(c, CCELL.plate, '#e4e1d6');
+    });
+    const mr = wheel => carTex('paintMR' + key + (wheel ? 'w' : ''), c => {
+      fill(c, [0, 0], rgb(0.6, 0), 512, 512); fill(c, pc, rgb(rough, metal));
+      fill(c, CCELL.glass, rgb(0.02, 0)); fill(c, CCELL.head, rgb(0.08, 0)); fill(c, CCELL.tail, rgb(0.12, 0));
+      fill(c, CCELL.tyre, wheel ? rgb(0.92, 0) : rgb(0.24, 0)); fill(c, CCELL.trim, rgb(0.7, 0)); fill(c, CCELL.rim, rgb(0.3, 1)); fill(c, CCELL.plate, rgb(0.47, 0));
+    });
+    const cc = carTex('paintCC' + key, c => { fill(c, [0, 0], '#000', 512, 512); [pc, CCELL.glass, CCELL.head, CCELL.tail].forEach(xy => fill(c, xy, '#fff')); }); // clearcoat on paint, glass and lenses only
+    const em = carTex('paintEM' + key, c => { fill(c, [0, 0], '#000', 512, 512); fill(c, CCELL.head, '#fff1d0'); fill(c, CCELL.tail, '#ff1a14'); });
+    const make = wheel => {
+      const pm = src.clone('paint_' + key + (wheel ? '_wheel' : '')); pm.albedoTexture = albedo; pm.albedoColor = BABYLON.Color3.White();
+      pm.metallicTexture = mr(wheel); pm.useRoughnessFromMetallicTextureGreen = true; pm.useMetallnessFromMetallicTextureBlue = true; pm.useRoughnessFromMetallicTextureAlpha = false; pm.useAmbientOcclusionFromMetallicTextureRed = false; pm.metallic = 1; pm.roughness = 1;
+      if (pm.clearCoat) { pm.clearCoat.isEnabled = !wheel; pm.clearCoat.texture = cc; pm.clearCoat.intensity = 1; pm.clearCoat.roughness = 0.04; }
+      pm.emissiveTexture = em; pm.emissiveColor = new BABYLON.Color3(CARTEX.lamps || 0, CARTEX.lamps || 0, CARTEX.lamps || 0); pm.environmentIntensity = 1; pm.maxSimultaneousLights = 8;
+      return pm;
+    };
+    const out = { body: make(false), wheel: make(true) }; CARMATS.push(out.body, out.wheel); CARTEX.cache[key] = out; return out;
+  }
+  function setCarLamps(k) { if (Math.abs((CARTEX.lamps || 0) - k) < 0.01) return; CARTEX.lamps = k; CARMATS.forEach(m => m.emissiveColor.set(k, k, k)); } // head and tail lights: dim by day, bright at night
   function makeCarMesh(type, color) {
     const root = new BABYLON.TransformNode('car', scene); root.parent = Z.root;
     const L = type.len, Wd = type.wid, H = type.h; let b = null, wheels = [];
@@ -2231,9 +2270,10 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       const fix = new BABYLON.TransformNode('carfix', scene); fix.parent = root;
       const inst = container.instantiateModelsToScene(n => n, false); const mroot = inst.rootNodes[0]; mroot.parent = fix;
       const info = container.carInfo; const s = L / info.len; fix.scaling.set(s, s, s); fix.position.y = 0.02;
-      const paint = carPaint(type, color);
-      mroot.getChildMeshes().forEach(m => {
-        m.isPickable = false; if (m.material) { const pm = m.material.clone('paint_' + m.material.name + color); pm.albedoTexture = paint; pm.metallic = 0.15; pm.roughness = 0.38; pm.environmentIntensity = 0.8; pm.maxSimultaneousLights = 8; if (pm.clearCoat) { pm.clearCoat.isEnabled = true; pm.clearCoat.intensity = 0.55; pm.clearCoat.roughness = 0.12; } m.material = pm; }
+      const meshes = mroot.getChildMeshes(); const src = (meshes.find(m => m.material) || {}).material;
+      const paint = src ? carPaint(type, color, src) : null;
+      meshes.forEach(m => {
+        m.isPickable = false; if (m.material && paint) m.material = /^wheel/.test(m.name) ? paint.wheel : paint.body;
         if (Z.sg && !NULL_ENGINE) Z.sg.addShadowCaster(m); Z.meshes.push(m); if (m.name === 'body') b = m;
       });
       mroot.getChildTransformNodes().concat(mroot.getChildMeshes()).forEach(n => { if (/^wheel/.test(n.name)) wheels.push(n); });
@@ -2252,7 +2292,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     return { root, body: b, cone, wheels };
   }
   function spawnCar(o) {
-    const type = o.type || CARS[Math.floor(rnd() * CARS.length)]; const color = o.color || type.cols[Math.floor(rnd() * type.cols.length)];
+    const type = o.type || CARS[Math.floor(rnd() * CARS.length)]; const color = o.color || pickPaint(type);
     const m = makeCarMesh(type, color); m.root.position.set(o.x, o.y || 0, o.z); m.root.rotation.y = o.heading || 0;
     const car = { type, color, root: m.root, cone: m.cone, wheels: m.wheels, roll: 0, x: o.x, z: o.z, y: o.y || 0, heading: o.heading || 0, speed: 0, parked: !!o.parked, deck: !!o.deck, dir: o.dir == null ? -1 : o.dir, lane: 0, driver: !o.parked, honk: 0 };
     if (car.parked) m.cone.setEnabled(false);
@@ -3802,6 +3842,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const sunV = new BABYLON.Vector3(-Math.cos(s.az), -(0.3 + 0.7 * Math.max(0, s.elev)), -0.3).normalize();
     const dv = BABYLON.Vector3.Lerp(N.dirV, sunV, d).normalize(); L.dir.direction.copyFrom(dv); L.dir.position.copyFrom(dv.scale(-100));
     if (scene.environmentTexture) scene.environmentIntensity = (0.7 + 0.35 * d) * kx;
+    setCarLamps(Math.round((0.12 + 1.48 * lampsOn) * 20) / 20); // car head and tail lights, stepped so the shared materials update a few times a dusk, not every frame
     // what the city switches on after dark
     // lamps are never switched off, only faded to nothing: enabling or disabling a light resyncs it with every mesh and changes how
     // many lights each material has, which rebuilt materials and compiled shaders at dawn and dusk (the hitches in the transition)
