@@ -269,6 +269,38 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 #dlgBox .btn{align-self:flex-end;padding:6px 14px 4px;font-size:16px}
 
 /* journal drawer */
+#trBox{width:min(720px,100%);max-height:calc(100% - 24px);display:flex;flex-direction:column;gap:10px;padding:16px 18px}
+#trHead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:2px solid var(--line);padding-bottom:8px}
+#trHead h3{margin:0;font:30px var(--font-display);letter-spacing:.06em;color:var(--ok)}
+#trPts{font:600 11px var(--font-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);text-align:right;max-width:46%}
+#trBody{overflow:auto;display:flex;flex-direction:column;gap:8px;min-height:0}
+#trBox>.btn{align-self:flex-end;padding:6px 14px 4px;font-size:16px}
+.skIntro{margin:0;font-size:13px;line-height:1.45;color:#d8d2c5}
+.skGroup{font:600 11px var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);margin-top:6px}
+.skill{border:1px solid var(--line);border-radius:2px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;background:rgba(255,255,255,.02)}
+.skill .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.skill h4{margin:0;font:20px var(--font-display);letter-spacing:.05em}
+.skill .pips{display:flex;gap:4px;align-items:center}
+.skill .pips i{width:12px;height:12px;border:1px solid var(--cash-deep);border-radius:1px}
+.skill .pips i.on{background:var(--cash)}
+.skill .unk{font:600 10px var(--font-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);border:1px dashed var(--line);padding:2px 7px;border-radius:2px}
+.skill p{margin:0;font-size:12.5px;line-height:1.4;color:#d8d2c5}
+.skill .cls{display:flex;align-items:center;gap:8px;font-size:13px;color:#d8d2c5;flex-wrap:wrap}
+.skill .cls .where{color:var(--mute);font-size:11.5px}
+.skill .cls .btn{margin-left:auto}
+.skill .uses{font-size:11.5px;color:var(--mute)}
+.skill .uses b{color:var(--warn);font-weight:600}
+.skill .uses b.ok{color:var(--ok)}
+.drill{display:flex;flex-direction:column;gap:10px}
+.drill .prog{font:600 11px var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--cyan)}
+.drill .q{font:22px var(--font-display);line-height:1.15;color:var(--fg)}
+.drill .opts{display:grid;gap:8px}
+.drill .opt{text-align:left;padding:11px 12px;border:1px solid var(--line);background:#11141c;color:var(--fg);font:500 14.5px var(--font-ui);border-radius:2px}
+.drill .opt:hover:not([disabled]),.drill .opt:focus{border-color:var(--cyan);background:#18232b;outline:none}
+.drill .opt.right{border-color:var(--ok);color:var(--ok)}
+.drill .opt.wrong{border-color:var(--warn);color:var(--warn)}
+.drill .why{font-size:13px;line-height:1.45;color:#d8d2c5;min-height:1.3em}
+.drill .row{display:flex;gap:8px;justify-content:flex-end}
 #jr{position:absolute;top:0;right:0;bottom:0;width:min(420px,100%);background:var(--panel);border-left:2px solid var(--line);backdrop-filter:blur(10px);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease;padding-top:env(safe-area-inset-top,0px)}
 #jr.on{transform:none}
 @media (prefers-reduced-motion:reduce){#jr{transition:none}}
@@ -395,6 +427,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
         <div class="eyebrow">Before drop-in</div>
         <h2 style="font:32px var(--font-display);margin:0;color:var(--cash);letter-spacing:.05em">Style your runner</h2>
         <p id="customizeBrief" style="margin:0;color:#d9d2c5" hidden></p>
+        <p id="skillsNote" style="margin:0;color:#d9d2c5"></p>
         <p style="margin:0;color:#d9d2c5" id="bodyNote"></p>
         <div id="styleChoices" class="lookRows" aria-label="Character options"></div>
         <div class="row"><button id="customizeBack" class="btn ghost" type="button">Back</button><button id="customizeRandom" class="btn ghost" type="button">Random</button><button id="customizeStart" class="btn" type="button">Jump in</button></div>
@@ -429,7 +462,8 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
   <div id="shop" class="overlay off" role="dialog" aria-label="Byte Mart"><div id="shopBox" class="card"><div id="shopHead"><div><div class="eyebrow">Byte Mart · hardware, software, caffeine</div><h3>What do you need?</h3></div><div><div id="shopCash">0 cr</div><div id="shopPack" class="eyebrow"></div></div></div><div id="shopList"></div><p class="note" id="shopNote">Everything here changes how the street or the terminals behave. Credits: quests, the gig board by the door, and the chips on the sidewalks.</p><button class="btn" type="button" id="shopClose">Done</button></div></div>
   <div id="phone" class="overlay off" role="dialog" aria-label="Phone"><div id="phoneBox"><div class="notch"></div><div id="phoneState">BURNER</div><div id="phoneCaller">...</div><div id="phoneMsgs" hidden></div><div class="row"><button class="btn" type="button" id="phoneAnswer">Answer (E)</button><button class="btn ghost" type="button" id="phoneShell">Open shell</button><button class="btn ghost" type="button" id="phoneClose">Close</button></div></div></div>
   <div id="keypad" class="overlay off" role="dialog" aria-label="Keypad"><div id="kpBox" class="card"><div class="eyebrow">Building X · street door</div><h3>Keypad</h3><input id="kpIn" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Code"><div id="kpNote"></div><div class="row" style="display:flex;gap:8px"><button class="btn" type="button" id="kpGo">Enter</button><button class="btn ghost" type="button" id="kpClose">Step back</button></div></div></div>
-  <div id="jr" role="dialog" aria-label="Journal"><div id="jrHead"><button class="tab on" data-tab="quests" type="button">Missions</button><button class="tab" data-tab="log" type="button">Log</button><button class="tab" data-tab="notebook" type="button">Notebook</button><button class="x" type="button" id="jrClose">Close</button></div><div id="jrBody"></div></div>
+  <div id="train" class="overlay off" role="dialog" aria-label="Training board"><div id="trBox" class="card"><div id="trHead"><div><div class="eyebrow">Solarpunk Lab · Rosa’s evening classes</div><h3>Training board</h3></div><div id="trPts"></div></div><div id="trBody"></div><button class="btn" type="button" id="trClose">Done</button></div></div>
+  <div id="jr" role="dialog" aria-label="Journal"><div id="jrHead"><button class="tab on" data-tab="quests" type="button">Missions</button><button class="tab" data-tab="skills" type="button">Skills</button><button class="tab" data-tab="log" type="button">Log</button><button class="tab" data-tab="notebook" type="button">Notebook</button><button class="x" type="button" id="jrClose">Close</button></div><div id="jrBody"></div></div>
 
   <div id="fade"></div>
 </div>
@@ -704,7 +738,79 @@ Nobody down here hides anything. They assume nobody is reading.
 `),
           '05-phones.md': F(PHONES_MD.replace('Then hang up and call someone you trust on a number you already know.', 'Then call the STYX helpdesk on extension 1337 and read them the code on your screen.'))
         }),
-        'seeds.txt': F('tomato (cherry)  x40\nbasil            x12\nchili (bird eye) x8\nmint             too many\n')
+        'seeds.txt': F('tomato (cherry)  x40\nbasil            x12\nchili (bird eye) x8\nmint             too many\n'),
+        // the evening classes: practice files for the training board (skills)
+        training: D({
+          'README.md': F(`
+# Evening classes
+One folder per skill. Each drill on the board names the file to work on.
+Practice here, on files, before you practise on anything live.
+  recon/       reading scans
+  forensics/   reading logs
+  hardening/   closing what a scan finds
+  social/      the inbox from the phishing class
+`),
+          recon: D({
+            'scan-printer.txt': F(`
+Nmap scan report for printer-3f.meridian-post.co (10.0.4.20)
+PORT      STATE    SERVICE
+22/tcp    closed   ssh
+23/tcp    open     telnet
+80/tcp    open     http
+443/tcp   open     https
+631/tcp   open     ipp
+9100/tcp  open     jetdirect
+Note from Rosa: one of these sends everything, passwords included, in plain text.
+`)
+          }),
+          forensics: D({
+            'auth-sample.log': F(`
+Oct  9 01:02:11 mailhost sshd[812]: Failed password for root from 10.0.4.66 port 50112
+Oct  9 01:02:13 mailhost sshd[812]: Failed password for root from 10.0.4.66 port 50114
+Oct  9 01:02:15 mailhost sshd[812]: Failed password for admin from 10.0.4.66 port 50116
+Oct  9 01:02:17 mailhost sshd[812]: Failed password for admin from 10.0.4.66 port 50118
+Oct  9 07:45:02 mailhost sshd[901]: Accepted publickey for nadia from 10.0.1.40 port 41220
+Oct  9 01:02:19 mailhost sshd[812]: Failed password for test from 10.0.4.66 port 50120
+Oct  9 08:10:40 mailhost sshd[933]: Accepted publickey for rosa from 10.0.0.80 port 39001
+Oct  9 01:02:21 mailhost sshd[812]: Failed password for guest from 10.0.4.66 port 50122
+Oct  9 01:02:23 mailhost sshd[812]: Failed password for oracle from 10.0.4.66 port 50124
+`),
+            'sources.txt': F('10.0.1.40\n10.0.0.80\n10.0.4.66\n10.0.1.40\n10.0.4.66\n10.0.0.80\n10.0.4.66\n10.0.4.66\n10.0.1.40\n10.0.4.66\n10.0.4.66\n10.0.9.12\n10.0.4.66\n')
+          }),
+          hardening: D({
+            'printer-checklist.md': F(`
+# printer-3f hardening checklist
+DONE  change the admin password from the factory default
+DONE  install the October firmware
+TODO  disable telnet (23/tcp), use the web panel over https only
+TODO  move the printer off the guest network
+DONE  turn off the public "scan to email" relay
+`),
+            'firmware.bin': F('PRN-3F firmware 4.12.0 (October)\n'),
+            'firmware.sha256': F('')
+          }),
+          social: D({
+            inbox: D({
+              '1.eml': F(`
+From: Rosa Tavares <rosa@lab-h.styx.local>
+Subject: Thursday class moved to 19:30
+Same room. Bring the laptop you want to practise on.
+`),
+              '2.eml': F(`
+From: Meridian Post IT Support <it-support@meridian-p0st.co>
+Subject: URGENT: your mailbox will be closed in 2 hours
+Your mailbox is over its limit. Verify your password now or lose all mail:
+  http://meridian-p0st.co/verify
+This is an automatic message. Do not call the helpdesk.
+`),
+              '3.eml': F(`
+From: Nadia Sow <nadia@bytemart.styx.local>
+Subject: your Proxmark is in
+Pick it up at the counter whenever. No rush.
+`)
+            })
+          })
+        })
       })
     }),
     var: D({ mail: D({}), log: D({}) }),
@@ -712,6 +818,7 @@ Nobody down here hides anything. They assume nobody is reading.
   });
   { const ws = FS_LAB.children.home.children.rosa.children.workshop.children; // Rosa's checksums, taken before anyone touched the handouts
     FS_LAB.children.home.children.rosa.children.SHA256SUMS = F(Object.keys(ws).sort().map(k => sha256(k === '05-phones.md' ? PHONES_MD : ws[k].text) + '  workshop/' + k).join('\n') + '\n'); }
+  { const hd = FS_LAB.children.home.children.rosa.children.training.children.hardening.children; hd['firmware.sha256'] = F(sha256(hd['firmware.bin'].text) + '  firmware.bin\n'); } // the vendor's published fingerprint
 
   /* ---- Meridian Utilities machine room (Building D): the database that nobody catalogued ---- */
   const FS_UTIL = D({
@@ -1419,15 +1526,243 @@ Oct  9 03:12:44 historian: catalogue/export pulled by 10.0.3.1 (remote-support b
     const l = level || CYBER_LEVELS[0]; const base = objective.hint || 'Inspect the nearby terminal and follow the objective.';
     if (l.name === 'Beginner') return 'Look around: ' + base;
     if (l.name === 'Foundation') return base + (objective.cmd ? ' Start with: ' + objective.cmd + '.' : '');
-    if (l.name === 'Intermediate') return (objective.cmd ? 'Try `' + objective.cmd + '`.' : base) + (objective.sig ? ' Look for evidence like `' + objective.sig + '`.' : '');
-    return (objective.cmd ? 'Run `' + objective.cmd + '` and compare the output.' : base) + (objective.sig ? ' Expected evidence: `' + objective.sig + '`.' : '') + (objective.needs ? ' Required tool family: ' + objective.needs.join(', ') + '.' : '');
+    if (l.name === 'Intermediate') return (objective.cmd ? 'Try `' + objective.cmd + '`.' : base) + (objective.sig && objective.cmd ? ' Look for evidence like `' + objective.sig + '`.' : '');
+    return (objective.cmd ? 'Run `' + objective.cmd + '` and compare the output.' : base) + (objective.sig && objective.cmd ? ' Expected evidence: `' + objective.sig + '`.' : '') + (objective.needs ? ' Required tool family: ' + objective.needs.join(', ') + '.' : '');
   }
   function assessmentResult(answers) { const score = answers.reduce((n, a, i) => n + (a === CYBER_ASSESSMENT[i].c ? 1 : 0), 0); const level = cyberLevel(score); return { score, level: level.name }; }
 
+  /* ---- skills: eight of them in three groups. A new profile gets 18 points, rolled and hidden; quests test them and Rosa's evening classes train them ---- */
+  const SKILL_GROUPS = [['tech', 'Technical'], ['social', 'Social'], ['field', 'Field']];
+  const SKILLS = [
+    { id: 'recon', name: 'Recon', group: 'tech', blurb: 'Reading networks: names, addresses, scans and what answers on which port.' },
+    { id: 'systems', name: 'Systems', group: 'tech', blurb: 'Knowing a machine from the inside: processes, services, files and who owns them.' },
+    { id: 'forensics', name: 'Forensics', group: 'tech', blurb: 'Logs, timelines and evidence. Finding the odd line and keeping the original clean.' },
+    { id: 'hardening', name: 'Hardening', group: 'tech', blurb: 'Closing what a scan finds: defaults, patches, fingerprints and fewer open doors.' },
+    { id: 'rapport', name: 'Rapport', group: 'social', blurb: 'Getting people to trust you and talk to you, by being straight with them.' },
+    { id: 'phishing', name: 'Phishing Awareness', group: 'social', blurb: 'Spotting the hook in a mail, a text or a call, and reporting it properly.' },
+    { id: 'hardware', name: 'Hardware', group: 'field', blurb: 'Badges, readers, panels and the boxes under desks. Physical access is access.' },
+    { id: 'observe', name: 'Observation', group: 'field', blurb: 'Noticing what a room gives away: notes, screens, logbooks and doors.' }
+  ];
+  const SKILL_POINTS = 18, SKILL_START_MAX = 4, SKILL_MAX = 5;
+  // every skill starts at 1 and the rest of the points land at random, at most 4 at the start.
+  // A roll is kept only if it has at least two strengths (3 or more) and at least two weaknesses (1), so every runner has both.
+  function rollSkills(rand) {
+    rand = rand || Math.random;
+    for (let tries = 0; tries < 500; tries++) {
+      const r = {}; SKILLS.forEach(k => { r[k.id] = 1; }); let left = SKILL_POINTS - SKILLS.length;
+      while (left > 0) { const open = SKILLS.filter(k => r[k.id] < SKILL_START_MAX); const k = open[Math.floor(rand() * open.length)]; r[k.id]++; left--; }
+      const v = Object.values(r); if (v.filter(x => x >= 3).length >= 2 && v.filter(x => x === 1).length >= 2) return r;
+    }
+    return { recon: 3, systems: 1, forensics: 2, hardening: 2, rapport: 3, phishing: 1, hardware: 3, observe: 3 };
+  }
+  const skillName = id => (SKILLS.find(k => k.id === id) || { name: id }).name;
+
+  // a drill objective: three questions from Rosa's evening class, passed by getting all three right
+  const drill = (qid, qs) => ({ id: 'drill', text: 'Pass the three-question drill', sig: 'DRILL ' + qid, drill: qs, hint: 'Take the drill at the training board in Building H, or from the Skills tab in your missions (P).' });
+  const TQ = (q, a, c, why) => ({ q, a, c, why });
+  const TRAIN_TEXT = 'Evening class. Rosa’s training board, Building H.';
+  const TRAINING = [
+    { id: 'train_recon_1', title: 'Read a Scan', skill: 'recon', tier: 1, location: 'lab-h (Building H)',
+      journalStart: 'Rosa’s first recon class: a saved scan of an office printer. Show only the ports that answer, then work out which one is a problem.',
+      journalDone: 'Five open ports on the printer, and one of them is telnet: everything typed into it, passwords included, crosses the wire in plain text. A scan is a list of doors, not a verdict.',
+      objectives: [
+        { id: 'o1', text: 'Show only the open ports in Rosa’s printer scan', cmd: 'grep open training/recon/scan-printer.txt', sig: '23/tcp    open     telnet', needs: ['grep'], hint: 'On lab-h in Building H: grep open training/recon/scan-printer.txt keeps the lines that say open.' },
+        drill('train_recon_1', [
+          TQ('A scan shows a port as open. What does that tell you?', ['A service is listening there and answering', 'The machine has been broken into', 'The firewall is switched off everywhere', 'Someone is logged in on that port'], 0, 'Open only means something answers. Whether that is a problem depends on what it is and who should reach it.'),
+          TQ('Which open port on the printer worries Rosa most?', ['443, https', '23, telnet', '631, ipp', '80, http'], 1, 'Telnet sends everything in plain text, passwords included. Anyone on the same network can read it.'),
+          TQ('Before you scan a network that is not yours, what do you need?', ['Nothing, scans are harmless', 'Written permission from whoever runs it', 'A faster laptop', 'A VPN'], 1, 'Scanning without permission can be illegal and is always rude. Professionals agree the scope in writing first.')
+        ])
+      ] },
+    { id: 'train_recon_2', title: 'Live Target', skill: 'recon', tier: 2, location: 'Any STYX terminal, with Rosa’s kit',
+      journalStart: 'Rosa’s second recon class: scan a real box, her own. lab-h is 10.0.0.80 and she says yes. The network tools come with her Knock Knock kit.',
+      journalDone: 'lab-h answers on 22, 80 and 3000. nmap calls 3000 “ppp”, which is only a guess from a list of well-known ports. Names in a scan are hints; what really answers is the fact.',
+      objectives: [
+        { id: 'o1', text: 'Scan Rosa’s lab box, with her permission', cmd: 'nmap 10.0.0.80', sig: '3000/tcp   open     ppp', needs: ['nmap'], hint: 'Any terminal, once Rosa has given you the network kit (Knock Knock): nmap 10.0.0.80.' },
+        drill('train_recon_2', [
+          TQ('nmap names port 3000 “ppp”. What should you assume?', ['It definitely runs PPP', 'The name is a guess from a port list; check what really answers', 'The port is closed', 'It is a virus'], 1, 'nmap labels ports from a table of usual services. Anything can listen on any port.'),
+          TQ('What does a “filtered” port mean?', ['Something, usually a firewall, stopped the probe getting an answer', 'The service crashed', 'The port is open to everyone', 'The host is offline'], 0, 'Filtered means no clear answer came back. A firewall dropping the probe is the usual reason.'),
+          TQ('DNS turns lab-h.styx.local into 10.0.0.80. What is DNS to a defender?', ['Useless', 'A map of what exists, worth keeping tidy', 'Only for web browsers', 'A firewall'], 1, 'Names tell you what a network thinks it has. Stale or odd names are worth a look.')
+        ])
+      ] },
+    { id: 'train_systems_1', title: 'Process Check', skill: 'systems', tier: 1, location: 'lab-h (Building H)',
+      journalStart: 'Rosa’s first systems class: before you trust a machine, know what runs on it. List the processes on lab-h and read who owns each one.',
+      journalDone: 'Three processes on lab-h: init, the SSH server and Rosa’s own shell. Short, explained, nothing extra. That is what a healthy box looks like.',
+      objectives: [
+        { id: 'o1', text: 'List every process on lab-h', cmd: 'ps aux', sig: 'sshd: /usr/sbin/sshd -D', needs: ['ps'], hint: 'On lab-h in Building H: ps aux.' },
+        drill('train_systems_1', [
+          TQ('What does ps aux show?', ['Every running process, who owns it and what started it', 'The files on disk', 'Open network connections only', 'Users and their passwords'], 0, 'The USER column says who owns a process, COMMAND says what it is.'),
+          TQ('A process runs as root with no reason to. Why care?', ['Root processes use more colour', 'If it is taken over, whoever controls it controls the whole machine', 'Root processes are slower', 'It can never be stopped'], 1, 'A service should run with as little power as it needs, so a mistake in it stays small.'),
+          TQ('Least privilege means…', ['Every account gets only the access its job needs', 'Admins get fewer holidays', 'Turning off logging', 'Sharing one admin account'], 0, 'Less access means less damage when an account or a service goes wrong.')
+        ])
+      ] },
+    { id: 'train_systems_2', title: 'Who Is Listening', skill: 'systems', tier: 2, location: 'lab-h (Building H)',
+      journalStart: 'Rosa’s second systems class: a process that listens on a port is a door. List the listening sockets on lab-h and match each one to its process.',
+      journalDone: 'sshd, process 612, listens on 0.0.0.0:22: every interface, so anyone who can reach lab-h can knock. Every listener should have an owner and a reason.',
+      objectives: [
+        { id: 'o1', text: 'List what listens on lab-h, with the process behind it', cmd: 'ss -ltnp', sig: 'users:(("sshd",pid=612', needs: ['ss', 'netstat'], hint: 'On lab-h: ss -ltnp. l is listening, t is TCP, n is numbers, p is the process.' },
+        drill('train_systems_2', [
+          TQ('sshd listens on 0.0.0.0:22. What does 0.0.0.0 mean?', ['Only this machine can connect', 'It listens on every network interface', 'The service is off', 'There is no port'], 1, '0.0.0.0 means every address the machine has, so it is reachable from any network it is on.'),
+          TQ('And if it listened on 127.0.0.1 instead?', ['Reachable only from the machine itself', 'Reachable from the internet', 'It is broken', 'It is hidden from ps'], 0, '127.0.0.1 is the loopback address. A service bound there is only for local use.'),
+          TQ('You find a listening port nobody can explain. First step?', ['Kill everything', 'Find the process that owns it and who installed it, and write it down', 'Ignore it', 'Reboot and hope'], 1, 'Record before you change anything. The owner and the install date are evidence.')
+        ])
+      ] },
+    { id: 'train_forensics_1', title: 'Count the Failures', skill: 'forensics', tier: 1, location: 'lab-h (Building H)',
+      journalStart: 'Rosa’s first forensics class: a sample login log from a mail server. Count the failed logins, then look at which accounts they tried.',
+      journalDone: 'Seven failures in twelve seconds from one address, trying root, admin, test, guest and oracle: someone guessing common account names. The two good logins are staff, by key, in the morning.',
+      objectives: [
+        { id: 'o1', text: 'Count the failed logins in the sample log', cmd: 'grep -c Failed training/forensics/auth-sample.log', sig: '7  (matches in', needs: ['auth-sample'], hint: 'On lab-h: grep -c Failed training/forensics/auth-sample.log counts the matching lines.' },
+        drill('train_forensics_1', [
+          TQ('Seven failures for root, admin, test, guest and oracle from one address in 12 seconds. What is it?', ['A user who forgot a password', 'Someone guessing passwords against common account names', 'A backup job', 'A printer error'], 1, 'Many names, one source, seconds apart: an automated guessing run. Lockouts and keys-only logins stop it.'),
+          TQ('Two lines in the log are out of time order. What do you do?', ['Nothing', 'Sort by time before drawing conclusions: the timeline says what happened first', 'Delete them', 'Assume the log is fake'], 1, 'Logs from several sources rarely arrive in order. Build the timeline, then read it.'),
+          TQ('Before you analyse a log for a case, you…', ['Edit the noise out of the original', 'Work on a copy and keep the original untouched', 'Delete old lines', 'Email it to everyone'], 1, 'An original nobody has touched is evidence. A copy is what you work on.')
+        ])
+      ] },
+    { id: 'train_forensics_2', title: 'Who Shows Up Most', skill: 'forensics', tier: 2, location: 'lab-h (Building H)',
+      journalStart: 'Rosa’s second forensics class: a list of source addresses pulled from a log. Count how often each one appears, then look at the rare one too.',
+      journalDone: '10.0.4.66 shows up seven times, the guesser from the first class. 10.0.9.12 shows up once, and once is exactly what a careful visitor looks like. Count the loud ones, read the quiet ones.',
+      objectives: [
+        { id: 'o1', text: 'Count each address in the sources list', cmd: 'cat training/forensics/sources.txt | sort | uniq -c', sig: '      7 10.0.4.66', needs: ['uniq'], hint: 'On lab-h: cat training/forensics/sources.txt | sort | uniq -c.' },
+        drill('train_forensics_2', [
+          TQ('Why sort before uniq -c?', ['uniq only folds lines that sit next to each other', 'sort makes the screen faster', 'uniq needs capital letters', 'It makes no difference'], 0, 'uniq compares each line with the one above it. Sorting puts the duplicates together.'),
+          TQ('10.0.9.12 appears once. Safe to ignore?', ['Yes, once is nothing', 'Not automatically: the rare line can be the one that matters', 'Yes, the most frequent is always the attacker', 'Only at weekends'], 1, 'Noise is loud. Someone careful tries once and leaves.'),
+          TQ('A baseline is…', ['A record of what normal looks like, so the unusual stands out', 'The first line of a log', 'A firewall rule', 'A kind of malware'], 0, 'You cannot spot unusual until you know usual.')
+        ])
+      ] },
+    { id: 'train_hardening_1', title: 'Close the Door', skill: 'hardening', tier: 1, location: 'lab-h (Building H)',
+      journalStart: 'Rosa’s first hardening class: the printer from the recon class has a checklist. Find what is still to do.',
+      journalDone: 'Two items left on the printer: switch off telnet and move it off the guest network. A scan finds the doors; hardening is closing the ones nobody needs.',
+      objectives: [
+        { id: 'o1', text: 'Find the open items on the printer checklist', cmd: 'grep TODO training/hardening/printer-checklist.md', sig: 'TODO  disable telnet', needs: ['grep'], hint: 'On lab-h: grep TODO training/hardening/printer-checklist.md.' },
+        drill('train_hardening_1', [
+          TQ('First thing to change on any new device?', ['The wallpaper', 'The factory default password', 'The device name', 'Nothing'], 1, 'Default passwords are printed in manuals that anyone can download.'),
+          TQ('Why move a printer off the guest network?', ['Guests print too much', 'Anyone on the guest Wi-Fi could reach it; separate networks limit who can', 'Printers need more speed', 'Licensing'], 1, 'Segmenting networks keeps visitors away from things they have no reason to touch.'),
+          TQ('Attack surface means…', ['Everything someone could reach or try: services, accounts, ports', 'The size of the server room', 'The screen', 'The firewall brand'], 0, 'Every service you switch off is one less thing to defend.')
+        ])
+      ] },
+    { id: 'train_hardening_2', title: 'Check the Fingerprint', skill: 'hardening', tier: 2, location: 'lab-h (Building H)',
+      journalStart: 'Rosa’s second hardening class: before installing firmware, check it is the file the vendor published. The vendor’s SHA-256 fingerprint sits next to it.',
+      journalDone: 'firmware.bin matches the vendor’s fingerprint. Change one byte and it would not. Patch quickly, but patch with the real thing.',
+      objectives: [
+        { id: 'o1', text: 'Verify the firmware against the vendor’s fingerprint', cmd: 'sha256sum -c firmware.sha256', sig: 'firmware.bin: OK', needs: ['-c'], hint: 'On lab-h: cd training/hardening, then sha256sum -c firmware.sha256.' },
+        drill('train_hardening_2', [
+          TQ('sha256sum -c says OK. What has it proved?', ['The file matches the published fingerprint exactly, so it was not altered', 'The file is free of viruses', 'The file size', 'Who wrote it'], 0, 'A matching hash proves the file is the one the fingerprint was made from. Nothing more.'),
+          TQ('Where should the fingerprint you check against come from?', ['The same random download site', 'The vendor, through a channel you trust', 'A forum post', 'The file itself'], 1, 'If an attacker can swap the file and the hash together, the check proves nothing.'),
+          TQ('Why install security updates quickly?', ['They fix weaknesses that attackers already know about', 'Updates look nicer', 'Old versions are illegal', 'To use more disk'], 0, 'Once a fix is public, so is the weakness it fixes.')
+        ])
+      ] },
+    { id: 'train_rapport_1', title: 'Small Talk', skill: 'rapport', tier: 1, location: 'Byte Mart and Building H',
+      journalStart: 'Rosa’s first people class: nobody opens a door for a stranger with an agenda. Go and talk to Nadia and to Rosa. Listen more than you ask.',
+      journalDone: 'Nadia and Rosa both talked, because you asked and then listened. Trust is built in small, boring conversations long before you need it.',
+      objectives: [
+        { id: 'o1', text: 'Talk to Nadia at Byte Mart', sig: 'TALK nadia', hint: 'Byte Mart is under the orange sign, west of Building A. Nadia is at the counter.' },
+        { id: 'o2', text: 'Talk to Rosa outside Building H', sig: 'TALK rosa', hint: 'Rosa waits by the planters outside Building H.' },
+        drill('train_rapport_1', [
+          TQ('Julien only lets in people he trusts. What builds that fastest?', ['Pressure', 'Keeping your word and being straight about why you are there', 'Name-dropping', 'Flattery'], 1, 'People remember who was honest with them.'),
+          TQ('An open question is…', ['One that cannot be answered yes or no, like “what changed last week?”', 'A rude question', 'A question about doors', 'Any question at all'], 0, 'Open questions get stories, and stories hold the details.'),
+          TQ('Someone tells you something in confidence that your case needs. You…', ['Post it', 'Use it only for what it was given for, and say where it will go', 'Sell it', 'Pretend you never heard it'], 1, 'Being trusted with information is a responsibility, not a prize.')
+        ])
+      ] },
+    { id: 'train_rapport_2', title: 'Ask the Street', skill: 'rapport', tier: 2, location: 'Meridian Row',
+      journalStart: 'Rosa’s second people class: the street knows things. Talk to someone walking by, and to one of the officers on patrol.',
+      journalDone: 'The street talked: some kindly, some not. Stay polite either way and ask more than one person, because where the stories agree is where the truth usually is.',
+      objectives: [
+        { id: 'o1', text: 'Talk to someone on the street', sig: 'TALK ped', hint: 'Walk up to any passer-by and press E.' },
+        { id: 'o2', text: 'Talk to a police officer on patrol', sig: 'TALK cop', hint: 'Six officers walk the sidewalks, three of them on Meridian Row. E to talk.' },
+        drill('train_rapport_2', [
+          TQ('A passer-by is rude to you. Best response?', ['Argue', 'Stay calm, thank them and move on', 'Insult them back', 'Follow them'], 1, 'You lose nothing by being polite, and the next person may be watching.'),
+          TQ('Why ask several people the same question?', ['To annoy them', 'Stories differ; where they agree is more likely true', 'It is required by law', 'No reason'], 1, 'One account is a story. Several that agree are closer to evidence.'),
+          TQ('Reporting a cyber incident to the police, what helps them most?', ['A guess', 'Times, addresses and untouched copies of the evidence', 'Your opinion of whoever did it', 'Nothing, they will work it out'], 1, 'Facts with times attached, and originals nobody has edited.')
+        ])
+      ] },
+    { id: 'train_phishing_1', title: 'Spot the Hook', skill: 'phishing', tier: 1, location: 'lab-h (Building H)',
+      journalStart: 'Rosa’s first phishing class: three mails in a practice inbox on lab-h. One of them is bait. Read it and find the tells.',
+      journalDone: 'Mail 2: a sender at meridian-p0st.co, zero for o; urgency, a two-hour deadline; a link to type your password into; and “do not call the helpdesk”, so you will not check. Four tells in five lines.',
+      objectives: [
+        { id: 'o1', text: 'Read the suspicious mail in the practice inbox', cmd: 'cat training/social/inbox/2.eml', sig: 'meridian-p0st.co/verify', hint: 'On lab-h: ls training/social/inbox, then cat the mail that looks wrong.' },
+        drill('train_phishing_1', [
+          TQ('Which detail gives mail 2 away first?', ['The subject is in capitals', 'The sender’s domain is meridian-p0st.co, with a zero for the o', 'It mentions a mailbox', 'It is short'], 1, 'Look-alike domains are the oldest trick there is. Read the address, not the display name.'),
+          TQ('“Do not call the helpdesk” is there to…', ['Save the helpdesk time', 'Stop you checking with someone you trust', 'Be polite', 'Comply with the law'], 1, 'Anything that discourages checking is a reason to check.'),
+          TQ('You clicked and typed your password. Now what?', ['Hope nobody noticed', 'Change it at once from a trusted device, and report it so others are warned', 'Delete the mail and say nothing', 'Click again to undo'], 1, 'Fast reporting turns one mistake into a warning for everyone else.')
+        ])
+      ] },
+    { id: 'train_phishing_2', title: 'Report It', skill: 'phishing', tier: 2, location: 'Meridian Police front desk',
+      journalStart: 'Rosa’s second phishing class: spotting a phish is half the job. Report the practice mail at the Meridian Police front desk, the way you would a real one.',
+      journalDone: 'The desk sergeant logged the look-alike domain and thanked you. Everyone who got the same mail is safer because one person reported it.',
+      objectives: [
+        { id: 'o1', text: 'Report the phishing mail at the Meridian Police front desk', sig: 'REPORT phish', hint: 'The station is east of Building X. Ring the front-desk bell.' },
+        drill('train_phishing_2', [
+          TQ('A caller says they are from IT and need the code on your phone to “fix your account”. Which pressure is that?', ['Authority and urgency', 'Humour', 'Nothing unusual', 'Curiosity'], 0, 'Real IT never needs your one-time code. Hang up and call back on a number you already know.'),
+          TQ('Someone without a badge follows you to a secure door, arms full of boxes. Best move?', ['Hold the door', 'Politely send them to reception to sign in', 'Ignore them', 'Take their boxes'], 1, 'Being helpful is exactly what tailgating relies on. Reception exists for this.'),
+          TQ('Why report a phish you did not fall for?', ['It wastes time', 'Others got it too; a report lets defenders block it', 'The police collect fines', 'You have to click it first'], 1, 'Your report protects the people who have not spotted it yet.')
+        ])
+      ] },
+    { id: 'train_hardware_1', title: 'Know Your Kit', skill: 'hardware', tier: 1, location: 'Buildings H and A',
+      journalStart: 'Rosa’s first hardware class: look at what is lying around. The jar of USB sticks in her lab, and the server under Dara’s desk.',
+      journalDone: 'A jar of free USB sticks and a server anyone in the room could reach. Hands on a machine beat most software protection, and a stick you did not buy is a stick you do not plug in.',
+      objectives: [
+        { id: 'o1', text: 'Look at the jar of USB sticks on Rosa’s seed shelves', sig: 'EXAMINE seeds', hint: 'Inside Building H, the seed shelves on the left wall.' },
+        { id: 'o2', text: 'Look at the server case under Dara’s desk', sig: 'EXAMINE server', hint: 'Building A, under the desk by the workstation.' },
+        drill('train_hardware_1', [
+          TQ('You find a USB stick in the car park at work. You…', ['Plug it in to find the owner', 'Hand it to IT without plugging it in', 'Keep it', 'Format it on your laptop'], 1, 'Dropped sticks are a known trick: plugging one in can run whatever is on it.'),
+          TQ('Dara’s server sits under her desk. Why does physical access matter?', ['It does not', 'Hands on a machine can get round a lot of software protection', 'Servers like the dark', 'Airflow'], 1, 'Lock the room, lock the case, encrypt the disks.'),
+          TQ('Old 125 kHz access cards…', ['Can be copied by cheap readers, so they should not be the only lock', 'Can never be copied', 'Need the internet', 'Are encrypted forever'], 0, 'Low-frequency cards just shout their number. Pair them with something else.')
+        ])
+      ] },
+    { id: 'train_hardware_2', title: 'Badges and Panels', skill: 'hardware', tier: 2, location: 'Buildings F and D',
+      journalStart: 'Rosa’s second hardware class: the badge printer at Caduceus reception and the breaker panel in Meridian Utilities. Both are security controls, whatever they look like.',
+      journalDone: 'A badge printer anyone could use and a breaker panel that cuts a building. Physical controls are security controls: lock them, log them, know who touched them.',
+      objectives: [
+        { id: 'o1', text: 'Look at the badge printer at Caduceus reception', sig: 'EXAMINE badge', hint: 'Building F, by reception. Julien lets you in once Knock Knock is done.' },
+        { id: 'o2', text: 'Look at the breaker panel in Meridian Utilities', sig: 'EXAMINE breaker', hint: 'Building D, by the door. The keycard from Julien’s desk opens it.' },
+        drill('train_hardware_2', [
+          TQ('Why does a badge printer at reception need watching?', ['It is expensive', 'Anyone using it could print a valid-looking badge', 'It is loud', 'It jams'], 1, 'Whoever controls the badge printer controls who looks like they belong.'),
+          TQ('A breaker panel in an unlocked room is…', ['Fine', 'A way to cut power to everything; physical controls are security controls too', 'Good for airflow', 'Required to be open'], 1, 'Availability is part of security. A switch anyone can reach is a risk.'),
+          TQ('Good practice for door access?', ['One shared code forever', 'Personal badges you can revoke, plus a log of who opened what', 'Propped doors', 'No locks'], 1, 'Personal credentials can be revoked one at a time, and the log says who.')
+        ])
+      ] },
+    { id: 'train_observe_1', title: 'Clean Desk', skill: 'observe', tier: 1, location: 'Building A',
+      journalStart: 'Rosa’s first observation class: walk into Dara’s studio and read what she left out. The sticky note and the poster by the workstation.',
+      journalDone: 'A sticky note that tells any visitor where to go next, and a poster of commands. Harmless here, but a note on a desk talks to everyone who walks past.',
+      objectives: [
+        { id: 'o1', text: 'Read the sticky note in Dara’s studio', sig: 'EXAMINE sticky', hint: 'Building A, on the reading table.' },
+        { id: 'o2', text: 'Read the poster by the workstation', sig: 'EXAMINE poster', hint: 'Building A, on the wall by the workstation.' },
+        drill('train_observe_1', [
+          TQ('Dara’s sticky note tells a stranger where to go next. The lesson?', ['Notes speak to everyone who walks in, not just you', 'Use more sticky notes', 'Write smaller', 'Nothing'], 0, 'Anything left out is information for whoever is next in the room.'),
+          TQ('Shoulder surfing is…', ['Watching someone type a password or PIN', 'A sport', 'A network attack', 'A phishing mail'], 0, 'Cover the keypad, angle the screen, and look around.'),
+          TQ('A clean desk policy means…', ['Dusting daily', 'Nothing sensitive left out when you walk away: papers away, screen locked', 'No food at desks', 'White desks'], 1, 'Lock the screen every time you stand up. It takes one key.')
+        ])
+      ] },
+    { id: 'train_observe_2', title: 'Walk the Room', skill: 'observe', tier: 2, location: 'Building F and Meridian Police',
+      journalStart: 'Rosa’s second observation class: logbooks and notices. Read the reception logbook at Caduceus and the notice at the police station.',
+      journalDone: 'The logbook says who was inside and when; the notice says when Dara was last seen. Read together they make a timeline. Rooms keep records if you look.',
+      objectives: [
+        { id: 'o1', text: 'Read the reception logbook at Caduceus', sig: 'EXAMINE logbook', hint: 'Building F, on the reception desk.' },
+        { id: 'o2', text: 'Read the notice at Meridian Police', sig: 'EXAMINE policeNotice', hint: 'Inside the station, the case board on the back wall.' },
+        drill('train_observe_2', [
+          TQ('Why keep a visitor logbook?', ['Decoration', 'To know who was inside and when, after the fact', 'For the coffee rota', 'To sell'], 1, 'When something goes wrong, the first question is who was there.'),
+          TQ('Tailgating is…', ['Following someone with access through a door without using your own', 'Driving too close', 'A network scan', 'A phone scam'], 0, 'One badge, two people. The log shows one.'),
+          TQ('Walking into a room for a security check, what do you note first?', ['The colour of the walls', 'Exits, screens, papers, devices and anything plugged in that looks out of place', 'Nothing', 'The chairs'], 1, 'Write it down before you touch anything.')
+        ])
+      ] }
+  ].map(q => Object.assign({ category: 'Training', reward: 20, train: true, start: TRAIN_TEXT }, q));
+
+  // which existing quests test a skill before they start, and which pay a skill rank on top of their credits
+  const SKILL_REQ = {
+    quest_i1_logs: { rapport: 2 }, quest_i2_utilities: { systems: 2 }, quest_i3_ghost: { recon: 2 }, quest_z3_exchange: { hardware: 2 },
+    gig_failed: { forensics: 2 }, gig_cleanroom: { observe: 2 }, gig_assets: { observe: 2 },
+    side_leftovers: { forensics: 2 }, side_rack3: { hardware: 2 }, side_customs: { phishing: 2 }, side_checksums: { hardening: 2 }, side_token: { systems: 2 },
+    plant_census: { recon: 3 }, plant_boundary: { hardening: 3 }, plant_setpoint: { systems: 3 }, plant_safety: { observe: 3 }, plant_ghost: { forensics: 3 }
+  };
+  const SKILL_REWARD = { side_baseline: { forensics: 1 }, gig_hidden: { systems: 1 }, side_customs: { phishing: 1 }, side_rack3: { rapport: 1 }, side_checksums: { hardening: 1 }, gig_cleanroom: { observe: 1 } };
+  QUESTS.concat(GIGS, SIDE).forEach(q => { if (SKILL_REQ[q.id]) q.req = SKILL_REQ[q.id]; if (SKILL_REWARD[q.id]) q.skillReward = SKILL_REWARD[q.id]; });
+  TRAINING.forEach(q => { q.skillReward = { [q.skill]: 1 }; });
+
   function makeStore(init) {
-    const s = { profile: '', credits: 0, quests: {}, done: {}, journal: [], notebook: [], flags: {}, inv: {}, cyberScore: null, cyberLevel: null, listeners: {} };
-    const ALL = QUESTS.concat(GIGS, SIDE);
-    ALL.forEach(q => { s.quests[q.id] = q.gig ? 'available' : 'locked'; s.done[q.id] = []; });
+    const s = { profile: '', credits: 0, quests: {}, done: {}, journal: [], notebook: [], flags: {}, inv: {}, cyberScore: null, cyberLevel: null, skills: { ranks: rollSkills(), known: {} }, listeners: {} };
+    const ALL = QUESTS.concat(GIGS, SIDE, TRAINING);
+    const firstState = q => q.gig || (q.train && q.tier === 1) ? 'available' : 'locked'; // the first class in every skill is open from the start
+    ALL.forEach(q => { s.quests[q.id] = firstState(q); s.done[q.id] = []; });
+    const lastBlock = {}; // when each quest last refused to start, so walking through a door twice does not stack the same notice
     s.quests.quest_f1_cli = 'available';
     const emit = (ev, data) => (s.listeners[ev] || []).forEach(fn => fn(data));
     const api = {
@@ -1459,10 +1794,23 @@ Oct  9 03:12:44 historian: catalogue/export pulled by 10.0.3.1 (remote-support b
       isDone(qid, oid) { return s.done[qid].includes(oid); },
       addJournal(title, text) { s.journal.push({ t: Date.now(), g: window.ZD && window.ZD.now ? window.ZD.now() : null, title, text }); emit('change'); },
       addDiscovery(d) { if (s.notebook.some(n => n.id === d.id)) return false; s.notebook.push({ t: Date.now(), g: window.ZD && window.ZD.now ? window.ZD.now() : null, ...d }); emit('toast', { kind: 'found', title: 'Discovery', text: d.title }); emit('change'); return true; },
+      // skills: a rank from 1 to 5, hidden until a quest tests it or a class trains it
+      rank(id) { return s.skills.ranks[id] || 1; },
+      skillKnown(id) { return !!s.skills.known[id]; },
+      meets(q) { q = typeof q === 'string' ? api.quest(q) : q; const miss = []; Object.keys((q && q.req) || {}).forEach(k => { if (api.rank(k) < q.req[k]) miss.push({ skill: k, need: q.req[k], have: api.rank(k) }); }); return { ok: miss.length === 0, miss }; },
+      raiseSkill(id, n) {
+        const was = api.rank(id), now = Math.min(SKILL_MAX, was + (n || 1)), first = !s.skills.known[id]; s.skills.ranks[id] = now; s.skills.known[id] = true;
+        emit('toast', { kind: 'found', title: 'Skill up: ' + skillName(id), text: now > was ? (first ? 'First time anyone measured it. ' : '') + skillName(id) + ' is now ' + now + ' of ' + SKILL_MAX + '.' : skillName(id) + ' is already at ' + SKILL_MAX + ', as high as it goes.' }); emit('change');
+      },
       activateQuest(id) {
-        const q = api.quest(id); if (!q || s.quests[id] === 'active' || s.quests[id] === 'completed') return;
+        const q = api.quest(id); if (!q || s.quests[id] === 'active' || s.quests[id] === 'completed') return false;
+        if (q.req) { // a skill check: taking it reveals the skills it tests, pass or fail
+          const m = api.meets(q); Object.keys(q.req).forEach(k => { s.skills.known[k] = true; });
+          if (!m.ok) { const now = Date.now(); if (now - (lastBlock[id] || 0) > 6000) { lastBlock[id] = now; emit('toast', { kind: 'warn', title: 'Skill check: ' + q.title, text: m.miss.map(x => skillName(x.skill) + ' ' + x.need + ' needed, yours is ' + x.have).join('. ') + '. Rosa’s training board in Building H can raise it.' }); } emit('change'); emit('blocked', id); return false; }
+          emit('toast', { kind: '', title: 'Skill check passed', text: Object.keys(q.req).map(k => skillName(k) + ' ' + api.rank(k)).join(', ') + ': enough for ' + q.title + '.' });
+        }
         s.quests[id] = 'active'; api.addJournal(q.title, q.journalStart);
-        emit('toast', { kind: 'quest', title: 'Quest started', text: q.title }); emit('change'); emit('questStart', id);
+        emit('toast', { kind: 'quest', title: q.train ? 'Class started' : 'Quest started', text: q.title }); emit('change'); emit('questStart', id); return true;
       },
       completeObjective(qid, oid) {
         if (s.done[qid].includes(oid)) return; const q = api.quest(qid); const o = q.objectives.find(x => x.id === oid);
@@ -1475,6 +1823,8 @@ Oct  9 03:12:44 historian: catalogue/export pulled by 10.0.3.1 (remote-support b
         emit('toast', { kind: 'quest', title: 'Quest complete', text: q.title + '  +' + q.reward + ' credits' });
         const next = q.gig ? null : api.nextQuest(qid);
         if (next && s.quests[next.id] === 'locked') { s.quests[next.id] = 'available'; emit('toast', { kind: 'quest', title: 'New quest available', text: next.title + '. ' + next.start }); }
+        if (q.train) { const nx = TRAINING.find(t => t.skill === q.skill && t.tier === q.tier + 1); if (nx && s.quests[nx.id] === 'locked') { s.quests[nx.id] = 'available'; emit('toast', { kind: 'quest', title: 'Next class open', text: nx.title + ', on the training board in Building H.' }); } }
+        if (q.skillReward) Object.keys(q.skillReward).forEach(k => api.raiseSkill(k, q.skillReward[k]));
         api.unlockSide(qid);
         emit('change'); emit('questComplete', qid);
       },
@@ -1486,8 +1836,10 @@ Oct  9 03:12:44 historian: catalogue/export pulled by 10.0.3.1 (remote-support b
       checkText(text, cmdLine) {
         api.activeQuests().forEach(q => q.objectives.forEach(o => { if (s.done[q.id].includes(o.id)) return; const sigs = o.sigs || [o.sig]; if (!sigs.some(sg => text.includes(sg))) return; if (o.needs && !o.needs.some(n => (cmdLine || '').includes(n))) return; api.completeObjective(q.id, o.id); }));
       },
-      serialize() { return { profile: s.profile, credits: s.credits, quests: s.quests, done: s.done, journal: s.journal, notebook: s.notebook, flags: s.flags, inv: s.inv, cyberScore: s.cyberScore, cyberLevel: s.cyberLevel }; },
-      restore(d) { if (!d) return; ['profile', 'credits', 'quests', 'done', 'journal', 'notebook', 'flags', 'inv', 'cyberScore', 'cyberLevel'].forEach(k => { if (d[k] !== undefined) s[k] = d[k]; }); ALL.forEach(q => { if (!s.done[q.id]) s.done[q.id] = []; if (!s.quests[q.id]) s.quests[q.id] = q.gig ? 'available' : 'locked'; }); // a save from an older build may have finished the last quest it knew about: open the one after it
+      serialize() { return { profile: s.profile, credits: s.credits, quests: s.quests, done: s.done, journal: s.journal, notebook: s.notebook, flags: s.flags, inv: s.inv, cyberScore: s.cyberScore, cyberLevel: s.cyberLevel, skills: s.skills }; },
+      restore(d) { if (!d) return; ['profile', 'credits', 'quests', 'done', 'journal', 'notebook', 'flags', 'inv', 'cyberScore', 'cyberLevel', 'skills'].forEach(k => { if (d[k] !== undefined) s[k] = d[k]; }); ALL.forEach(q => { if (!s.done[q.id]) s.done[q.id] = []; if (!s.quests[q.id]) s.quests[q.id] = firstState(q); });
+        if (!s.skills || !s.skills.ranks) s.skills = { ranks: rollSkills(), known: {} }; s.skills.known = s.skills.known || {}; SKILLS.forEach(k => { if (!s.skills.ranks[k.id]) s.skills.ranks[k.id] = 1; }); // a save from before skills existed gets its roll now
+        TRAINING.forEach(q => { const nx = TRAINING.find(t => t.skill === q.skill && t.tier === q.tier + 1); if (s.quests[q.id] === 'completed' && nx && s.quests[nx.id] === 'locked') s.quests[nx.id] = 'available'; }); // a save from an older build may have finished the last quest it knew about: open the one after it
         QUESTS.forEach((q, i) => { const n = QUESTS[i + 1]; if (s.quests[q.id] === 'completed' && n && s.quests[n.id] === 'locked') s.quests[n.id] = 'available'; if (s.quests[q.id] === 'completed') api.unlockSide(q.id, true); }); emit('change'); }
     };
     if (init) api.restore(init);
@@ -1876,7 +2228,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   };
 
   const PED_NAMES = { female: ['Marisol', 'Hanne', 'Ingrid', 'Priya', 'Amara', 'Noor', 'Esme', 'Wren', 'Leila', 'Sigrid', 'Chiara', 'Farah'], male: ['Teo', 'Yusuf', 'Kwame', 'Bao', 'Lucas', 'Sven', 'Dmitri', 'Tariq', 'Jonas', 'Mateo', 'Ravi', 'Ola'] };
-  return { HOSTS, QUESTS, GIGS, SIDE, SHOP, EXAMINABLES, DIALOGUE, PED_NAMES, makeStore, makeShell, CYBER_ASSESSMENT, CYBER_LEVELS, cyberLevel, cyberHint, assessmentResult };
+  return { HOSTS, QUESTS, GIGS, SIDE, TRAINING, SKILLS, SKILL_GROUPS, SKILL_POINTS, SKILL_MAX, rollSkills, skillName, SHOP, EXAMINABLES, DIALOGUE, PED_NAMES, makeStore, makeShell, CYBER_ASSESSMENT, CYBER_LEVELS, cyberLevel, cyberHint, assessmentResult };
 })();
 </script>
 
@@ -3056,6 +3408,15 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     box(blackSteel, 0.06, 2.4, 0.06, X0 + 0.2, 0, -0.15, { collide: true, name: 'seeds' }); box(blackSteel, 0.06, 2.4, 0.06, X0 + 0.2, 0, 2.15, { collide: true });
     box(oak, 0.9, 0.9, 0.9, 5.8, 0, -1.0, { collide: true, recv: true }); box(pbr('printerP', { color: '#23262d', roughness: 0.4 }), 0.6, 0.6, 0.6, 5.8, 0.9, -1.0, { cast: true, name: 'printer' }); box(glassP, 0.5, 0.4, 0.5, 5.8, 1.0, -1.0, { cast: false }); box(mat('printerLed', '#5ad9e3', { emissive: '#5ad9e3', unlit: true }), 0.4, 0.02, 0.02, 5.8, 1.42, -1.31, { cast: false });
     decal(pbr('labRugP', { roughness: 0.9, albedo: null }), 2.2, 1.6, -1.0, 0.012, -4.3).material.albedoTexture = rugTex('#2f5a3a', '#e8d28a');
+    // Rosa's training board: a corkboard of class cards on the east wall, readable into the room (plane faces -x, ry PI/2), centre 1.6 m up
+    box(oak, 0.04, 1.08, 1.48, X1 - 0.02, 1.06, 2.2, { cast: false, name: 'trainFrame' });
+    plane(pbr('trainBoardP', { roughness: 0.85, albedo: null }), 1.4, 1.0, X1 - 0.05, 1.6, 2.2, { ry: PI / 2, name: 'trainBoard' }).material.albedoTexture = dtex('trainT', 700, 500, (c, W, Hh) => {
+      c.fillStyle = '#b98a55'; c.fillRect(0, 0, W, Hh); for (let i = 0; i < 900; i++) { c.fillStyle = i % 2 ? 'rgba(90,55,25,.25)' : 'rgba(240,210,160,.2)'; c.fillRect((i * 97) % W, (i * 57) % Hh, 3, 3); }
+      c.fillStyle = '#f4f1e6'; c.fillRect(40, 22, W - 80, 64); c.fillStyle = '#2f5a3a'; c.font = '600 44px "Oswald", sans-serif'; c.textAlign = 'center'; c.fillText('EVENING CLASSES', W / 2, 70);
+      const cards = [['RECON', '#3ee8f0'], ['SYSTEMS', '#3ee8f0'], ['FORENSICS', '#3ee8f0'], ['HARDENING', '#3ee8f0'], ['RAPPORT', '#ff9f43'], ['PHISHING', '#ff9f43'], ['HARDWARE', '#8cf28c'], ['OBSERVE', '#8cf28c']];
+      cards.forEach((k, i) => { const x = 40 + (i % 4) * 158, y = 112 + Math.floor(i / 4) * 170, rot = ((i * 37) % 7 - 3) * 0.012; c.save(); c.translate(x + 70, y + 70); c.rotate(rot); c.fillStyle = '#fbf8ee'; c.fillRect(-70, -70, 140, 140); c.fillStyle = k[1]; c.fillRect(-70, -70, 140, 16); c.fillStyle = '#1d2a22'; c.font = '600 22px "Oswald", sans-serif'; c.fillText(k[0], 0, -18); c.font = '18px "Oswald", sans-serif'; c.fillText('I · II', 0, 18); c.fillStyle = '#c0392b'; c.beginPath(); c.arc(0, -56, 6, 0, 7); c.fill(); c.restore(); });
+      c.fillStyle = '#1d2a22'; c.font = '20px "Oswald", sans-serif'; c.fillText('one practical, three questions, +1 skill  ·  R.', W / 2, Hh - 18);
+    });
     pointLight(-2, 3.6, -1, '#fff2d0', 0.9, 11); pointLight(2.5, 3.6, 2.5, '#fff2d0', 0.9, 11); pointLight(-5.6, 2.0, 2.3, '#9fd9a8', 0.4, 4); pointLight(0, 3.0, 4.6, '#ffd8f0', 0.6, 7);
   }
 
@@ -3281,6 +3642,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   addInter({ id: 'comp-h-01', zone: 'lab', pos: V3(IXH - 5.6, 0, 1.4), r: 1.6, label: 'Use workshop box (lab-h)', run() { ui.openTerminal('lab'); } });
   addInter({ id: 'whiteboard', zone: 'lab', pos: V3(IXH + 1.0, 0, 4.6), r: 1.8, label: 'Read the whiteboard', run() { ui.examine('whiteboard'); } });
   addInter({ id: 'seeds', zone: 'lab', pos: V3(IXH - 6.3, 0, 1.0), r: 1.3, label: 'Look at seed shelves', run() { ui.examine('seeds'); } });
+  addInter({ id: 'trainboard', zone: 'lab', pos: V3(IXH + 5.6, 0, 2.2), r: 1.4, label: 'Read the training board', run() { ui.openTraining(); } });
   addInter({ id: 'printer', zone: 'lab', pos: V3(IXH + 5.0, 0, -1.0), r: 1.3, label: 'Look at 3D printer', run() { ui.examine('printer'); } });
   // Building D
   addInter({ id: 'comp-d-01', zone: 'util', pos: V3(IXD + 2.2, 0, 2.9), r: 1.6, label: 'Use service console (db)', run() { ui.openTerminal('util'); } });
@@ -3289,7 +3651,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   addInter({ id: 'mlog', zone: 'util', pos: V3(IXD + 1.4, 0, -4.3), r: 1.3, label: 'Read maintenance clipboard', run() { ui.examine('mlog'); } });
   addInter({ id: 'rack3', zone: 'util', pos: V3(IXD + 5.0, 0, 0.0), r: 1.5, label: 'Look at rack 3', run() { ui.examine('rack3'); } });
   // Meridian Police interior interactables, in world coordinates (IXP + local x).
-  addInter({ id: 'frontDesk', zone: 'police', pos: V3(IXP + 0.8, 0, -1.35), r: 1.1, label: 'Ring the front-desk bell', run() { const pg = 'plant_ghost'; if (store.state.quests[pg] === 'active' && store.isDone(pg, 'o1') && store.isDone(pg, 'o2') && !store.isDone(pg, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant takes the plant’s logs, intact, and adds them to the file. “Water and power, reporting to the same address. That is one for the morning. Good that you kept it clean.”' }); store.checkText('REPORT plant'); return; } const ph = 'side_customs'; if (store.state.quests[ph] === 'active' && store.isDone(ph, 'o1') && store.isDone(ph, 'o2') && !store.isDone(ph, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant photographs the screen: sender, link, time. “You did not click it? Good. Customs fees by text are the oldest trick there is.”' }); store.checkText('REPORT phish'); return; } const q = 'gig_cleanroom'; if (store.state.quests[q] === 'active' && store.isDone(q, 'o1') && store.isDone(q, 'o2') && !store.isDone(q, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant writes it all down: what, where, when you found it, and that you left both devices in place. “Good. Touch them and they stop being evidence.”' }); store.checkText('REPORT bugs'); return; } ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The bell rings once. A tired voice calls from the back: “Cybercrime is closed until Monday. Leave the logs.”' }); } });
+  addInter({ id: 'frontDesk', zone: 'police', pos: V3(IXP + 0.8, 0, -1.35), r: 1.1, label: 'Ring the front-desk bell', run() { const tp = 'train_phishing_2'; if (store.state.quests[tp] === 'active' && !store.isDone(tp, 'o1')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant copies down the look-alike domain, meridian-p0st.co. “Three people fell for that one this week. Yours is the first report. Thank you.”' }); store.checkText('REPORT phish'); return; } const pg = 'plant_ghost'; if (store.state.quests[pg] === 'active' && store.isDone(pg, 'o1') && store.isDone(pg, 'o2') && !store.isDone(pg, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant takes the plant’s logs, intact, and adds them to the file. “Water and power, reporting to the same address. That is one for the morning. Good that you kept it clean.”' }); store.checkText('REPORT plant'); return; } const ph = 'side_customs'; if (store.state.quests[ph] === 'active' && store.isDone(ph, 'o1') && store.isDone(ph, 'o2') && !store.isDone(ph, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant photographs the screen: sender, link, time. “You did not click it? Good. Customs fees by text are the oldest trick there is.”' }); store.checkText('REPORT phish'); return; } const q = 'gig_cleanroom'; if (store.state.quests[q] === 'active' && store.isDone(q, 'o1') && store.isDone(q, 'o2') && !store.isDone(q, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant writes it all down: what, where, when you found it, and that you left both devices in place. “Good. Touch them and they stop being evidence.”' }); store.checkText('REPORT bugs'); return; } ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The bell rings once. A tired voice calls from the back: “Cybercrime is closed until Monday. Leave the logs.”' }); } });
   addInter({ id: 'caseBoard', zone: 'police', pos: V3(IXP + 1.5, 0, 5.75), r: 1.1, label: 'Look at the case board', run() { ui.examine('policeNotice'); } });
   addInter({ id: 'cyberDesk', zone: 'police', pos: V3(IXP + 5.2, 0, 3.85), r: 1.1, label: 'Use the cybercrime terminal', run() { ui.toast({ kind: 'ok', title: 'Cybercrime desk', text: 'Case MP-2610-044: Dara Okafor. Preserve original logs, write down the time, and record the host or address.' }); } });
   addInter({ id: 'policeCells', zone: 'police', pos: V3(IXP - 6.5, 0, 3.5), r: 1.5, label: 'Look into the holding cell', run() { ui.toast({ kind: '', title: 'Holding cell', text: 'Empty tonight. The lock display blinks 03:12, then resets.' }); } });
@@ -3307,7 +3669,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   martInteractables(); exchangeInteractables();
   // the two people on the street
   addInter({ id: 'rosa', zone: 'out', pos: V3(-7.2, 0, 13.6), r: 2.2, label: 'Talk to Rosa Tavares', run() { ui.dialogue('Rosa Tavares', ZD.DIALOGUE.rosa(store.state).concat(store.pitches('rosa')), () => { const st = store.state; store.offer('rosa'); if (st.quests.quest_f1_cli === 'completed' && st.quests.quest_f2_networking === 'available') { st.flags.rosaKit = true; store.activateQuest('quest_f2_networking'); } if (st.quests.quest_i2_utilities === 'completed' && st.quests.quest_i3_ghost === 'available') store.activateQuest('quest_i3_ghost'); }, 'rosa'); faceNPC('rosa'); } });
-  addInter({ id: 'julien', zone: 'out', pos: V3(10.2, 0, -13.4), r: 2.2, label: 'Talk to Julien Moreau', run() { ui.dialogue('Julien Moreau', ZD.DIALOGUE.julien(store.state).concat(store.pitches('julien')), () => { const st = store.state; store.offer('julien'); if (st.quests.quest_f2_networking === 'completed' && st.quests.quest_i1_logs === 'available') { st.flags.cadAccess = true; store.activateQuest('quest_i1_logs'); } }, 'julien'); faceNPC('julien'); } });
+  addInter({ id: 'julien', zone: 'out', pos: V3(10.2, 0, -13.4), r: 2.2, label: 'Talk to Julien Moreau', run() { ui.dialogue('Julien Moreau', ZD.DIALOGUE.julien(store.state).concat(store.pitches('julien')), () => { const st = store.state; store.offer('julien'); if (st.quests.quest_f2_networking === 'completed' && st.quests.quest_i1_logs === 'available') { if (store.activateQuest('quest_i1_logs')) st.flags.cadAccess = true; } }, 'julien'); faceNPC('julien'); } });
   // where the objective arrow points for each quest, by its state
   const BEACON = {
     quest_f1_cli: { available: [-8.5, -14.3], active: [-8.5, -14.3] },
@@ -3324,7 +3686,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (!pos) { beacon.node.setEnabled(false); return; } beacon.node.position.set(pos[0], 0, pos[1]); beacon.node.setEnabled(true);
   }
   const carInter = { id: 'car', zone: 'out', label: 'Enter car', car: null, run() { enterCar(carInter.car); } };
-  const pedInter = { id: 'ped', zone: 'out', label: 'Talk', ped: null, run() { const w = pedInter.ped; if (!w) return; w.talk = 7; w.pause = 7; SFX.setVoice('ped', SFX.pedVoice(w.seed, w.female)); ui.dialogue(w.name, ZD.DIALOGUE.ped(w.mood, store.state, w.scared > 0), () => { w.talk = 0; w.pause = 0.5; }, 'ped'); } };
+  const pedInter = { id: 'ped', zone: 'out', label: 'Talk', ped: null, run() { const w = pedInter.ped; if (!w) return; w.talk = 7; w.pause = 7; SFX.setVoice('ped', SFX.pedVoice(w.seed, w.female)); ui.dialogue(w.name, ZD.DIALOGUE.ped(w.mood, store.state, w.scared > 0), () => { w.talk = 0; w.pause = 0.5; store.checkText('TALK ' + (w.cop ? 'cop' : 'ped')); }, 'ped'); } };
   function nearestPed(x, z, r) { let best = null, bd = r; peds.forEach(w => { if (w.flee > 0) return; const d = Math.hypot(w.x - x, w.z - z); if (d < bd) { bd = d; best = w; } }); return best; }
   const leaveInter = { id: 'leave', zone: 'out', label: 'Leave car', run() { leaveCar(); } };
 
@@ -4051,7 +4413,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     addInter({ id: 'exitM', zone: 'mart', pos: W(-1, -4.6), r: 1.5, label: 'Leave Byte Mart', run() { transition(() => { setZone('out'); placePlayer(-22.5, 0, -12.4, 0); }); } });
     addInter({ id: 'nadia', zone: 'mart', pos: W(1.5, 2.6), r: 2.0, label: 'Talk to Nadia (Byte Mart)', run() { const st = store.state; const lines = ZD.DIALOGUE.nadia(st).concat(store.pitches('nadia')); ui.dialogue('Nadia Sow', lines, () => { st.flags.metNadia = true; store.offer('nadia'); ui.openShop(); }, 'nadia'); faceNadia(); } });
     addInter({ id: 'shelves', zone: 'mart', pos: W(-1.3, -0.5), r: 2.2, label: 'Browse the shelves', run() { ui.openShop(); } });
-    addInter({ id: 'gigboard', zone: 'mart', pos: W(2.2, -4.2), r: 1.5, label: 'Read the gig board', run() { ui.examine('gigboard'); store.state.flags.boardRead = true; let n = 0; ZD.GIGS.forEach(g => { if (store.state.quests[g.id] === 'available' && (!g.item || store.has(g.item))) { store.activateQuest(g.id); n++; } }); if (n) ui.toast({ kind: '', title: 'Gigs', text: n + ' gigs added to your missions (P). Each pays when its command runs.' }); } });
+    addInter({ id: 'gigboard', zone: 'mart', pos: W(2.2, -4.2), r: 1.5, label: 'Read the gig board', run() { ui.examine('gigboard'); store.state.flags.boardRead = true; let n = 0; ZD.GIGS.forEach(g => { if (store.state.quests[g.id] === 'available' && (!g.item || store.has(g.item)) && store.activateQuest(g.id)) n++; }); if (n) ui.toast({ kind: '', title: 'Gigs', text: n + ' gigs added to your missions (P). Each pays when its command runs.' }); } });
     addInter({ id: 'fridge', zone: 'mart', pos: W(5.0, 1.0), r: 1.5, label: 'Look in the fridge', run() { ui.examine('fridge'); } });
     addInter({ id: 'bargain', zone: 'mart', pos: W(-4.6, -3.3), r: 1.3, label: 'Dig through the bargain bin', run() { ui.examine('bargain'); } });
     addInter({ id: 'martposter', zone: 'mart', pos: W(3.6, 2.6), r: 1.3, label: 'Look at the poster', run() { ui.examine('martposter'); } });
@@ -4311,7 +4673,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   }
   function declineRing() { PHONE.ringing = false; $('phoneBox').classList.remove('ringing'); $('phone').classList.add('off'); state.ui = null; state.ringAt = t + 20; ui.toast({ kind: '', title: 'Burner', text: 'Missed call. It will ring again.' }); }
   function openPhone() {
-    if (state.ui || !state.playing || !store.state.flags.hasPhone) return; state.ui = 'phone'; SFX.swish();
+    if (state.ui || !state.playing || !store.state.flags.hasPhone) return; state.ui = 'phone'; SFX.swish(); store.offer('phone'); // a text that failed its skill check waits on the phone
     const st = store.state; $('phoneCaller').textContent = st.flags.called ? '1 message · 1 call' : 'no messages yet'; $('phoneState').textContent = 'BURNER'; $('phoneAnswer').hidden = true; $('phoneShell').hidden = false; $('phoneMsgs').hidden = false;
     $('phoneMsgs').innerHTML = st.flags.called ? '<div class="msg"><div class="from">UNKNOWN NUMBER · ' + (st.flags.callAt != null ? stampLabel(st.flags.callAt).toUpperCase() : '03:12') + '</div><p>You hold Dara’s map. Now you hold her phone. The third token is mine, and this street runs on it. Stop pulling at STYX, or the lights on Meridian Row go out one building at a time, starting with the lab. You have until 03:12.</p><div class="photo">[photo] a steel door with a keypad. Sign above it: MERIDIAN EXCHANGE.</div></div>' + (st.flags.called2 ? '<div class="msg"><div class="from">CALL LOG · 03:12</div><p>unknown number, answered. "Keep the phone charged."</p></div>' : '') : '<div class="msg"><p>No messages. Keep it charged. Answer anything that is a number.</p></div>';
     $('phone').classList.remove('off');
@@ -4596,12 +4958,13 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       $('qEyebrow').textContent = q.category + ' · ' + (stt === 'available' ? 'available' : stt === 'completed' ? 'completed' : 'active') + ' · ' + q.reward + ' cr';
       $('qTitle').textContent = q.title;
       const ul = $('qList'); ul.innerHTML = '';
-      if (stt === 'available') { const li = document.createElement('li'); li.innerHTML = '<span class="mark"></span><span>' + esc(q.start) + '</span>'; ul.appendChild(li); }
+      if (stt === 'available') { const li = document.createElement('li'); li.innerHTML = '<span class="mark"></span><span>' + esc(q.start) + '</span>'; ul.appendChild(li); if (q.req) { const h = document.createElement('li'); h.className = 'hint'; h.innerHTML = '<span></span><span>Skill check: ' + esc(ui.reqText(q)) + '</span>'; ul.appendChild(h); } }
       else { let hinted = false; q.objectives.forEach(o => { const li = document.createElement('li'); const done = store.isDone(q.id, o.id); if (done) li.className = 'done'; li.innerHTML = '<span class="mark"></span><span>' + esc(o.text) + '</span>'; ul.appendChild(li); if (!done && !hinted && o.hint) { hinted = true; const h = document.createElement('li'); h.className = 'hint'; h.innerHTML = '<span></span><span>' + esc(cyberHint(o, cyberLevel(st.cyberScore || 0))) + '</span>'; ul.appendChild(h); } }); }
       const next = $('qNext'); if (stt === 'completed') { const nq = store.nextQuest(q.id); next.hidden = false; next.textContent = nq ? 'Next: ' + nq.title + '. ' + nq.start : 'End of Act 2. The vault at 10.0.3.1 is the next build.'; } else next.hidden = true;
       if (state.ui === 'journal') ui.renderJournal();
     },
-    closeAll() { const wasDlg = state.ui === 'dlg', done = ui.dlgDone; ui.dlgDone = null; if (wasDlg) SFX.hush(); if (state.ui === 'term') SFX.termOff(); else if (state.ui === 'journal' || state.ui === 'examine' || state.ui === 'settings' || state.ui === 'shop' || state.ui === 'inv') SFX.close(); ['term', 'examine', 'dlg', 'settings', 'shop', 'inv', 'phone', 'keypad'].forEach(id => $(id).classList.add('off')); $('jr').classList.remove('on'); state.ui = null; if (state.touch) $('tE').hidden = !current; canvas.focus(); if (wasDlg && done) done(); },
+    reqText(q) { return Object.keys(q.req).map(k => ZD.skillName(k) + ' ' + q.req[k] + ' (yours: ' + (store.skillKnown(k) ? store.rank(k) : 'untested') + ')').join(', ') + (store.meets(q).ok || !Object.keys(q.req).every(k => store.skillKnown(k)) ? '' : '. Rosa’s training board in Building H.'); },
+    closeAll() { const wasDlg = state.ui === 'dlg', done = ui.dlgDone; ui.dlgDone = null; if (wasDlg) SFX.hush(); if (state.ui === 'term') SFX.termOff(); else if (state.ui === 'journal' || state.ui === 'examine' || state.ui === 'settings' || state.ui === 'shop' || state.ui === 'inv' || state.ui === 'train') SFX.close(); ui.drill = null; ui.trainWhere = null; ['term', 'examine', 'dlg', 'settings', 'shop', 'inv', 'phone', 'keypad', 'train'].forEach(id => $(id).classList.add('off')); $('jr').classList.remove('on'); state.ui = null; if (state.touch) $('tE').hidden = !current; canvas.focus(); if (wasDlg && done) done(); },
     openTerminal(which) {
       state.ui = 'term'; SFX.termOn(); const host = ZD.HOSTS[which];
       if (!ui.shells) ui.shells = {}; const first = !ui.shells[which]; if (first) ui.shells[which] = ZD.makeShell(store, host); ui.shell = ui.shells[which];
@@ -4617,8 +4980,9 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       if (r.close) ui.closeAll();
       if (r.duck) setTimeout(() => { if (state.ui === 'term' && ui.shell === sh) { ui.hist.push(r.duck); ui.histI = ui.hist.length; ui.termRun(r.duck); } }, 650); // the Rubber Ducky types the command for you, after a beat
     },
-    examine(id) { const e = ZD.EXAMINABLES[id]; state.ui = 'examine'; SFX.paper(); const box = $('exBox'); box.className = e.style; $('exTitle').textContent = e.title; $('exText').innerHTML = e.text.split('\n\n').map(p => '<p>' + esc(p) + '</p>').join(''); $('examine').classList.remove('off'); if (e.flag) store.state.flags[e.flag] = true; if (e.discovery) store.addDiscovery(e.discovery); if (state.touch) $('tE').hidden = false; },
-    dialogue(name, lines, onDone, who) { state.ui = 'dlg'; ui.dlgLines = lines.slice(); ui.dlgDone = onDone; ui.dlgWho = who || null; $('dlgName').textContent = name; $('dlg').classList.remove('off'); ui.dlgAdvance(true); if (state.touch) $('tE').hidden = false; },
+    examine(id) { ui.examine0(id); store.checkText('EXAMINE ' + id); },
+    examine0(id) { const e = ZD.EXAMINABLES[id]; state.ui = 'examine'; SFX.paper(); const box = $('exBox'); box.className = e.style; $('exTitle').textContent = e.title; $('exText').innerHTML = e.text.split('\n\n').map(p => '<p>' + esc(p) + '</p>').join(''); $('examine').classList.remove('off'); if (e.flag) store.state.flags[e.flag] = true; if (e.discovery) store.addDiscovery(e.discovery); if (state.touch) $('tE').hidden = false; },
+    dialogue(name, lines, onDone, who) { state.ui = 'dlg'; ui.dlgLines = lines.slice(); ui.dlgDone = () => { if (onDone) onDone(); if (who && who !== 'ped') store.checkText('TALK ' + who); }; ui.dlgWho = who || null; $('dlgName').textContent = name; $('dlg').classList.remove('off'); ui.dlgAdvance(true); if (state.touch) $('tE').hidden = false; },
     dlgAdvance(first) { if (!first && ui.dlgLines.length === 0) { ui.closeAll(); return; } const ln = ui.dlgLines.shift(); if (!SFX.say(ln, ui.dlgWho)) SFX.voice(ui.dlgWho === 'julien' || ui.dlgWho === 'ped' ? 'julien' : 'rosa'); $('dlgText').textContent = ln; $('dlgNext').textContent = ui.dlgLines.length ? 'Continue' : 'Done'; },
     openJournal() { state.ui = 'journal'; SFX.swish(); $('jr').classList.add('on'); ui.renderJournal(); },
     openSettings() { state.ui = 'settings'; SFX.swish(); const v = SFX.volumes(); $('volMaster').value = v.master; $('volMusic').value = v.music; $('volSfx').value = v.sfx; $('volAmbient').value = v.ambient; $('credits').innerHTML = SFX.credits.map(c => '<p><b>' + esc(c[0]) + '</b> ' + esc(c[1]) + '</p>').join(''); $('settings').classList.remove('off'); },
@@ -4673,11 +5037,61 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       else { SFX.buzz(); $('kpIn').value = ''; $('kpNote').textContent = 'The lock blinks red. ' + (store.state.quests.quest_z2_dialtone === 'completed' ? 'The door page said: the time everything on this street happens.' : 'Four digits. Someone on this street knows them.'); }
     },
     cashPop(text) { const el = $('cashPop'); el.textContent = text; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); $('hudCredits').textContent = String(store.state.credits).padStart(6, '0'); },
+    // skills: the training board in Building H and the Skills tab share one renderer; only the board starts classes
+    skillCards(where) {
+      const st = store.state; const pts = ZD.SKILLS.reduce((a, k) => a + store.rank(k.id), 0), known = ZD.SKILLS.filter(k => store.skillKnown(k.id)).length;
+      const ALLQ = ZD.QUESTS.concat(ZD.GIGS, ZD.SIDE);
+      let html = '<p class="skIntro">' + (where === 'board' ? 'Rosa runs classes for anyone on the Row. Each class is a short practical and a three-question drill, and each one raises a skill by one, up to ' + ZD.SKILL_MAX + '. ' : '') + 'You started with ' + ZD.SKILL_POINTS + ' points across ' + ZD.SKILLS.length + ' skills, some strong and some weak. A skill stays untested until a quest checks it or a class trains it.</p>';
+      ZD.SKILL_GROUPS.forEach(g => {
+        html += '<div class="skGroup">' + esc(g[1]) + '</div>';
+        ZD.SKILLS.filter(k => k.group === g[0]).forEach(k => {
+          const kn = store.skillKnown(k.id), r = store.rank(k.id);
+          const pips = kn ? '<span class="pips" aria-label="' + esc(k.name) + ' ' + r + ' of ' + ZD.SKILL_MAX + '">' + Array.from({ length: ZD.SKILL_MAX }, (x, i) => '<i class="' + (i < r ? 'on' : '') + '"></i>').join('') + '</span>' : '<span class="unk">untested</span>';
+          const uses = ALLQ.filter(q => q.req && q.req[k.id] && st.quests[q.id] !== 'completed' && st.quests[q.id] !== 'locked').map(q => '<b class="' + (kn && r >= q.req[k.id] ? 'ok' : '') + '">' + esc(q.title) + ' ' + q.req[k.id] + '</b>');
+          const cls = ZD.TRAINING.filter(q => q.skill === k.id).map(q => {
+            const s = st.quests[q.id]; const drillOpen = s === 'active' && !store.isDone(q.id, 'drill');
+            const btn = s === 'available' && where === 'board' ? '<button class="btn small" type="button" data-start="' + q.id + '">Start class</button>' : drillOpen ? '<button class="btn small ghost" type="button" data-drill="' + q.id + '">Take the drill</button>' : '';
+            const label = s === 'locked' ? 'after part I' : s === 'available' && where !== 'board' ? 'on the board' : s;
+            return '<div class="cls"><span class="state ' + (s === 'locked' ? '' : s) + '">' + esc(label) + '</span><b>' + esc(q.title) + '</b><span class="where">' + esc(q.location) + '</span>' + btn + '</div>';
+          }).join('');
+          html += '<div class="skill"><div class="top"><h4>' + esc(k.name) + '</h4>' + pips + '</div><p>' + esc(k.blurb) + '</p>' + cls + (uses.length ? '<div class="uses">Skill checks ahead: ' + uses.join(', ') + '</div>' : '') + '</div>';
+        });
+      });
+      return { html, pts, known };
+    },
+    openTraining() { if (!state.playing || state.ui) return; state.ui = 'train'; SFX.swish(); ui.drill = null; ui.renderTraining(); $('train').classList.remove('off'); if (state.touch) $('tE').hidden = true; },
+    renderTraining() {
+      const body = $('trBody');
+      if (ui.drill) { body.innerHTML = ui.drillHtml(); return; }
+      const c = ui.skillCards(ui.trainWhere || 'board'); $('trPts').textContent = c.known + ' of ' + ZD.SKILLS.length + ' skills tested'; body.innerHTML = c.html;
+    },
+    // a drill: one question at a time, feedback after each answer, passed only with all three right
+    openDrill(qid, from) {
+      const q = store.quest(qid); const o = q && q.objectives.find(x => x.drill); if (!o || store.state.quests[qid] !== 'active') return;
+      if (from === 'journal') { $('jr').classList.remove('on'); state.ui = 'train'; $('train').classList.remove('off'); ui.trainWhere = 'journal'; }
+      ui.drill = { qid, qs: o.drill, i: 0, right: 0, picked: null }; SFX.tick(); ui.renderTraining();
+    },
+    drillHtml() {
+      const d = ui.drill, q = store.quest(d.qid);
+      if (d.i >= d.qs.length) { const pass = d.right === d.qs.length; return '<div class="drill"><div class="prog">' + esc(q.title) + ' · drill</div><div class="q">' + (pass ? 'All three. Rosa nods.' : d.right + ' of ' + d.qs.length + '. Close.') + '</div><div class="why">' + (pass ? 'The class is done once every step on it is ticked off.' : 'You need all three. The explanations are what to take away; try again whenever you like.') + '</div><div class="row">' + (pass ? '' : '<button class="btn small" type="button" data-dact="retry">Try again</button>') + '<button class="btn small ghost" type="button" data-dact="back">Back to the board</button></div></div>'; }
+      const item = d.qs[d.i], answered = d.picked != null;
+      return '<div class="drill"><div class="prog">' + esc(q.title) + ' · question ' + (d.i + 1) + ' of ' + d.qs.length + '</div><div class="q">' + esc(item.q) + '</div><div class="opts">' + item.a.map((t, i) => '<button type="button" class="opt' + (answered && i === item.c ? ' right' : answered && i === d.picked ? ' wrong' : '') + '" data-opt="' + i + '"' + (answered ? ' disabled' : '') + '>' + esc(t) + '</button>').join('') + '</div><div class="why" aria-live="polite">' + (answered ? (d.picked === item.c ? 'Right. ' : 'Not quite. ') + esc(item.why) : '') + '</div><div class="row">' + (answered ? '<button class="btn small" type="button" data-dact="next">' + (d.i === d.qs.length - 1 ? 'Finish' : 'Next question') + '</button>' : '') + '</div></div>';
+    },
+    trainClick(e) {
+      const b = e.target.closest('button'); if (!b) return; const d = ui.drill;
+      if (b.dataset.start) { store.activateQuest(b.dataset.start); ui.renderTraining(); return; }
+      if (b.dataset.drill) { ui.openDrill(b.dataset.drill); return; }
+      if (b.dataset.opt != null && d && d.picked == null) { d.picked = +b.dataset.opt; const ok = d.picked === d.qs[d.i].c; if (ok) { d.right++; SFX.tick(); } else SFX.buzz(); ui.renderTraining(); return; }
+      if (b.dataset.dact === 'next' && d) { d.i++; d.picked = null; if (d.i >= d.qs.length && d.right === d.qs.length) store.checkText('DRILL ' + d.qid); ui.renderTraining(); return; }
+      if (b.dataset.dact === 'retry' && d) { ui.openDrill(d.qid); return; }
+      if (b.dataset.dact === 'back') { ui.drill = null; if (ui.trainWhere === 'journal') { ui.closeAll(); ui.jrTab = 'skills'; ui.openJournal(); return; } ui.renderTraining(); }
+    },
     jrTab: 'quests',
     renderJournal() {
       const st = store.state; const body = $('jrBody'); body.innerHTML = '';
       document.querySelectorAll('#jrHead .tab').forEach(b => b.classList.toggle('on', b.dataset.tab === ui.jrTab));
-      if (ui.jrTab === 'quests') ZD.QUESTS.concat(ZD.SIDE.filter(q => st.quests[q.id] !== 'locked'), ZD.GIGS.filter(g => st.quests[g.id] !== 'available')).forEach(q => { const s = st.quests[q.id]; const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<span class="state ' + s + '">' + s + '</span><h4>' + esc(q.title) + '</h4><div class="meta">' + esc(q.category + ' · ' + q.location + ' · ' + q.reward + ' credits') + '</div>' + (s === 'locked' ? '<p>Locked.</p>' : '<ul>' + q.objectives.map(o => '<li class="' + (store.isDone(q.id, o.id) ? 'done' : '') + '">' + esc(o.text) + (o.hint && !store.isDone(q.id, o.id) ? '<div class="hint">' + esc(cyberHint(o, cyberLevel(st.cyberScore || 0))) + '</div>' : '') + '</li>').join('') + '</ul>'); body.appendChild(el); });
+      if (ui.jrTab === 'skills') { const c = ui.skillCards('journal'); body.innerHTML = '<div class="meta" style="font:600 11px var(--font-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--mute)">' + c.known + ' of ' + ZD.SKILLS.length + ' skills tested</div>' + c.html; body.querySelectorAll('[data-drill]').forEach(b => b.addEventListener('click', () => ui.openDrill(b.dataset.drill, 'journal'))); return; }
+      if (ui.jrTab === 'quests') ZD.QUESTS.concat(ZD.SIDE.filter(q => st.quests[q.id] !== 'locked'), ZD.GIGS.filter(g => st.quests[g.id] !== 'available'), ZD.TRAINING.filter(q => st.quests[q.id] === 'active' || st.quests[q.id] === 'completed')).forEach(q => { const s = st.quests[q.id]; const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<span class="state ' + s + '">' + s + '</span><h4>' + esc(q.title) + '</h4><div class="meta">' + esc(q.category + ' · ' + q.location + ' · ' + q.reward + ' credits' + (q.skillReward ? ' · ' + Object.keys(q.skillReward).map(k => '+' + q.skillReward[k] + ' ' + ZD.skillName(k)).join(', ') : '')) + '</div>' + (q.req && s !== 'completed' ? '<div class="hint">Skill check: ' + esc(ui.reqText(q)) + '</div>' : '') + (s === 'locked' ? '<p>Locked.</p>' : '<ul>' + q.objectives.map(o => '<li class="' + (store.isDone(q.id, o.id) ? 'done' : '') + '">' + esc(o.text) + (o.hint && !store.isDone(q.id, o.id) ? '<div class="hint">' + esc(cyberHint(o, cyberLevel(st.cyberScore || 0))) + '</div>' : '') + '</li>').join('') + '</ul>'); body.appendChild(el); });
       if (ui.jrTab === 'log') { if (!st.journal.length) body.innerHTML = '<div class="entry"><p>No entries yet.</p></div>'; st.journal.slice().reverse().forEach(j => { const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<div class="meta">' + (j.g != null ? stampLabel(j.g) : new Date(j.t).toLocaleString()) + '</div><h4>' + esc(j.title) + '</h4><p>' + esc(j.text) + '</p>'; body.appendChild(el); }); }
       if (ui.jrTab === 'notebook') { if (!st.notebook.length) body.innerHTML = '<div class="entry"><p>Nothing examined yet. Look closely at what Dara left on the reading table.</p></div>'; st.notebook.slice().reverse().forEach(n => { const el = document.createElement('div'); el.className = 'entry'; el.innerHTML = '<div class="meta">' + esc(n.id) + (n.g != null ? ' · ' + stampLabel(n.g) : '') + '</div><h4>' + esc(n.title) + '</h4><p>' + esc(n.text) + '</p>'; body.appendChild(el); }); }
     }
@@ -4701,6 +5115,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   $('jrClose').addEventListener('click', () => ui.closeAll());
   $('setClose').addEventListener('click', () => ui.closeAll());
   $('shopClose').addEventListener('click', () => ui.closeAll());
+  $('trClose').addEventListener('click', () => ui.closeAll()); $('trBody').addEventListener('click', e => ui.trainClick(e));
   $('phoneAnswer').addEventListener('click', () => answerPhone()); $('phoneClose').addEventListener('click', () => { if (PHONE.ringing) declineRing(); else ui.closeAll(); }); $('phoneShell').addEventListener('click', () => { ui.closeAll(); ui.openTerminal('phone'); });
   $('kpGo').addEventListener('click', () => ui.keypadTry()); $('kpClose').addEventListener('click', () => ui.closeAll()); $('kpIn').addEventListener('keydown', (e) => { if (e.key === 'Enter') { ui.keypadTry(); e.preventDefault(); } else if (e.key === 'Escape') ui.closeAll(); e.stopPropagation(); });
   [['volMaster', 'master'], ['volMusic', 'music'], ['volSfx', 'sfx'], ['volAmbient', 'ambient']].forEach(v => $(v[0]).addEventListener('input', (e) => SFX.setVolume(v[1], +e.target.value)));
@@ -4839,6 +5254,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   function openCustomizer(resume) {
     SFX.init(); SFX.softMusic(); creator.pendingResume = resume; if (resume) { const sv = loadSave(); if (sv && sv.appearance) LOOK.current = normalizeLook(sv.appearance); }
     const saved = resume ? loadSave() : null; const score = pendingCyberResult ? pendingCyberResult.score : store.state.cyberScore != null ? store.state.cyberScore : saved && saved.save ? saved.save.cyberScore : null; const level = score != null ? cyberLevel(score) : null; $('customizeBrief').hidden = !level; if (level) $('customizeBrief').textContent = 'Briefing level: ' + level.name + '. ' + level.label;
+    $('skillsNote').textContent = resume ? 'Skills: P, then Skills. Rosa’s evening classes in Building H train them.' : 'Skills: ' + ZD.SKILL_POINTS + ' points across ' + ZD.SKILLS.length + ' skills are rolled for you when you jump in. Some will be strong and some weak, and nobody tells you which. Quests will find out.';
     $('start').classList.add('off'); $('customize').classList.remove('off'); renderLookRows(); initCreator().then(() => { creator.engine.resize(); dressPreview(); });
   }
   function closeCustomizer() { $('customize').classList.add('off'); $('start').classList.remove('off'); }
@@ -4919,6 +5335,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (sv && typeof sv.clock === 'number' && sv.clock >= START_MIN) CLOCK.total = sv.clock; else if (!resume) CLOCK.total = START_MIN; // a new profile starts on Saturday 10 October at 19:00
     CLOCK.shownMin = -1; syncLogs(); drawClock();
     applyLook(LOOK.current); updateBeacon(); ensureOwnCar(); (store.state.flags.drops || []).forEach(d => { if (!drops.some(o => o.d.k === d.k)) spawnDrop(d); }); if (st.flags.hasPhone && !st.flags.called) state.ringAt = t + 14;
+    if (!st.flags.skillsIntro) { st.flags.skillsIntro = true; setTimeout(() => ui.toast({ kind: '', title: 'Skills', text: (resume ? 'New: ' : '') + 'eight skills, ' + ZD.SKILL_POINTS + ' points, rolled for you and hidden. Quests test them; Rosa’s training board in Building H raises them. P, then Skills.' }), resume ? 1500 : 2000); }
     $('start').classList.add('off'); state.playing = true; ui.refreshQuest(); save(); canvas.focus();
     setTimeout(() => $('fade').classList.add('clear'), 80);
     if (!resume) { setTimeout(() => ui.toast({ kind: '', title: longDate(), text: '19:00 on Meridian Row. Six days since anyone saw Dara. T shows the clock.' }), 600); setTimeout(() => ui.toast({ kind: '', title: 'Building A', text: 'The cyan arrow marks the door. W runs, A and D turn, E at a car takes it.' }), 1200); }

@@ -56,6 +56,24 @@ A new profile starts with a ten-question multiple-choice intake (contributed by 
 
 Before dropping in (and whenever you continue) the runner is styled Morrowind-style with arrows. A new profile first picks a body, man or woman; that choice is fixed for the profile. Then: five hair styles, four facial-hair options, ten hair colours, seven skin tones, ten jacket and eight trouser colours, plus Random. The woman has no facial-hair row; hair and beards borrowed from the other rigs are carried by the head bone, so they follow every animation. The look is saved with the profile.
 
+## Skills
+
+Every runner has eight skills in three groups, each ranked 1 to 5:
+
+| Group | Skills |
+| --- | --- |
+| Technical | Recon, Systems, Forensics, Hardening |
+| Social | Rapport, Phishing Awareness |
+| Field | Hardware, Observation |
+
+A new profile gets 18 points, rolled when you jump in: every skill starts at 1, nothing starts above 4, and every roll has at least two strengths (3 or more) and two weaknesses (1). The roll is hidden. A skill shows as untested until a quest checks it or a class trains it. Saves from before skills existed get their roll when continued.
+
+**Skill checks.** Some quests test a skill before they start: Three Twelve needs Rapport 2 (Julien has to trust you), The Hum needs Systems 2, Ghost Host needs Recon 2, The Exchange needs Hardware 2, several gigs and side stories need a 2, and the Meridian Works quests need a 3. Falling short leaves the quest waiting and says what is missing.
+
+**Training.** Rosa's training board, on the east wall of the Solarpunk Lab (Building H), lists two classes per skill. Each class is a short practical (a command on lab-h, a conversation, or something to examine) plus a three-question drill, and raises its skill by one. Part II opens when part I is done. Drills can also be taken from the Skills tab in the missions panel (P). The practice files live in `training/` on lab-h.
+
+A few side stories and gigs also pay a skill rank on top of their credits: Baseline (Forensics), Dotfiles (Systems), Customs Fee (Phishing Awareness), Rack Three (Rapport), Checksums (Hardening) and Clean Room (Observation).
+
 ## People
 
 Rosa, Julien and Nadia speak their lines through the browser's own speech voices (a Voices switch in settings turns this off; without voices the old radio blips play). Every passer-by has a name and a mood: the kind ones give directions and gossip about Dara, the rude ones tell you to keep walking, the busy ones are late for Caduceus. Anyone you nearly ran over will mention it.
