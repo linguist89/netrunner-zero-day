@@ -79,6 +79,25 @@ Six officers patrol the sidewalks, three of them on Meridian Row. The three men 
 
 Three white cruisers patrol the grid with flashing red and blue light bars and a POLICE roof plate readable from above. Take one and dispatch reports it stolen; speed past an officer and you get a warning.
 
+### Inside the station
+
+The street door opens on a public lobby: the front desk (ring the bell to report what you find), waiting benches and a notice board. A glass partition with two secure doors closes off the rest. Doors slide open for the staff who walk through them; for you, only where you are allowed.
+
+- **Cybercrime Unit** (east). Opens after Ghost Host. Press the intercom and Detective Lind gives you a visitor badge with the door code on it. Inside, the side story **Chain of Custody** teaches digital forensics on the evidence workstation (`dfir`): read the intake procedure, check every copy with `sha256sum -c`, fingerprint a new phone dump, build the 03:12 timeline with `grep ... | sort` (ISO dates sort as plain text), then pin it on the timeline wall.
+- **Staff corridor and records room** (west). Staff only. Officer Tamm walks between the lobby and the corridor, and Pia Holt, the records clerk, between the records room and the jammed printer.
+
+### Blue Wall: an authorised covert test
+
+After Chain of Custody, Commissioner Achebe of the Meridian Integrity Office waits by the park fountain. She suspects someone inside the station is changing the evidence in Dara's case and hires you for a covert test, the way real physical red-team jobs work:
+
+1. **The letter.** A signed authorisation with a scope (lobby, staff corridor, records room, read only, tonight), what is out of scope (armoury, cells, the Cybercrime Unit, personal devices, impersonating police), a cover story and a number to call if you are caught.
+2. **Recon.** Watch the shift change from across the Row and read the lobby notice board.
+3. **Getting in.** Pick a pretext at the front desk (a multiple-choice conversation with the desk sergeant), or follow an officer through the staff door. Into the records room you either follow the clerk through the door or use the Proxmark cloner. These are game mechanics that teach the ideas, not real techniques.
+4. **Getting caught.** A bad answer gets you challenged. You stop and show the letter, the sergeant checks it by calling the number herself, and you try again later. Running is never the answer.
+5. **The evidence.** On the records terminal, the audit log shows who edited case MP-2610-044, and `sha256sum -c` proves the sealed copy was changed.
+6. **The debrief.** Tell the Commissioner what staff should have caught and how to fix it. Afterwards the station checks every contractor and nobody holds the records door for anyone.
+
+
 ## Byte Mart
 
 The shop under the orange sign, west of Building A on the north side of Meridian Row. Nadia sells gear that changes how the street and the terminals behave:
