@@ -134,3 +134,12 @@ Effects: Kenney.nl Interface Sounds and UI Audio (CC0). Horns and impacts from t
 Textures: building facades and roofs, and the car skins, are drawn in code at startup (no image files); oak, brick and carbon maps from the three.js examples (MIT); moss from "dark grass" on OpenGameArt (CC-BY 3.0); studio environment map from the Babylon.js Assets repository (CC-BY 4.0).
 
 Characters: Ready Player Me avatars and animation clips. Passers-by, officers, Nadia and Ines from the Microsoft Rocketbox library (MIT, `models/LICENSE-microsoft-rocketbox.txt`).
+
+## Graphics and frame budget
+
+The outdoor shadow map only draws the casters inside each cascade, and its cascades are fitted to what the camera can see. That took the overhead view from about 2,660 draw calls a frame to about 600, and the same 2048 map now gives sharper shadows. The savings pay for the look:
+
+- an HDR post-processing pass with 4x MSAA (replacing the canvas's own), ACES tone mapping, a soft vignette, half-size bloom after dark and colour grading that follows the clock
+- a sky dome with a sun by day and stars at night, meeting the fog at the horizon
+- soft contact shading round the foot of every building (one mesh)
+- wet roads after dark: a quarter-size, blurred reflection of lit windows, neon, lamps and cars, which stops refreshing by day

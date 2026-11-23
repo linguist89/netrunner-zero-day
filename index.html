@@ -2059,7 +2059,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   const CYBER_ASSESSMENT = ZD.CYBER_ASSESSMENT; const CYBER_LEVELS = ZD.CYBER_LEVELS; const cyberLevel = ZD.cyberLevel; const cyberHint = ZD.cyberHint; const assessmentResult = ZD.assessmentResult;
   const NULL_ENGINE = !!window.__BABYLON_NULL__;
   const canvas = $('gl');
-  const engine = NULL_ENGINE ? new BABYLON.NullEngine() : new BABYLON.Engine(canvas, true, { stencil: false, preserveDrawingBuffer: false, powerPreference: 'high-performance' }, false);
+  const engine = NULL_ENGINE ? new BABYLON.NullEngine() : new BABYLON.Engine(canvas, false, { stencil: false, preserveDrawingBuffer: false, powerPreference: 'high-performance' }, false);
   if (!NULL_ENGINE) engine.setHardwareScalingLevel(1 / Math.min(window.devicePixelRatio || 1, 1.5));
   const scene = new BABYLON.Scene(engine);
   scene.clearColor = new BABYLON.Color4(0.02, 0.025, 0.045, 1);
@@ -2174,6 +2174,40 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (cfg.cascaded && BABYLON.CascadedShadowGenerator) { sg = new BABYLON.CascadedShadowGenerator(cfg.shadowRes || 2048, dir); sg.numCascades = 3; sg.lambda = 0.85; sg.shadowMaxZ = 160; sg.autoCalcDepthBounds = false; sg.depthClamp = true; sg.stabilizeCascades = true; sg.filteringQuality = BABYLON.ShadowGenerator.QUALITY_MEDIUM; sg.usePercentageCloserFiltering = true; sg.bias = 0.004; sg.normalBias = 0.05; sg.darkness = 0.4; }
     else { dir.autoCalcShadowZBounds = true; sg = new BABYLON.ShadowGenerator(cfg.shadowRes || 2048, dir); sg.usePercentageCloserFiltering = true; sg.filteringQuality = BABYLON.ShadowGenerator.QUALITY_MEDIUM; sg.bias = 0.0012; sg.normalBias = 0.03; sg.darkness = 0.35; }
     z.lights.push(hemi, dir); z.sg = sg; z.dir = dir; return sg;
+  }
+  /* ---------- shadow budget: the outdoor shadow map used to draw all ~800 casters of the whole city into each of its three cascades every frame
+     (about 2,400 of the 2,660 draw calls). Each cascade now only draws the casters inside its own box, and the cascades are fitted to the depth the
+     camera can actually see, so the same 2048 map gives much sharper shadows for a fraction of the cost ---------- */
+  function cullShadowCasters(sg) {
+    const sm = sg.getShadowMap(); if (!sm) return; const planes = [0, 1, 2, 3, 4, 5].map(() => new BABYLON.Plane(0, 0, 0, 0)); const lists = [[], [], [], []]; const minR = [0.05, 0.2, 0.45, 0.45];
+    sm.getCustomRenderList = (layer, list, n) => {
+      const tm = sg.getCascadeTransformMatrix ? sg.getCascadeTransformMatrix(layer) : sg.getTransformMatrix(); if (!tm) return null;
+      BABYLON.Frustum.GetPlanesToRef(tm, planes); const out = lists[layer % 4]; out.length = 0; layer = layer % 4;
+      for (let i = 0; i < n; i++) {
+        const m = list[i]; if (!m.isEnabled() || !m.isVisible) continue;
+        const bs = m.getBoundingInfo().boundingSphere, r = bs.radiusWorld, c = bs.centerWorld; if (r < minR[layer] ) continue; // eyes, teeth and badges throw no visible shadow from up here, and the far cascades skip wheels and small props too
+        let inside = true; for (let k = 1; k < 6; k++) if (planes[k].dotCoordinate(c) < -r) { inside = false; break; } // the near plane is skipped: depth clamping still lets casters above the box throw their shadow into it
+        if (inside) out.push(m);
+      }
+      return out;
+    };
+  }
+  const shadowFit = { near: -1, far: -1, mode: '' }; const fitDir = new BABYLON.Vector3(), fitF = new BABYLON.Vector3(), fitR = new BABYLON.Vector3(), fitU = new BABYLON.Vector3();
+  function fitShadowCascades() {
+    const sg = zones.out && zones.out.sg; if (!sg || !sg.setMinMaxDistance || state.zone !== 'out') return;
+    const cam = scene.activeCamera; if (!cam) return; const cap = sg.shadowMaxZ, minZ = cam.minZ, range = (cam.maxZ || cap) - minZ;
+    cam.getDirectionToRef(BABYLON.Axis.Z, fitF); cam.getDirectionToRef(BABYLON.Axis.X, fitR); cam.getDirectionToRef(BABYLON.Axis.Y, fitU);
+    const th = Math.tan(cam.fov / 2), asp = engine.getAspectRatio(cam), cy = cam.globalPosition.y, top = Math.min(cy - 0.5, 34);
+    let near = cap, far = 0;
+    for (let i = 0; i < 4; i++) { // the four frustum corners, each scaled so its depth along the view axis is 1
+      const sx = (i & 1 ? 1 : -1) * th * asp, sy = (i & 2 ? 1 : -1) * th; fitDir.copyFrom(fitF).addInPlace(fitR.scale(sx)).addInPlace(fitU.scale(sy));
+      if (fitDir.y < -1e-3) { far = Math.max(far, cy / -fitDir.y); near = Math.min(near, top > 0 ? (cy - top) / -fitDir.y : minZ); } else { far = cap; near = minZ; }
+    }
+    near = Math.max(minZ, Math.floor(near / 2) * 2); far = Math.min(cap, Math.ceil((far + 4) / 4) * 4); const mode = far >= cap ? 'far' : 'top';
+    if (near === shadowFit.near && far === shadowFit.far && mode === shadowFit.mode) return;
+    shadowFit.near = near; shadowFit.far = far; shadowFit.mode = mode;
+    sg.lambda = mode === 'top' ? 0.15 : 0.85; // looking straight down the depth range is short, so nearly even slices; towards the horizon, log slices
+    sg.setMinMaxDistance((near - minZ) / range, (far - minZ) / range);
   }
   function pointLight(x, y, z, hex, intensity, range) { const l = new BABYLON.PointLight('pt', V3(x, y, z), scene); l.parent = Z.root; /* lights ride the zone root, so a rotated interior keeps its lamps */ l.diffuse = C3(hex); l.specular = C3(hex); l.intensity = intensity; l.range = range; l.falloffType = BABYLON.Light.FALLOFF_STANDARD; Z.lights.push(l); return l; }
 
@@ -2403,7 +2437,9 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     return (ROOFS[kind] = { mat: pm, tile: TILE });
   }
   function roofKind(c) { if (c.roofKind) return c.roofKind; const v = skinRng(c.seed * 7 + 11)(); return v < 0.4 ? 'membrane' : v < 0.7 ? 'gravel' : 'bitumen'; }
+  const aoFeet = []; // building footprints, darkened at the base after the city is built
   function slab(c) {
+    if (Z && Z.name === 'out') aoFeet.push([c.x, c.z, c.w, c.d]);
     const skin = facadeSkin(c);
     const core = new BABYLON.PBRMaterial('core_' + c.seed, scene); core.albedoTexture = skin.tA; core.metallicTexture = skin.tM;
     core.useRoughnessFromMetallicTextureGreen = true; core.useMetallnessFromMetallicTextureBlue = true; core.useRoughnessFromMetallicTextureAlpha = false; core.useAmbientOcclusionFromMetallicTextureRed = false; core.metallic = 1; core.roughness = 1;
@@ -3530,11 +3566,92 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     pointLight(-2, 3.4, 1, '#ffffff', 0.5, 12); pointLight(3, 3.4, -1, '#ffe0b0', 0.5, 11);
   }
 
+  /* ---------- the look: a post-processing chain, a sky dome and soft contact shading at the foot of every building, all priced for the frame budget
+     the shadow savings above bought. One HDR render target with 4x MSAA replaces the canvas's own MSAA, tone mapping and grading move from
+     every material into a single full-screen pass (so exposure and grading can follow the clock for free), and the bloom runs at half size ---------- */
+  let fx = null, sky = null;
+  const GRADE = { night: { sat: 18, shH: 225, shD: 38, shS: 30, hiH: 32, hiD: 26, hiS: 40, contrast: 1.22, exposure: 1.2, bloom: 0.32 }, day: { sat: 22, shH: 215, shD: 18, shS: 15, hiH: 40, hiD: 14, hiS: 25, contrast: 1.12, exposure: 1.34, bloom: 0.0 }, dusk: { sat: 30, shH: 260, shD: 30, shS: 30, hiH: 22, hiD: 40, hiS: 55 } };
+  function setupLook() {
+    try {
+      fx = new BABYLON.DefaultRenderingPipeline('fx', true, scene, [cam]);
+      if (engine.webGLVersion >= 2) fx.samples = 4; else fx.fxaaEnabled = true; // the same edge smoothing the canvas had, now inside the HDR target
+      fx.imageProcessingEnabled = true; const ip = fx.imageProcessing;
+      ip.toneMappingEnabled = true; ip.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES; ip.exposure = 1.2; ip.contrast = 1.18;
+      ip.vignetteEnabled = true; ip.vignetteWeight = 0.55; ip.vignetteStretch = 0.5; ip.vignetteCameraFov = cam.fov; ip.vignetteColor = new BABYLON.Color4(0.0, 0.0, 0.03, 0);
+      ip.colorCurvesEnabled = true; ip.colorCurves = new BABYLON.ColorCurves();
+      fx.bloomEnabled = true; fx.bloomThreshold = 0.82; fx.bloomWeight = GRADE.night.bloom; fx.bloomKernel = 48; fx.bloomScale = 0.5;
+      grade(0, 0, 1);
+    } catch (e) { console.warn('post-processing unavailable', e); fx = null; }
+    // the sky: one inverted sphere with a gradient that meets the fog at the horizon, a sun by day and stars by night
+    BABYLON.Effect.ShadersStore.zdSkyVertexShader = 'precision highp float;attribute vec3 position;uniform mat4 worldViewProjection;varying vec3 vDir;void main(){vDir=position;vec4 p=worldViewProjection*vec4(position,1.0);gl_Position=p.xyww;}';
+    BABYLON.Effect.ShadersStore.zdSkyFragmentShader = 'precision highp float;varying vec3 vDir;uniform vec3 zenith;uniform vec3 horizon;uniform vec3 sunDir;uniform vec3 sunCol;uniform float stars;uniform float time;' +
+      'float hash(vec3 p){p=fract(p*0.3183099+0.1);p*=17.0;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}' +
+      'void main(){vec3 d=normalize(vDir);float h=d.y;vec3 col=mix(horizon,zenith,pow(clamp(h,0.0,1.0),0.5));if(h<0.0)col=horizon*mix(1.0,0.55,clamp(-h*5.0,0.0,1.0));' +
+      'float sd=max(dot(d,-sunDir),0.0);col+=sunCol*(pow(sd,900.0)*6.0+pow(sd,10.0)*0.28);' +
+      'if(stars>0.001&&h>0.02){vec3 g=floor(d*220.0);float r=hash(g);float s=step(0.9978,r)*smoothstep(0.02,0.3,h);col+=vec3(0.85,0.9,1.0)*s*stars*(0.55+0.45*sin(time*2.0+r*80.0));}' +
+      'gl_FragColor=vec4(col,1.0);}';
+    const sm = new BABYLON.ShaderMaterial('skyMat', scene, { vertex: 'zdSky', fragment: 'zdSky' }, { attributes: ['position'], uniforms: ['worldViewProjection', 'zenith', 'horizon', 'sunDir', 'sunCol', 'stars', 'time'] });
+    sm.backFaceCulling = false; sm.disableDepthWrite = true; sm.fogEnabled = false;
+    sky = BABYLON.MeshBuilder.CreateSphere('sky', { diameter: 900, segments: 16 }, scene); sky.material = sm; sky.infiniteDistance = true; sky.isPickable = false; sky.applyFog = false; sky.parent = zones.out.root; sky.renderingGroupId = 0; sky.alwaysSelectAsActiveMesh = true;
+    sky.metadata = { zenith: C3('#04050c'), horizon: C3('#1a1630'), sunDir: new BABYLON.Vector3(0, -1, 0), sunCol: C3('#000000'), stars: 1 };
+    sm.onBind = () => { const k = sky.metadata; sm.setColor3('zenith', k.zenith); sm.setColor3('horizon', k.horizon); sm.setVector3('sunDir', k.sunDir); sm.setColor3('sunCol', k.sunCol); sm.setFloat('stars', k.stars); sm.setFloat('time', performance.now() / 1000); };
+    if (glow) glow.addExcludedMesh(sky);
+    buildContactShade();
+  }
+  // grading per time of day: d = daylight 0..1, g = golden hour 0..1, n = night 0..1. Every value here is a uniform, so changing it costs nothing
+  function grade(d, g, n) {
+    if (!fx) return; const ip = fx.imageProcessing, cc = ip.colorCurves, N = GRADE.night, D = GRADE.day, K = GRADE.dusk; const mix = (a, b, t) => a + (b - a) * t;
+    const w = Math.min(1, g * 1.2);
+    cc.globalSaturation = mix(mix(N.sat, D.sat, d), K.sat, w);
+    cc.shadowsHue = mix(mix(N.shH, D.shH, d), K.shH, w); cc.shadowsDensity = mix(mix(N.shD, D.shD, d), K.shD, w); cc.shadowsSaturation = mix(mix(N.shS, D.shS, d), K.shS, w);
+    cc.highlightsHue = mix(mix(N.hiH, D.hiH, d), K.hiH, w); cc.highlightsDensity = mix(mix(N.hiD, D.hiD, d), K.hiD, w); cc.highlightsSaturation = mix(mix(N.hiS, D.hiS, d), K.hiS, w);
+    // exposure and contrast are written to the configuration's own fields: its public setters tell every material to re-check itself (the hitch the
+    // old comment below describes), but with grading done in the post pass the materials never read these two values, only the pass does, each frame
+    const cfg = ip.imageProcessingConfiguration; const ex = mix(N.exposure, D.exposure, d), ct = mix(N.contrast, D.contrast, d);
+    if ('_exposure' in cfg && '_contrast' in cfg) { cfg._exposure = ex; cfg._contrast = ct; }
+    const bw = Math.round(N.bloom * n * 50) / 50; if (fx.bloomWeight !== bw) fx.bloomWeight = bw;
+  }
+  // a soft dark band on the ground round the foot of every building: the contact shading a ray-traced renderer would give, baked into one mesh
+  function buildContactShade() {
+    if (!aoFeet.length) return; const pos = [], col = [], idx = []; const W = 1.8, A = 0.55, y = 0.025;
+    const quad = (ax, az, bx, bz, cx, cz, dx, dz) => { const i = pos.length / 3; pos.push(ax, y, az, bx, y, bz, cx, y, cz, dx, y, dz); col.push(0, 0, 0, A, 0, 0, 0, A, 0, 0, 0, 0, 0, 0, 0, 0); idx.push(i, i + 2, i + 1, i, i + 3, i + 2, i, i + 1, i + 2, i, i + 2, i + 3); };
+    aoFeet.forEach(([x, z, w, d]) => { const x0 = x - w / 2, x1 = x + w / 2, z0 = z - d / 2, z1 = z + d / 2;
+      quad(x0, z0, x1, z0, x1 + W, z0 - W, x0 - W, z0 - W); quad(x1, z0, x1, z1, x1 + W, z1 + W, x1 + W, z0 - W);
+      quad(x1, z1, x0, z1, x0 - W, z1 + W, x1 + W, z1 + W); quad(x0, z1, x0, z0, x0 - W, z0 - W, x0 - W, z1 + W); });
+    const m = new BABYLON.Mesh('contactShade', scene); const vd = new BABYLON.VertexData(); vd.positions = pos; vd.colors = col; vd.indices = idx; vd.applyToMesh(m);
+    const mt = new BABYLON.StandardMaterial('contactShadeM', scene); mt.disableLighting = true; mt.emissiveColor = BABYLON.Color3.Black(); mt.diffuseColor = BABYLON.Color3.Black(); mt.specularColor = BABYLON.Color3.Black();
+    mt.alpha = 0.999; m.hasVertexAlpha = true; mt.disableDepthWrite = true; mt.backFaceCulling = false; m.useVertexColors = true; m.material = mt; m.isPickable = false; m.parent = zones.out.root; m.alphaIndex = -1;
+    if (glow) glow.addExcludedMesh(m);
+  }
+  // wet asphalt after dark: a quarter-size, blurred mirror of only the bright things (lit windows, neon, lamp heads, cars) is laid into the two road
+  // materials. It renders a short list at a sixteenth of the pixels, and by day it stops refreshing and fades out
+  let wet = null;
+  function buildWetRoads() {
+    const roads = ['asphalt', 'asphaltX'].map(k => scene.getMaterialByName(k)).filter(Boolean); if (!roads.length || !zones.out) return;
+    const skip = new Set(noGlow); const list = [];
+    scene.meshes.forEach(m => {
+      if (skip.has(m) || m === sky || !m.material || m.isAnInstance || !m.isDescendantOf(zones.out.root) && !/^body|^RB_|^Wolf3D/.test(m.name)) return;
+      if (/^(road|junction|sidewalk|plaza|decal|contactShade|merged_lines|merged_curbs)/.test(m.name)) return;
+      const mt = m.material; const e = mt.emissiveColor; const lit = !!mt.emissiveTexture || (e && e.r + e.g + e.b > 0.45) || m.name === 'body';
+      if (lit) list.push(m);
+    });
+    const mirror = new BABYLON.MirrorTexture('wetRoad', { ratio: 0.25 }, scene, true); mirror.mirrorPlane = BABYLON.Plane.FromPositionAndNormal(V3(0, 0.05, 0), V3(0, -1, 0));
+    mirror.renderList = list; mirror.blurKernel = 24; mirror.level = 0; mirror.activeCamera = cam; mirror.clearColor = new BABYLON.Color4(0, 0, 0, 1); // only the bright things add to the road, never the sky colour
+    const vis = []; mirror.getCustomRenderList = (layer, rl, n) => { const planes = scene.frustumPlanes; vis.length = 0; for (let i = 0; i < n; i++) { const m = rl[i]; if (m.isEnabled() && m.isVisible && m.isInFrustum(planes)) vis.push(m); } return vis; }; // only what the reflected camera can see
+    roads.forEach(m => { m.reflectionTexture = mirror; m.specularColor = new BABYLON.Color3(0.22, 0.22, 0.24); m.specularPower = 48; });
+    wet = { mirror, roads, on: true };
+  }
+  function wetness(n) { // n: 0 by day, 1 at night
+    if (!wet) return; const lv = Math.round(n * 0.75 * 20) / 20; if (wet.mirror.level !== lv) wet.mirror.level = lv;
+    const on = lv > 0 && state.zone === 'out'; if (on !== wet.on) { wet.on = on; wet.mirror.refreshRate = on ? 1 : 0; }
+  }
   function buildWorld() {
     // the prefiltered studio environment ships as base64 text so it can be served; it is decoded and handed to Babylon through a blob URL
     fetch('env/studio.env.txt').then(r => r.ok ? r.text() : Promise.reject(r.status)).then(b64 => { const bin = atob(b64.trim()); const bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); const url = URL.createObjectURL(new Blob([bytes])); scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(url, scene, '.env'); scene.environmentIntensity = 0.7; }).catch(() => { /* PBR falls back to lights only */ });
     buildOutdoor(); buildInterior(); buildCaduceus(); buildLab(); buildUtilities(); buildPolice(); buildMart(); buildExchange(); buildWorks(); spawnChips();
     if (!NULL_ENGINE) { glow = new BABYLON.GlowLayer('glow', scene, { blurKernelSize: 32 }); glow.intensity = 0.5; noGlow.forEach(m => glow.addExcludedMesh(m)); }
+    if (!NULL_ENGINE && zones.out.sg) cullShadowCasters(zones.out.sg);
+    if (!NULL_ENGINE) setupLook();
     setZone('out', true);
   }
   function setZone(name, silent) {
@@ -4168,7 +4285,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   let t = 0; let blinkT = 0; let mapT = 0;
   scene.onBeforeRenderObservable.add(() => {
     const dt = Math.min(engine.getDeltaTime() / 1000, 0.05); t += dt;
-    if (state.playing) { updatePlayer(dt); updateCamera(dt); updateInteract(); updateNPCs(dt, t); if (state.zone === 'police') updatePolice(dt); if (SW.open) updateSweep(dt); updateMart(dt, t); updateAct2(dt, t); if (state.zone === 'out') { updateTraffic(dt); updatePeds(dt); rollWheels(dt); updateCops(dt, t); resolveBodies(dt); } mapT += dt; if (mapT > 0.08) { mapT = 0; drawMap(t); } }
+    if (state.playing) { updatePlayer(dt); updateCamera(dt); if (!NULL_ENGINE) fitShadowCascades(); updateInteract(); updateNPCs(dt, t); if (state.zone === 'police') updatePolice(dt); if (SW.open) updateSweep(dt); updateMart(dt, t); updateAct2(dt, t); if (state.zone === 'out') { updateTraffic(dt); updatePeds(dt); rollWheels(dt); updateCops(dt, t); resolveBodies(dt); } mapT += dt; if (mapT > 0.08) { mapT = 0; drawMap(t); } }
     blinkT += dt; if (blinkT > 0.4) { blinkT = 0; const z = zones[state.zone]; if (z && z !== zones.out) z.meshes.forEach(m => { if (m.metadata && m.metadata.blink) m.setEnabled(!m.isEnabled()); }); }
   });
 
@@ -4274,7 +4391,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const lampsOn = (1 - sstep(0.25, 0.7, d)) * stutter; // lamps switch off a little after sunrise and back on before dark
     L.labLamps.forEach(([l, i0]) => { l.intensity = i0 * (dark ? 0.12 : 1); }); if (L.grow) L.grow.emissiveColor.copyFrom(dark ? BABYLON.Color3.Black() : L.growC);
     if (state.zone !== 'out') { // interiors keep their own lamps; only shared materials go back to their night values
-      if (glowDisc) glowDisc.alpha = 0.999; if (coneMat) coneMat.alpha = 0.999; if (glow) glow.intensity = 0.5; if (scene.environmentTexture) scene.environmentIntensity = 0.7; return;
+      if (glowDisc) glowDisc.alpha = 0.999; if (coneMat) coneMat.alpha = 0.999; if (glow) glow.intensity = 0.5; if (scene.environmentTexture) scene.environmentIntensity = 0.7; grade(0.55, 0, 0.45); wetness(0); return;
     }
     // sky and haze
     const warm = gold * 0.85;
@@ -4290,6 +4407,8 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const sunV = new BABYLON.Vector3(-Math.cos(s.az), -(0.3 + 0.7 * Math.max(0, s.elev)), -0.3).normalize();
     const dv = BABYLON.Vector3.Lerp(N.dirV, sunV, d).normalize(); L.dir.direction.copyFrom(dv); L.dir.position.copyFrom(dv.scale(-100));
     if (scene.environmentTexture) scene.environmentIntensity = (0.7 + 0.35 * d) * kx;
+    grade(d, gold, night); wetness(1 - sstep(0.25, 0.7, d));
+    if (sky) { const k = sky.metadata; k.horizon.copyFrom(scene.fogColor); k.zenith.copyFrom(mixC(mixC(C3('#03040b'), C3('#3d7fd0'), d), C3('#3a3a78'), warm * 0.5)); k.sunDir.copyFrom(sunV); k.sunCol.copyFrom(mixC(C3('#fff3dc'), C3('#ff8a40'), gold).scale(sstep(-0.08, 0.05, s.elev))); k.stars = 1 - sstep(0.0, 0.35, d); }
     setCarLamps(Math.round((0.12 + 1.48 * lampsOn) * 20) / 20); // car head and tail lights, stepped so the shared materials update a few times a dusk, not every frame
     // what the city switches on after dark
     // lamps are never switched off, only faded to nothing: enabling or disabling a light resyncs it with every mesh and changes how
@@ -5238,6 +5357,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     Object.values(AV.clips).forEach(clip => { clip.animationGroups.forEach(g => g.stop()); clip.meshes.forEach(m => m.dispose(false, false)); });
     // build every character's shaders now, while the loading screen is up, instead of the first time each one walks into view (a small jump mid-play)
     if (!NULL_ENGINE && AV.ready) { const seen = new Set(); Object.values(chars).forEach(ch => { if (ch.kind !== 'avatar') return; charMeshes(ch).forEach(m => { const mt = m.material; if (!mt || !mt.forceCompilation || seen.has(mt.uniqueId + ':' + (m.skeleton ? 1 : 0))) return; seen.add(mt.uniqueId + ':' + (m.skeleton ? 1 : 0)); try { mt.forceCompilation(m); } catch (e) { /* compiled on first draw instead */ } }); }); }
+    if (!NULL_ENGINE) try { buildWetRoads(); } catch (e) { console.warn('wet roads unavailable', e); }
     loaded = true; $('loadline').textContent = 'READY.'; $('enterBtn').disabled = false;
   }
   function begin(resume) {
@@ -5270,7 +5390,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (hot && hot.appearance) LOOK.current = normalizeLook(hot.appearance);
     if (hot && hot.save && hot.playing) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(hot)); } catch (e) { /* ignore */ } begin(true); }
   }
-  window.__zdDebug = { scene, store, chars, zones, state, cam, inter, cars, peds, ui, SFX, chips, CAM, LOOK, creator, CLOCK };
+  window.__zdDebug = { scene, store, chars, zones, state, cam, inter, cars, peds, ui, SFX, chips, CAM, LOOK, creator, CLOCK, look: () => ({ fx, sky, GRADE, grade }) };
   const hot = window.claude && window.claude.hot;
   if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
 })();
