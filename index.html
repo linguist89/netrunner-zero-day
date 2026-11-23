@@ -314,6 +314,12 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 #kpBox h3{margin:0;font:26px var(--font-display);letter-spacing:.08em;color:#c77dff}
 #kpIn{width:160px;text-align:center;font:34px var(--font-mono);letter-spacing:.3em;background:#0b0c12;border:2px solid var(--line);color:var(--ok);border-radius:4px;padding:6px 0 4px}
 #kpNote{font-size:12px;color:var(--mute);text-align:center;min-height:16px}
+#chBox{width:min(520px,100%);display:flex;flex-direction:column;gap:10px;padding:18px 20px}
+#chBox h3{margin:0;font:24px var(--font-display);letter-spacing:.06em;color:#5aa8ff}
+#chText p{margin:0 0 8px;line-height:1.5}
+#chOpts{display:flex;flex-direction:column;gap:8px}
+#chOpts .btn{text-align:left;white-space:normal;line-height:1.35}
+#chOpts .btn b{color:var(--mute);margin-right:8px}
 #fade{position:absolute;inset:0;background:#000;opacity:1;pointer-events:none;transition:opacity .4s ease}
 #fade.clear{opacity:0}
 @media (max-width:640px){#hints{display:none}#map{left:16px;bottom:auto;top:calc(16px + 150px + env(safe-area-inset-top,0px));width:104px;height:114px}#quest{width:min(230px,50vw);padding:8px 10px 10px}#quest .title{font-size:19px}#quest ul{font-size:12px}#cash .num{font-size:34px}#carName{top:92px;font-size:20px}#notes{top:calc(110px + env(safe-area-inset-top,0px));width:min(240px,calc(100vw - 32px))}#hudBar .tog kbd{display:none}}
@@ -428,7 +434,8 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
   <div id="inv" class="overlay off" role="dialog" aria-label="Backpack"><div id="invBox" class="card"><div id="invHead"><div><div class="eyebrow">Backpack · 3 rows of 3 slots</div><h3>What you are carrying</h3></div><div id="invCap">0 / 9<small>slots used</small></div></div><p id="invOver" hidden></p><div id="invBody"><div id="invGrid" role="group" aria-label="Backpack slots"></div><div id="invInfo"></div></div><p id="invPager"></p><button class="btn" type="button" id="invClose">Done</button></div></div>
   <div id="shop" class="overlay off" role="dialog" aria-label="Byte Mart"><div id="shopBox" class="card"><div id="shopHead"><div><div class="eyebrow">Byte Mart · hardware, software, caffeine</div><h3>What do you need?</h3></div><div><div id="shopCash">0 cr</div><div id="shopPack" class="eyebrow"></div></div></div><div id="shopList"></div><p class="note" id="shopNote">Everything here changes how the street or the terminals behave. Credits: quests, the gig board by the door, and the chips on the sidewalks.</p><button class="btn" type="button" id="shopClose">Done</button></div></div>
   <div id="phone" class="overlay off" role="dialog" aria-label="Phone"><div id="phoneBox"><div class="notch"></div><div id="phoneState">BURNER</div><div id="phoneCaller">...</div><div id="phoneMsgs" hidden></div><div class="row"><button class="btn" type="button" id="phoneAnswer">Answer (E)</button><button class="btn ghost" type="button" id="phoneShell">Open shell</button><button class="btn ghost" type="button" id="phoneClose">Close</button></div></div></div>
-  <div id="keypad" class="overlay off" role="dialog" aria-label="Keypad"><div id="kpBox" class="card"><div class="eyebrow">Building X · street door</div><h3>Keypad</h3><input id="kpIn" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Code"><div id="kpNote"></div><div class="row" style="display:flex;gap:8px"><button class="btn" type="button" id="kpGo">Enter</button><button class="btn ghost" type="button" id="kpClose">Step back</button></div></div></div>
+  <div id="keypad" class="overlay off" role="dialog" aria-label="Keypad"><div id="kpBox" class="card"><div class="eyebrow" id="kpEye">Building X · street door</div><h3>Keypad</h3><input id="kpIn" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Code"><div id="kpNote"></div><div class="row" style="display:flex;gap:8px"><button class="btn" type="button" id="kpGo">Enter</button><button class="btn ghost" type="button" id="kpClose">Step back</button></div></div></div>
+  <div id="choice" class="overlay off" role="dialog" aria-label="Choice"><div id="chBox" class="card"><div class="eyebrow" id="chEye"></div><h3 id="chTitle"></h3><div id="chText"></div><div id="chOpts"></div></div></div>
   <div id="jr" role="dialog" aria-label="Journal"><div id="jrHead"><button class="tab on" data-tab="quests" type="button">Missions</button><button class="tab" data-tab="log" type="button">Log</button><button class="tab" data-tab="notebook" type="button">Notebook</button><button class="x" type="button" id="jrClose">Close</button></div><div id="jrBody"></div></div>
 
   <div id="fade"></div>
@@ -999,6 +1006,116 @@ Oct  9 03:12:44 historian: catalogue/export pulled by 10.0.3.1 (remote-support b
     L.text = pre + L.text;
   }
 
+  /* ---- Meridian Police: the Cybercrime Unit's evidence workstation (digital forensics, chain of custody) ---- */
+  const DFIR_EV = {
+    'sweep-report.txt': F(`
+SWEEP-4 field report, handed in at the front desk
+  1. Building A, under Dara Okafor's desk: RF bug, battery dead. Left in place, photographed.
+  2. Building X, extension 4 line: inline listening device. Left in place, photographed.
+Finder touched nothing. Times written down at the scene.
+`),
+    'cdr-extract.csv': F(`
+start,src,dst,duration,disposition
+2026-10-02T03:12:40Z,1337,10.0.3.1,41,ANSWERED
+2026-10-03T03:12:40Z,1337,10.0.3.1,39,ANSWERED
+2026-10-04T03:12:40Z,1337,10.0.3.1,44,ANSWERED
+`),
+    'historian-extract.log': F(`
+2026-09-30T03:12:44Z historian: catalogue/export pulled by 10.0.3.1 (remote-support box)
+2026-10-01T03:12:44Z historian: catalogue/export pulled by 10.0.3.1 (remote-support box)
+2026-10-03T03:12:02Z plc-water: setpoint 2.1 -> 9.9 by remote 10.0.3.1 (no ticket)
+`)
+  };
+  const DFIR_MANIFEST = Object.keys(DFIR_EV).map(n => sha256(DFIR_EV[n].text) + '  evidence/' + n).join('\n') + '\n';
+  const DFIR_PHONE = F(`
+Extraction: prepaid handset, found in a bin behind Byte Mart, bagged as MP-044-07
+IMEI 35-209900-176148-1   SIM: none   battery: 4 %
+contacts: 0
+calls:  2026-10-04T03:12:40Z  outgoing  ext 1337 (Meridian Exchange)  44 s
+texts:  2026-10-04T03:14:02Z  "done. she is asking about 10.0.3.1"
+`);
+  const FS_DFIR = D({
+    etc: D({ hostname: F('dfir\n'), motd: F('Meridian Police Cybercrime Unit. Evidence workstation. Work on copies. Hash everything.\n') }),
+    home: D({ visitor: D({
+      intake: D({ 'README.txt': F(`
+CYBERCRIME UNIT · EVIDENCE INTAKE · CHAIN OF CUSTODY
+Every piece of digital evidence has a story, and the story has to be unbroken:
+who found it, when, where it has been and who touched it since.
+
+1. Never work on the original. The original goes in the locker. You work on a copy.
+2. Fingerprint the copy the moment it arrives:   sha256sum <file>
+3. Write the fingerprint in the manifest. From then on, anyone can prove the file is unchanged:
+                                                 sha256sum -c evidence/MANIFEST.sha256
+4. One changed byte gives a completely different fingerprint. A FAILED line means stop and report.
+5. Timelines: use ISO dates (2026-10-04T23:40:12Z). They sort correctly as plain text.
+                                                 grep 03:12 evidence/all-sources.log | sort
+6. Pin the finished timeline on the wall so the next shift can see it.
+`) }),
+      evidence: D(Object.assign({}, DFIR_EV, {
+        'MANIFEST.sha256': F(DFIR_MANIFEST),
+        'all-sources.log': F(`
+2026-10-03T03:12:02Z  plc-water   setpoint 2.1 -> 9.9 by remote 10.0.3.1
+2026-10-04T23:40:12Z  caduceus    Accepted publickey for dara from 10.0.1.10
+2026-10-02T03:12:40Z  exchange    ext 1337 -> 10.0.3.1, call 41 s
+2026-09-30T03:12:44Z  styxd       STYX-ROOT-00000000 served to 10.0.3.1
+2026-10-04T14:05:10Z  caduceus    crontab edited by ops
+2026-10-01T03:12:44Z  historian   catalogue/export pulled by 10.0.3.1
+2026-10-04T03:12:40Z  exchange    ext 1337 -> 10.0.3.1, call 44 s
+2026-10-05T09:15:40Z  records     MP-2610-044 evidence added
+2026-10-02T03:12:02Z  caduceus    Accepted publickey for ops from 10.0.0.254
+`),
+        new: D({ 'phone-dump.txt': DFIR_PHONE })
+      })),
+      'cheat.txt': F('cat intake/README.txt\nsha256sum -c evidence/MANIFEST.sha256\nsha256sum evidence/new/phone-dump.txt\ngrep 03:12 evidence/all-sources.log | sort\n')
+    }) }),
+    tmp: D({})
+  });
+
+  /* ---- Meridian Police: the records room terminal (Blue Wall, an authorised covert engagement) ---- */
+  const REC_AUTH_ORIG = `Oct  4 23:31:05 caduceus sshd[4188]: Accepted publickey for julien from 10.0.0.61 port 50112 ssh2
+Oct  4 23:40:12 caduceus sshd[4231]: Accepted publickey for dara from 10.0.1.10 port 51022 ssh2
+Oct  4 23:58:31 caduceus sshd[4231]: Disconnected from user dara 10.0.1.10 port 51022
+Oct  5 03:12:02 caduceus sshd[4135]: Accepted publickey for ops from 10.0.0.254 port 51205 ssh2
+`;
+  const REC_PHOTOS = F('photos.txt: 6 photographs of Building A, taken 2026-10-05 by P. Holt. Desk, monitor still logged in, cold coffee.\n');
+  const FS_RECORDS = D({
+    etc: D({ hostname: F('records\n') }),
+    srv: D({ evidence: D({ 'MP-2610-044': D({
+      'auth-export.log': F(REC_AUTH_ORIG.split('\n').filter(l => !/for dara from/.test(l)).join('\n')),
+      'photos.txt': REC_PHOTOS,
+      'MANIFEST.sha256': F(sha256(REC_AUTH_ORIG) + '  auth-export.log\n' + sha256(REC_PHOTOS.text) + '  photos.txt\n'),
+      'case-notes.txt': F(`
+MP-2610-044  OKAFOR, Dara  (missing person)
+2026-10-05  Opened. Last seen Building F, Sunday 4 Oct, 23:40 (witness: J. Moreau).
+2026-10-05  Caduceus auth log exported, sealed and hashed by P. Holt.
+2026-10-06  NOTE (T. Vance): log export incomplete at source. Last-seen time cannot be confirmed.
+            Recommend case is downgraded to "voluntary absence".
+`)
+    }) }) }),
+    var: D({ log: D({ 'evidence-audit.log': F(`
+2026-10-05T09:02:11Z CREATE MP-2610-044 case opened (missing person: OKAFOR, Dara), by pholt from 10.0.4.20
+2026-10-05T09:15:40Z ADD MP-2610-044 auth-export.log (from Caduceus, sealed, sha256 recorded), by pholt from 10.0.4.20
+2026-10-05T09:16:02Z ADD MP-2610-044 photos.txt, by pholt from 10.0.4.20
+2026-10-05T11:30:00Z VIEW MP-2610-044, by alind from 10.0.4.31
+2026-10-05T14:20:19Z ADD MP-2610-039 cctv-index.txt (bike theft, Row), by pholt from 10.0.4.20
+2026-10-06T03:12:44Z EDIT MP-2610-044 auth-export.log: 1 line removed, by tvance from 10.0.3.1
+2026-10-06T03:13:02Z EDIT MP-2610-044 case-notes.txt: note added, by tvance from 10.0.3.1
+2026-10-06T08:45:10Z VIEW MP-2610-039, by tvance from 10.0.4.12
+2026-10-07T10:02:33Z VIEW MP-2610-044, by pholt from 10.0.4.20
+2026-10-08T03:12:44Z VIEW MP-2610-044, by tvance from 10.0.3.1
+`) }) }),
+    home: D({ pholt: D({
+      'notes.txt': F(`
+Pia's desk notes
+- Printer in the corridor jams again. Rowline Systems are sending someone. Work order RS-4471.
+- Ask Sgt Vance why he logs in to the evidence system at night. Night shift does not touch records.
+- Screen lock keeps kicking me out. Turned it off. (Remind me to turn it back on.)
+`),
+      'cheat.txt': F('grep MP-2610-044 /var/log/evidence-audit.log\ncd /srv/evidence/MP-2610-044\nsha256sum -c MANIFEST.sha256\ncat case-notes.txt\n')
+    }) }),
+    tmp: D({})
+  });
+
   const HOSTS = {
     phone: { id: 'phone', fs: FS_PHONE, user: 'burner', hostname: 'burner', ip: '10.0.9.9', home: '/home/burner', banner: 'burner (prepaid, no name)\n1 new message. Type: cat messages/1.txt\n' },
     xch: { id: 'xch', fs: FS_XCH, user: 'lineman', hostname: 'exchange', ip: '10.0.2.1', home: '/home/lineman', banner: 'exchange (10.0.2.1) Asterisk 20 / Linux 6.1.0-styx\nMeridian Exchange lineman console. Four extensions, one of them not mine.\nYou have 1 unread message. Type: cat /var/mail/lineman\nStart with: cat /etc/asterisk/sip.conf\n' },
@@ -1008,6 +1125,8 @@ Oct  9 03:12:44 historian: catalogue/export pulled by 10.0.3.1 (remote-support b
     lab: { id: 'lab', fs: FS_LAB, user: 'rosa', hostname: 'lab-h', ip: '10.0.0.80', home: '/home/rosa', banner: 'lab-h (10.0.0.80) Linux 6.1.0-styx\nSolarpunk Lab workshop box. The handouts live in workshop/.\nls workshop, then cat workshop/04-ghosts.md for the last one.\n' },
     util: { id: 'util', fs: FS_UTIL, user: 'svc', hostname: 'db', ip: '10.0.0.200', home: '/home/svc', banner: 'db (10.0.0.200) Linux 6.1.0-styx\nMeridian Utilities service console. The hum is normal.\nStart with: ps aux. The laminated card on the cart lists the rest.\n' },
     plant: { id: 'plant', fs: FS_PLANT, user: 'eng', hostname: 'eng-ws', ip: '10.1.0.10', home: '/home/eng', banner: 'eng-ws (10.1.0.10) Linux 6.1.0-styx\nMeridian Works engineering workstation. The plant is live: read, do not touch.\nStart with: cat README\n' },
+    dfir: { id: 'dfir', fs: FS_DFIR, user: 'visitor', hostname: 'dfir', ip: '10.0.4.40', home: '/home/visitor', banner: 'dfir (10.0.4.40) Linux 6.1.0-styx\nMeridian Police Cybercrime Unit evidence workstation. Visitor session, read only.\nStart with: cat intake/README.txt\n' },
+    records: { id: 'records', fs: FS_RECORDS, user: 'pholt', hostname: 'records', ip: '10.0.4.20', home: '/home/pholt', banner: 'records (10.0.4.20) Meridian Police evidence system\nSession: pholt (logged in since 08:58, screen lock: OFF)\nStart with: cat notes.txt\n' },
     ghost: { id: 'ghost', fs: FS_GHOST, user: 'ghost', hostname: 'ghost', ip: '10.0.0.254', home: '/home/ghost', banner: 'Welcome, investigator.\nghost (10.0.0.254). You found the door. It was never locked.\nStart with: cat READ_ME\n' }
   };
 
@@ -1303,6 +1422,36 @@ Oct  9 03:12:44 historian: catalogue/export pulled by 10.0.3.1 (remote-support b
         { id: 'o1', text: 'Find the plant’s calls to the hidden address', cmd: 'grep 10.0.3.1 /var/log/historian.log', sig: 'beat from 10.0.3.1', needs: ['grep'], hint: 'grep 10.0.3.1 /var/log/historian.log. A pull at 03:12, then a beat every half hour.' },
         { id: 'o2', text: 'Find when it started', cmd: 'grep 10.0.3.1 /var/log/historian.log | head -n 1', sig: 'Sep 30 03:12:44', needs: ['head'], hint: 'Logs run oldest first: grep 10.0.3.1 /var/log/historian.log | head -n 1.' },
         { id: 'o3', text: 'Report the plant to Meridian Police', sig: 'REPORT plant', hint: 'Take it to the front desk at Meridian Police, records intact.' }
+      ] },
+
+    /* ---- Meridian Police: the Cybercrime Unit (blue team, digital forensics) and Blue Wall (an authorised, covert physical engagement) ---- */
+    { id: 'pol_custody', title: 'Chain of Custody', category: 'Forensics', giver: 'lind', after: 'quest_i3_ghost', location: 'Meridian Police, the Cybercrime Unit', reward: 110, side: true,
+      pitch: ['I am not meant to be back until the 19th. The Okafor file would not wait, so here I am, on a Saturday, with a backlog of evidence nobody has checked in properly.', 'You have been handing us clean reports. Come and help me with the boring part, the part that wins cases. Your visitor badge has the door code printed on it.'],
+      start: 'Detective Lind has reopened the Cybercrime Unit early. Press the intercom by the secure door in the Meridian Police lobby.',
+      journalStart: 'Detective Aksel Lind runs the Cybercrime Unit at Meridian Police. He gave you a visitor badge with the door code on it. Inside: check the evidence in properly, fingerprint the new item, build the 03:12 timeline and pin it on the wall.',
+      journalDone: 'Evidence checked in the way it holds up: originals locked away, copies hashed and verified, a new phone dump fingerprinted, and one timeline of every 03:12 event, sorted by ISO date. It starts on Sep 30 at 03:12:44, four days before Dara vanished, and every line points to 10.0.3.1. One more thing: the phone dump says someone told 10.0.3.1 that Dara was asking about it.',
+      objectives: [
+        { id: 'o1', text: 'Open the Cybercrime Unit door with your visitor badge', sig: 'BADGE cyber', hint: 'The code is printed on the badge Lind gave you. Your notebook (P) has it. Use the keypad by the secure door.' },
+        { id: 'o2', text: 'Read the intake procedure', cmd: 'cat intake/README.txt', sig: 'CHAIN OF CUSTODY', hint: 'On the evidence workstation (dfir): cat intake/README.txt.' },
+        { id: 'o3', text: 'Verify the evidence copies against the manifest', cmd: 'sha256sum -c evidence/MANIFEST.sha256', sig: 'evidence/sweep-report.txt: OK', needs: ['-c'], hint: 'sha256sum -c evidence/MANIFEST.sha256 checks every file against the fingerprint written when it arrived.' },
+        { id: 'o4', text: 'Fingerprint the new phone dump before it is filed', cmd: 'sha256sum evidence/new/phone-dump.txt', sig: sha256(DFIR_PHONE.text).slice(0, 24), needs: ['sha256sum'], hint: 'sha256sum evidence/new/phone-dump.txt. That 64-character fingerprint goes in the manifest.' },
+        { id: 'o5', text: 'Build the 03:12 timeline in date order', cmd: 'grep 03:12 evidence/all-sources.log | sort', sig: '2026-09-30T03:12:44Z  styxd', needs: ['sort'], hint: 'grep 03:12 evidence/all-sources.log | sort. ISO dates sort correctly as plain text.' },
+        { id: 'o6', text: 'Pin the timeline on the wall', sig: 'PIN timeline', hint: 'The timeline wall at the back of the Cybercrime Unit.' }
+      ] },
+    { id: 'pol_bluewall', title: 'Blue Wall', category: 'Red team', giver: 'achebe', after: 'pol_custody', location: 'The park fountain, then Meridian Police (covert)', reward: 200, side: true,
+      pitch: ['Do not look at me. Look at the fountain. My name is Ngozi Achebe, Meridian Integrity Office. We investigate the police, and nobody in that station can know I spoke to you.', 'Someone inside is changing the evidence in the Okafor case. I am hiring you to test the station and find out who. You will have a signed letter, a scope and a phone number. Read all of it.'],
+      start: 'A woman by the park fountain wants a quiet word. Talk to Commissioner Achebe.',
+      journalStart: 'Commissioner Achebe of the Meridian Integrity Office has hired you for a covert, authorised test of Meridian Police. The letter in your pocket says what is in scope (the lobby, the staff corridor and the records room, tonight) and what is not (the armoury, the cells, people’s personal devices, impersonating police). If you are caught, stop and show the letter.',
+      journalDone: 'Engagement complete. You got in under a contractor pretext and the records room fell to a held door. Inside, the audit log showed Sergeant Teodor Vance removing Dara’s last login from the sealed evidence copy at 03:12 on Oct 6, from 10.0.3.1, and the manifest proved the file had been changed. The report went to the Commissioner with every hash intact. The station now calls every contractor back on a number it already has, and nobody holds the records door for anyone.',
+      objectives: [
+        { id: 'o1', text: 'Read the authorisation letter', sig: 'READ letter', hint: 'Talk to Commissioner Achebe at the park fountain. Read the letter to the end.' },
+        { id: 'o2', text: 'Recon: watch the station’s shift change from the street', sig: 'RECON shift', hint: 'Stand across Meridian Row from the station. The spot is marked when the quest is active.' },
+        { id: 'o3', text: 'Recon: read the public notice board in the lobby', sig: 'RECON notice', hint: 'Inside Meridian Police, the board on the east wall. Note the names and the rules.' },
+        { id: 'o4', text: 'Get into the staff corridor (pretext or tailgate)', sig: 'STAFF in', hint: 'Ring the front-desk bell and use the cover story from your letter, or follow an officer through the staff door.' },
+        { id: 'o5', text: 'Get into the records room', sig: 'ENTER records', hint: 'The clerk badges in and out all night. Doors that stay open a second too long are a finding. A Proxmark cloner also works.' },
+        { id: 'o6', text: 'Find who edited case MP-2610-044', cmd: 'grep MP-2610-044 /var/log/evidence-audit.log', sig: 'by tvance from 10.0.3.1', needs: ['grep'], hint: 'On the records terminal: grep MP-2610-044 /var/log/evidence-audit.log.' },
+        { id: 'o7', text: 'Prove the evidence copy was changed', cmd: 'sha256sum -c MANIFEST.sha256', sig: 'auth-export.log: FAILED', needs: ['-c'], hint: 'cd /srv/evidence/MP-2610-044, then sha256sum -c MANIFEST.sha256.' },
+        { id: 'o8', text: 'Debrief the Commissioner', sig: 'REPORT bluewall', hint: 'Back at the fountain. Tell her what worked, what staff should have caught, and what to fix.' }
       ] }
   ];
 
@@ -1387,8 +1536,12 @@ Oct  9 03:12:44 historian: catalogue/export pulled by 10.0.3.1 (remote-support b
     linebook: { title: 'Lineman’s notebook', style: 'paper', text: 'A grease-stained notebook, open at the last page:\n\n1337 is NOT mine. Reyes put it in on install day. Master key is his.\nRegisters from 10.0.3.1. Cannot see that subnet. Nobody can.\n03:12, every night, it dials out. Now it dials her phone.\n\nThe same notes are on the console: cat ~/notebook.txt. The dial plan names him: grep 1337 /etc/asterisk/extensions.conf', discovery: { id: 'XCH-NOTEBOOK', title: 'The lineman’s notebook', text: 'Extension 1337 was installed by someone called Reyes on install day, who kept the master key and registers from 10.0.3.1, a subnet nobody on the Row can see.' } },
     payphone: { title: 'Payphone', style: 'plain', text: 'A coin payphone bolted to the exchange wall, the last one on the Row. The receiver is off the hook and warm. Scratched into the paint above the keypad: 0312 OPENS THE DOOR. 1337 OPENS NOTHING YOU WANT OPENED.' },
     relays: { title: 'Relay cabinet', style: 'plain', text: 'A wall of electromechanical relays that still click every time a call goes through, which tonight is never. A yellowed card inside the door lists the extensions in fountain pen: 1001, 1002, 1003. A fourth line has been added in ballpoint and crossed out twice.' },
-    policeNotice: { title: 'Notice on the station door', style: 'paper', text: 'MERIDIAN POLICE · FRONT DESK\nOpen 24 hours. Ring the bell and wait.\n\nCYBERCRIME DESK: closed until Monday 19 October.\n\nMISSING PERSON: OKAFOR, Dara. Last seen Sunday 4 October, 23:40, Building F (Caduceus Analytics). Report filed Monday 5 October, ref. MP-2610-044. Status: open.\n\nTo report a cyber incident, write down what you saw, the date and the time it happened, and the address or host. Keep the logs. Do not log in to systems you do not own to check for yourself.', discovery: { id: 'POLICE-MP-044', title: 'Missing person report MP-2610-044', text: 'Meridian Police list Dara Okafor as missing: last seen Sunday 4 October at 23:40 at Caduceus (Building F), reported Monday 5 October. The cybercrime desk is closed until 19 October.' } },
+    policeNotice: { title: 'Notice on the station door', style: 'paper', text: 'MERIDIAN POLICE · FRONT DESK\nOpen 24 hours. Ring the bell and wait.\n\nCYBERCRIME DESK: closed until Monday 19 October.\n\nMISSING PERSON: OKAFOR, Dara. Last seen Sunday 4 October, 23:40, Building F (Caduceus Analytics). Report filed Monday 5 October, ref. MP-2610-044. Status: open.\n\nTo report a cyber incident, write down what you saw, the date and the time it happened, and the address or host. Keep the logs. Do not log in to systems you do not own to check for yourself.\n\nVISITORS AND CONTRACTORS: sign in at the front desk. Contractors are escorted at all times.\nRecords and evidence enquiries: P. Holt, records clerk (days).\nNight shift: Sgt T. Vance (evidence), Officer B. Tamm.', discovery: { id: 'POLICE-MP-044', title: 'Missing person report MP-2610-044', text: 'Meridian Police list Dara Okafor as missing: last seen Sunday 4 October at 23:40 at Caduceus (Building F), reported Monday 5 October. The cybercrime desk is closed until 19 October.' } },
     rack3: { title: 'Rack 3', style: 'plain', text: 'A full-height rack behind a mesh door. Two database servers, a switch, and a small grey box on the top shelf with no label and a blinking amber light. Its network cable goes nowhere you can see.' },
+    timelineWall: { title: 'Timeline wall', style: 'paper', text: 'A long strip of whiteboard across the back wall of the Cybercrime Unit, ruled into days from Sep 30 to Oct 6. Lind has written one rule across the top in red: ISO DATES ONLY. EVERY LINE HAS A SOURCE.\n\nPinned below it, the evidence bags and their manifest numbers, each with a hash written on the tag in tiny handwriting.' },
+    evidenceBags: { title: 'Evidence intake table', style: 'plain', text: 'Sealed bags in a neat row, each with a custody label: who found it, when, where, who has handled it since. A dead RF bug from Building A. A phone in a bag marked MP-044-07. A printout of a call log. Nothing is opened at this table: the originals go to the locker and only copies go near a computer.' },
+    bwLetter: { title: 'Letter of authorisation', style: 'paper', text: 'MERIDIAN INTEGRITY OFFICE · AUTHORISATION FOR A COVERT SECURITY TEST\n\nThe bearer is engaged by the Integrity Office to test the physical and procedural security of Meridian Police station, Meridian Row, tonight only, 19:00 to 05:00.\n\nIN SCOPE: the public lobby, the staff corridor, the records room and the records terminal (read only). Cover story: contractor from Rowline Systems, work order RS-4471 (printer, staff corridor).\n\nOUT OF SCOPE: the armoury, the holding cells, the Cybercrime Unit, any person’s own phone or computer, and anything that harms people or property. Do not impersonate a police officer. Do not take or change any evidence.\n\nIF CHALLENGED: stop, stay calm, show this letter, and ask them to call the number below. Do not run.\n\nVerification: Commissioner N. Achebe, 555-0199 (24 h).\nSigned: N. Achebe, Commissioner.   Countersigned: R. Castellano, City Prosecutor.', discovery: { id: 'BW-LETTER', title: 'Blue Wall: letter of authorisation', text: 'Covert test of Meridian Police for the Integrity Office. In scope: lobby, staff corridor, records room and terminal (read only). Out of scope: armoury, cells, Cybercrime Unit, personal devices, impersonating police. Cover: Rowline Systems, work order RS-4471. If caught: stop, show the letter, verification 555-0199.' } },
+    shiftChange: { title: 'Shift change', style: 'plain', text: 'You watch the station from across the Row for a while. At the turn of the hour two officers come out, two go in. Every one of them badges in at the side door, but the second one catches the door behind the first and walks straight through.\n\nThe night man on the desk is a woman with reading glasses who waves at everyone she knows. A van with ROWLINE SYSTEMS on the side is parked outside the bakery: so that is what the contractors look like. Lanyards are blue for staff, yellow for visitors.', discovery: { id: 'BW-RECON-SHIFT', title: 'Blue Wall recon: the shift change', text: 'Staff badge in at the side door, but people hold the door for each other. Staff lanyards are blue, visitors yellow. Rowline Systems vans service the station.' } },
     hmi: { title: 'HMI (operator screen)', style: 'plain', text: 'The big operator screen for the whole plant. Green mimic diagrams of the water skid, the substation, the boiler and the bottling line, with live numbers ticking beside each. One number on the water skid is boxed in red and flashing: the chemical dose, reading far higher than the green band printed next to it. Everything else is calm. Mara keeps a printed card of the safe ranges taped to the frame.' },
     oneline: { title: 'One-line diagram', style: 'paper', text: 'A laminated board on the control-room wall. City power comes in through the substation, feeds a plant bus, and the bus feeds the water skid, the boiler house and the bottling line. Every process reports down to the historian and up to this screen. Drawn in bold across the top, above everything else: THE SAFETY SYSTEM, with a note in Agnes’s hand: "stands alone. not on the network. that is the point."' },
     safetypanel: { title: 'Safety panel', style: 'plain', text: 'A plain steel cabinet with a key lock, a big red mushroom button, and a single green lamp that means armed. There is no screen and no network cable, only thick wiring straight to the valves and breakers. A faded label: INDEPENDENT PROTECTION LAYER. TRIP TESTS QUARTERLY. It answers to nobody online, which is exactly why Agnes trusts it.' },
@@ -1872,6 +2025,24 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     },
     bram(st) {
       return ['Thirty years I have watched these dials. They do not lie, the dials. Screens lie.', 'Plant does something funny in the small hours, you know. Same small hours the whole street keeps on about. Nobody listens to the night man.', 'Tea is over there if Mara left any.'];
+    },
+    lind(st) {
+      const c = st.quests.pol_custody, b = st.quests.pol_bluewall;
+      if (c === 'locked') return ['Cybercrime Unit. We are closed until the 19th. If it is urgent, ring the bell at the front desk and leave the logs.'];
+      if (c === 'available') return ['Lind, Cybercrime Unit. You are the one who keeps bringing in reports with the times written down. That is rarer than you would think.'];
+      if (c === 'active' && !st.flags.cyberDoor) return ['The code is on your badge. Four digits, the day I was meant to be back. Keypad on the right of the door.'];
+      if (c === 'active') return ['Workstation at the back, logged in as visitor. Read the intake note first, then check, fingerprint, sort.', 'Originals in the locker, copies on the screen. Everything else is opinion.'];
+      if (b === 'completed') return ['Records has a new rule: everybody badges in themselves, even me. Somebody wrote a very good report.', 'Vance has been moved off nights, pending. I am not allowed to say more. I think you know more than I do anyway.'];
+      return ['Good work on the timeline. Every 03:12 line, one source each. Judges like that.', 'Odd thing: the Okafor case notes say the Caduceus export was incomplete. My copy was not. I have asked records about it twice.'];
+    },
+    achebe(st) {
+      const b = st.quests.pol_bluewall, d = st.done.pol_bluewall || [];
+      if (b === 'available') return ['Keep feeding the pigeons. We are two strangers who happen to like the same fountain.'];
+      if (b === 'active' && !d.includes('o1')) return ['Read the letter. All of it. The scope is not a formality: it is the difference between a test and a crime.'];
+      if (b === 'active' && d.includes('o6') && d.includes('o7')) return ['You have it? Vance, from that address, at 03:12. And the hash proves the copy was changed after it was sealed.', 'Then let us do the part that actually makes the station safer. Tell me what went wrong for them.'];
+      if (b === 'active') return ['Recon first, then the cover story, then the records room. Read only. If anyone challenges you, stop and show the letter. I will answer the phone.'];
+      if (b === 'completed') return ['Sergeant Vance is suspended while we investigate. The evidence you found is intact, which means it is usable.', 'And the station has fixed the three things you found. That is the real result of a test like this.'];
+      return ['...'];
     }
   };
 
@@ -3090,32 +3261,161 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     decal(texMat('utilSign', textTex('MERIDIAN UTILITIES  ·  THE HUM IS NORMAL', { w: 1024, h: 96, color: '#ffb454' }), { unlit: true, alpha: true, emissive: '#ffffff' }), 4.0, 0.38, -1.0, 0.02, -4.4);
   }
 
+  // Meridian Police: a public lobby, then a glass partition with two secure doors. West: the staff corridor and the records room.
+  // East: the Cybercrime Unit. South-facing like H, D and X, so the root is not turned and world = (IXP + lx, lz).
+  const POL = { doors: {}, walkers: [], X0: -8, X1: 8, Z0: -6, Z1: 12, PART: 1.6, REC: 7 };
   function buildPolice() {
     Z = makeZone('police', IXP);
     addLights(Z, { hemi: 0.72, sky: '#dbe8ff', groundCol: '#252b3d', dir: V3(-0.25, -1, -0.4), dirI: 0.55, dirCol: '#bcd4ff', dirPos: V3(IXP + 5, 8, -4), shadowRes: 1536 });
-    // South-facing civic lobby: local +z points into the station and the threshold stays clear.
-    const X0 = -8, X1 = 8, Z0 = -6, Z1 = 6, H = 4.2;
-    const wallM = mat('policeWall', '#b9c1cf', { spec: 0.12 }); const floorM = texMat('policeFloor', dtex('policeFloor', 256, 256, (c, W, Hh) => { c.fillStyle = '#394354'; c.fillRect(0, 0, W, Hh); c.strokeStyle = 'rgba(220,235,255,.16)'; c.lineWidth = 3; for (let i = 0; i <= W; i += 64) { c.beginPath(); c.moveTo(i, 0); c.lineTo(i, Hh); c.stroke(); c.beginPath(); c.moveTo(0, i); c.lineTo(W, i); c.stroke(); } }, { mips: true, u: 7, v: 5 }), { spec: 0.2 });
-    room({ name: 'P', X0, X1, Z0, Z1, H, wallM, floorM, door: 0, windows: [[-6, 1.0, Z0 + 0.1, 2.7, 1.5, 0, 'front'], [X1 - 0.1, 1.0, 2, 2.2, 1.5, PI / 2, 'side']] });
+    const { X0, X1, Z0, Z1, PART, REC } = POL, H = 4.2;
+    const wallM = mat('policeWall', '#b9c1cf', { spec: 0.12 }); const floorM = texMat('policeFloor', dtex('policeFloor', 256, 256, (c, W, Hh) => { c.fillStyle = '#394354'; c.fillRect(0, 0, W, Hh); c.strokeStyle = 'rgba(220,235,255,.16)'; c.lineWidth = 3; for (let i = 0; i <= W; i += 64) { c.beginPath(); c.moveTo(i, 0); c.lineTo(i, Hh); c.stroke(); c.beginPath(); c.moveTo(0, i); c.lineTo(W, i); c.stroke(); } }, { mips: true, u: 7, v: 8 }), { spec: 0.2 });
+    room({ name: 'P', X0, X1, Z0, Z1, H, wallM, floorM, door: 0, windows: [[-6, 1.0, Z0 + 0.1, 2.7, 1.5, 0, 'front'], [X1 - 0.1, 1.0, 9.5, 2.2, 1.5, PI / 2, 'side']] });
     const navy = mat('policeNavy', '#202c4a', { spec: 0.3 }); const steel = mat('policeSteel', '#8d98a8', { spec: 0.45 }); const glass = mat('policeGlass', '#9ec9ed', { alpha: 0.28, spec: 0.8 });
-    // Front desk at the civic lobby, facing south toward the entry.
+    const sign = (text, w, x, y, z, ry, col) => plane(texMat('polSign' + text, textTex(text, { w: 512, h: 96, color: '#ffffff', bg: col || '#1d3a6e', font: '600 34px "JetBrains Mono", monospace', lineH: 48 }), { unlit: true, emissive: '#ffffff' }), w, w * 96 / 512, x, y, z, { ry, single: true });
+    // a partition run along x (at z) or along z (at x): a 1.0 m navy dado with 1.4 m of glass above, 2.4 m in all (low enough for the overhead camera)
+    const partX = (x0, x1, z) => { const w = x1 - x0, cx = (x0 + x1) / 2; box(navy, w, 1.0, 0.12, cx, 0, z, { collide: true, cast: false }); box(glass, w, 1.4, 0.06, cx, 1.0, z, { collide: true, cast: false }); box(steel, w, 0.06, 0.14, cx, 2.4, z, { cast: false }); };
+    const partZ = (z0, z1, x) => { const d = z1 - z0, cz = (z0 + z1) / 2; box(navy, 0.12, 1.0, d, x, 0, cz, { collide: true, cast: false }); box(glass, 0.06, 1.4, d, x, 1.0, cz, { collide: true, cast: false }); box(steel, 0.14, 0.06, d, x, 2.4, cz, { cast: false }); };
+    // a sliding secure door in a partition along x: it slides west into the partition beside it; a reader with a status LED on the public (south) side
+    const door = (id, x, z, label, col) => {
+      const m = box(mat('secDoor', '#2a3550', { spec: 0.35 }), 1.0, 2.2, 0.1, x, 0, z, { collide: true, cast: false, name: 'secDoor_' + id });
+      box(mat('secFrame', '#59667d', { spec: 0.3 }), 1.2, 0.12, 0.16, x, 2.2, z, { cast: false });
+      box(mat('readerBox', '#1b1e26', { spec: 0.4 }), 0.14, 0.2, 0.05, x + 0.68, 1.15, z - 0.09, { cast: false });
+      const led = box(mat('readerRed', '#ff4a3a', { emissive: '#ff3b2a', unlit: true }), 0.05, 0.03, 0.02, x + 0.68, 1.3, z - 0.12, { cast: false, name: 'secLed_' + id });
+      sign(label, 1.1, x, 2.55, z - 0.08, 0, col);
+      POL.doors[id] = { id, mesh: m, led, x, z, open: 0, npc: false };
+    };
+    // ---- the public lobby (z -6 .. 1.6): front desk facing the street door, benches, notice board
     // turned by PI so the desk sergeant sits on the north side and faces arrivals at the door
-    workstation(0, -0.8, PI, ['MERIDIAN PD', 'front desk', 'bell: ring once'], '#8fc5ff');
+    workstation(0, -0.8, PI, ['MERIDIAN PD', 'front desk', 'visitors sign in'], '#8fc5ff');
     // the bell rests on the desktop (top at 0.75) on the public edge, clear of the monitor
     box(mat('bell', '#e8bd63', { emissive: '#6a4d1d' }), 0.12, 0.08, 0.12, 0.8, 0.75, -1.15, { cast: false, name: 'frontBell' });
-    [[-7.7, -3.6], [-7.7, -1.4]].forEach(p => { box(mat('bench', '#34415b'), 1.8, 0.08, 0.45, p[0], 0.46, p[1], { collide: true }); box(steel, 0.05, 0.46, 0.05, p[0] - 0.7, 0, p[1], { cast: false }); box(steel, 0.05, 0.46, 0.05, p[0] + 0.7, 0, p[1], { cast: false }); });
-    // Cybercrime desk and evidence side behind the glass partition.
-    workstation(5.2, 4.0, 0, ['cybercrime desk', 'MP-2610-044', 'case: OKAFOR'], '#61a5ff');
-    plane(texMat('policeBoard', textTex('CASE BOARD\nOKAFOR  ·  MP-2610-044\nPRESERVE LOGS  ·  NOTE TIME', { w: 768, h: 256, color: '#cfe0ff', bg: '#1b2440', font: '600 34px "JetBrains Mono", monospace', lineH: 54 }), { unlit: true, emissive: '#ffffff' }), 3.0, 1.4, 1.5, 5.98, { ry: 0, single: true });
-    // Evidence lockers sit against the far wall; the cell block stays to the northwest.
-    for (let i = 0; i < 3; i++) { box(steel, 0.9, 1.9, 0.52, -2.5 + i * 1.05, 0, 5.65, { collide: true }); box(mat('evidenceLabel' + i, i === 1 ? '#d4a64b' : '#566985'), 0.62, 0.18, 0.03, -2.5 + i * 1.05, 1.25, 5.35, { cast: false }); }
-    box(navy, 3.0, 2.4, 2.5, -6.5, 0, 4.75, { collide: true });
-    for (let j = 0; j < 8; j++) cyl(steel, 0.07, 2.2, -7.75 + j * 0.36, 0, 3.45, { cast: false, tess: 8 });
-    box(mat('cellBench', '#68758b'), 1.6, 0.18, 0.45, -6.5, 0.45, 5.15, { collide: true });
-    [[0.8, 4.9]].forEach(p => box(glass, 0.06, 2.4, 3.5, 3.5, 0, p[1], { collide: true, cast: false }));
-    box(glass, 0.06, 2.4, 3.5, 3.5, 0, 0.8, { collide: true, cast: false }); box(steel, 0.08, 2.4, 0.08, 3.5, 0, 3.2, { cast: false }); box(steel, 0.08, 2.4, 0.08, 3.5, 0, 6.0, { cast: false });
-    [[-4, -3], [4, -3], [-4, 3.8], [4, 3.8]].forEach(p => { box(mat('ceilingFixture', '#7e8da3', { spec: 0.35 }), 0.42, 0.08, 0.42, p[0], H - 0.08, p[1], { cast: false }); box(mat('ceilingLight', '#e8f2ff', { emissive: '#b9d8ff', unlit: true }), 2.3, 0.04, 0.16, p[0], H - 0.2, p[1], { cast: false }); });
-    pointLight(-4, 3.7, -3, '#d4e7ff', 0.7, 9); pointLight(4, 3.7, -2, '#d4e7ff', 0.7, 9); pointLight(4, 3.7, 4, '#9fc5ff', 0.55, 8);
+    box(mat('signIn', '#f2efe6'), 0.3, 0.01, 0.4, -0.7, 0.75, -1.1, { cast: false, name: 'visitorBook' });
+    [[-7.7, -3.6], [-7.7, -1.4]].forEach(p => { box(mat('bench', '#34415b'), 0.45, 0.08, 1.8, p[0], 0.46, p[1], { collide: true }); box(mat('bench'), 0.06, 0.45, 1.8, p[0] - 0.2, 0.46, p[1], { cast: false }); [-0.7, 0.7].forEach(dz => box(steel, 0.4, 0.46, 0.05, p[0], 0, p[1] + dz, { cast: false })); }); // waiting people face the desk, backs to the west wall
+    // the public notice board on the east wall, readable from the room (ry PI/2)
+    plane(texMat('policeNoticeBoard', textTex('NOTICES\nVISITORS SIGN IN\nCONTRACTORS ESCORTED\nRECORDS: P. HOLT', { w: 512, h: 384, color: '#1c2333', bg: '#e9e2cf', font: '600 34px "JetBrains Mono", monospace', lineH: 60 }), { emissive: '#ffffff', spec: 0 }), 1.2, 0.9, X1 - 0.02, 1.6, -3.0, { ry: PI / 2, single: true });
+    decal(texMat('policeMat', rugTex('#1d2b47', '#5aa8ff'), { spec: 0 }), 2.0, 1.2, 0, 0.01, -5.3);
+    // ---- the partition (z 1.6) with two secure doors: STAFF ONLY at x -4, CYBERCRIME UNIT at x 6
+    partX(X0, -4.5, PART); partX(-3.5, 5.5, PART); partX(6.5, X1, PART);
+    door('staff', -4, PART, 'STAFF ONLY'); door('cyber', 6, PART, 'CYBERCRIME UNIT', '#123a5c');
+    box(mat('intercom', '#c8ccd4', { spec: 0.4 }), 0.16, 0.24, 0.05, 6.95, 1.35, PART - 0.09, { cast: false, name: 'intercom' });
+    // a solid wall between the staff side (west) and the Cybercrime Unit (east), full height so the two never mix
+    box(wallM, 0.2, H, Z1 - PART, 0, 0, (PART + Z1) / 2, { collide: true, recv: true, cast: false, occlude: true });
+    // ---- staff corridor (west, z 1.6 .. 7): holding cell against the west wall, lockers on the dividing wall, armoury door
+    box(navy, 2.4, 2.4, 0.12, -6.8, 0, 5.0, { collide: true, cast: false, name: 'cellWall' }); // the cell's north wall; its bars face the corridor (east)
+    for (let j = 0; j < 12; j++) cyl(steel, 0.06, 2.3, -5.6, 0, 1.8 + j * 0.28, { cast: false, tess: 8 });
+    box(mat('cellBench', '#68758b'), 0.45, 0.45, 2.0, -7.7, 0, 3.2, { collide: true });
+    box(navy, 0.12, 2.3, 3.4, -5.6, 0, 3.3, { collide: true, cast: false, name: 'cellBars' }).isVisible = false; // the collider behind the bars
+    for (let i = 0; i < 4; i++) box(steel, 0.5, 1.9, 0.9, -0.36, 0, 2.4 + i * 0.95, { collide: true }); // lockers against the dividing wall, doors facing west
+    box(mat('armouryDoor', '#4a2a2a', { spec: 0.3 }), 0.1, 2.1, 1.0, X0 + 0.05, 0, 6.0, { cast: false, name: 'armouryDoor' });
+    sign('ARMOURY', 0.9, X0 + 0.07, 2.4, 6.0, -PI / 2, '#5c1a1a');
+    box(mat('printer', '#d8dde4', { spec: 0.3 }), 0.6, 1.0, 0.5, -2.2, 0, 2.2, { collide: true, name: 'corridorPrinter' }); // the Rowline work order: the printer that jams
+    box(mat('printerTray', '#f6f6f2'), 0.4, 0.04, 0.3, -2.2, 1.0, 2.2, { cast: false });
+    // ---- records room (west, z 7 .. 12) behind its own secure door
+    partX(X0, -2.5, REC); partX(-1.5, 0, REC);
+    door('records', -2, REC, 'RECORDS');
+    // the door sits in a partition along x; the reader faces the corridor (south), so the same helper works
+    rack(-7.3, 11.4, 2.0, { seed: 5, name: 'recordsRack' }); rack(-6.4, 11.4, 2.0, { seed: 8 });
+    for (let i = 0; i < 3; i++) box(mat('filing', '#6c7686', { spec: 0.3 }), 0.5, 1.3, 0.6, -2.0 + i * 0.55, 0, 11.6, { collide: true });
+    workstation(-4.5, 10.8, 0, ['records 10.0.4.20', 'pholt (logged in)', 'screen lock: OFF'], '#9fd0ff'); // seated side faces south: the chair is at z 9.9
+    box(mat('mugCold', '#e9e4dc'), 0.09, 0.1, 0.09, -3.7, 0.75, 10.6, { cast: false });
+    // ---- Cybercrime Unit (east, z 1.6 .. 12): Lind's desk facing the door, the intake table, the evidence workstation, the timeline wall
+    workstation(4.8, 4.2, PI, ['cybercrime desk', 'MP-2610-044', 'case: OKAFOR'], '#61a5ff'); // seated side faces north: Lind faces the door
+    box(mat('intakeTable', '#d9d2c4', { spec: 0.2 }), 2.2, 0.9, 0.8, 2.0, 0, 5.8, { collide: true, name: 'intakeTable' });
+    [[1.3, '#e8d9a8'], [2.0, '#d8c48a'], [2.7, '#e8d9a8']].forEach(b => box(mat('evBag' + b[0], b[1], { alpha: 0.85 }), 0.35, 0.05, 0.45, b[0], 0.9, 5.8, { cast: false }));
+    workstation(2.4, 9.4, 0, ['dfir 10.0.4.40', 'visitor (read only)', 'sha256sum -c'], '#7fd7ff'); // seated side faces south: the chair is at z 8.5
+    for (let i = 0; i < 3; i++) box(steel, 0.9, 1.9, 0.52, X1 - 0.28, 0, 6.0 + i * 1.0, { collide: true, ry: PI / 2 }); // evidence lockers on the east wall
+    plane(texMat('policeBoard', textTex('TIMELINE · 03:12\nISO DATES ONLY\nEVERY LINE HAS A SOURCE', { w: 768, h: 256, color: '#cfe0ff', bg: '#1b2440', font: '600 34px "JetBrains Mono", monospace', lineH: 54 }), { unlit: true, emissive: '#ffffff' }), 3.6, 1.4, 5.0, 1.7, Z1 - 0.02, { ry: 0, single: true, name: 'timelineWall' });
+    // ---- light: cool panels, at most six point lights
+    [[-3, -3], [3, -3], [-4, 4.2], [4, 5], [-4, 9.5], [4, 9.5]].forEach(p => { box(mat('ceilingFixture', '#7e8da3', { spec: 0.35 }), 0.42, 0.08, 0.42, p[0], H - 0.08, p[1], { cast: false }); box(mat('ceilingLight', '#e8f2ff', { emissive: '#b9d8ff', unlit: true }), 2.3, 0.04, 0.16, p[0], H - 0.2, p[1], { cast: false }); });
+    pointLight(-3, 3.8, -3, '#d4e7ff', 0.7, 9); pointLight(3, 3.8, -2, '#d4e7ff', 0.7, 9); pointLight(-4, 3.8, 4.2, '#c9dcff', 0.5, 7); pointLight(4, 3.8, 5, '#9fc5ff', 0.55, 8); pointLight(-4.5, 3.8, 10, '#d4e7ff', 0.45, 7); pointLight(4, 3.8, 10, '#9fc5ff', 0.5, 8);
+  }
+
+  /* ---------- Meridian Police: people, secure doors, and who may be where ---------- */
+  const ACHEBE = () => [-45.8, 20.4]; // on the park path east of the fountain, clear of the trees and of Ines's prompt
+  const BW = 'pol_bluewall', CC = 'pol_custody';
+  const bwActive = () => store.state.quests[BW] === 'active';
+  const bwLetter = () => bwActive() && store.isDone(BW, 'o1');
+  function placePoliceNPCs() {
+    const prev = Z; Z = zones.police; if (!Z) { Z = prev; return; }
+    const solid = (x, z) => { const c = BABYLON.MeshBuilder.CreateCylinder('npcCol', { height: 1.8, diameter: 0.7 }, scene); c.position.set(x, 0.9, z); c.isVisible = false; c.isPickable = false; c.checkCollisions = true; c.parent = Z.root; };
+    const person = (name, kind, female) => { let ch; if (kind === 'cop') ch = newCop(name, female); else if (AV.ready) { const rb = rbPick(kind, female) || rbPick('casual', female); ch = makeAvatar(name, rb || (female ? 'rosa' : 'julien'), {}); ch.rig = rb || (female ? 'rosa' : 'julien'); ch.female = female; rbAnims(ch, true); } else ch = makeFigure(name, { jacket: female ? '#5a6a8a' : '#3a4a55', pants: '#2a2a2a', skin: '#c99a70', hair: '#2a2a2a' }); return ch; };
+    // the desk sergeant stands beside the front desk, facing arrivals; Detective Lind waits by his desk in the Cybercrime Unit, facing the door
+    [['farouk', 'cop', true, -1.4, 0.25, PI], ['lind', 'police', false, 6.4, 4.4, PI]].forEach(s => { if (chars[s[0]]) return; const ch = person(s[0], s[1], s[2]); ch.pivot.position.set(s[3], 0, s[4]); ch.yaw = s[5]; ch.pivot.rotation.y = s[5]; solid(s[3], s[4]); if (!NULL_ENGINE && Z.sg && ch.kind === 'avatar') charMeshes(ch).forEach(m => Z.sg.addShadowCaster(m)); });
+    // two people walk the station: Officer Tamm between the lobby and the staff corridor, Pia Holt between the records room and the printer
+    const routes = {
+      tamm: { kind: 'cop', female: false, path: [[-6.2, -2.6, 5], [-4, -0.6, 0], [-4, 2.8, 0], [-3.2, 5.6, 3], [-4, 2.8, 0], [-4, -0.6, 0], [-1.8, -3.2, 4]] },
+      holt: { kind: 'business', female: true, path: [[-4.6, 9.4, 7], [-2, 8.2, 0], [-2, 5.8, 0], [-2.2, 3.0, 4], [-2, 5.8, 0], [-2, 8.2, 0]] }
+    };
+    Object.entries(routes).forEach(([name, r]) => { if (chars[name]) return; const ch = person(name, r.kind, r.female); ch.pivot.position.set(r.path[0][0], 0, r.path[0][1]); POL.walkers.push({ ch, path: r.path, i: 0, wait: r.path[0][2] }); if (!NULL_ENGINE && Z.sg && ch.kind === 'avatar') charMeshes(ch).forEach(m => Z.sg.addShadowCaster(m)); });
+    Z = zones.out;
+    if (!chars.achebe) { const a = ACHEBE(); const ch = person('achebe', 'business', true); ch.pivot.position.set(a[0], 0, a[1]); ch.yaw = -PI / 2; ch.pivot.rotation.y = ch.yaw; solid(a[0], a[1]); }
+    Z = prev;
+  }
+  // which part of the station a local point is in
+  const polArea = (x, z) => z < POL.PART ? 'lobby' : x >= 0 ? 'cyber' : z >= POL.REC ? 'records' : 'staff';
+  function polAllowed(area) {
+    const f = store.state.flags;
+    if (area === 'lobby') return true;
+    if (area === 'cyber') return !!f.cyberDoor;
+    return bwLetter(); // the staff corridor and the records room are only ever entered under the letter
+  }
+  let polBounceT = 0, polLastArea = 'lobby';
+  function updatePolice(dt) {
+    const f = store.state.flags, p = chars.player.pivot.position, lx = p.x - IXP, lz = p.z;
+    // walkers: walk the route at 1.2 m/s, pause at the stops
+    POL.walkers.forEach(w => { const ch = w.ch; if (w.wait > 0) { w.wait -= dt; ch.moving = false; ch.speedVis = 0; animateChar(ch, dt); return; }
+      const t = w.path[(w.i + 1) % w.path.length], dx = t[0] - ch.pivot.position.x, dz = t[1] - ch.pivot.position.z, d = Math.hypot(dx, dz);
+      if (d < 0.08) { w.i = (w.i + 1) % w.path.length; w.wait = t[2]; } else { const s = Math.min(d, 1.2 * dt); ch.pivot.position.x += dx / d * s; ch.pivot.position.z += dz / d * s; ch.yaw = Math.atan2(dx, dz); }
+      let dy = ch.yaw - ch.pivot.rotation.y; while (dy > PI) dy -= 2 * PI; while (dy < -PI) dy += 2 * PI; ch.pivot.rotation.y += dy * Math.min(1, dt * 6);
+      ch.moving = d >= 0.08; ch.speedVis = ch.moving ? 1.2 : 0; animateChar(ch, dt); });
+    // doors open for staff walking through, and for the player only where the player is allowed
+    Object.values(POL.doors).forEach(d => {
+      d.npc = POL.walkers.some(w => Math.hypot(w.ch.pivot.position.x - d.x, w.ch.pivot.position.z - d.z) < 1.7);
+      const inside = lz > d.z, near = Math.hypot(lx - d.x, lz - d.z) < 1.5;
+      const ok = d.id === 'cyber' ? !!f.cyberDoor : d.id === 'staff' ? (inside || (bwLetter() && f.bwBuzzed)) : (inside || (bwLetter() && f.bwRecords));
+      const want = d.npc || (near && ok);
+      d.open = Math.max(0, Math.min(1, d.open + (want ? 2.6 : -1.6) * dt));
+      d.mesh.position.x = d.x - d.open * 1.0; d.mesh.checkCollisions = d.open < 0.6;
+      const lit = want ? 'readerGreen' : 'readerRed'; if (d.led.material.name !== lit) d.led.material = want ? mat('readerGreen', '#4ff08a', { emissive: '#4ff08a', unlit: true }) : mat('readerRed');
+    });
+    // people who are not allowed somewhere get walked back to the lobby; under the letter, getting in counts
+    const area = polArea(lx, lz);
+    if (area !== polLastArea) {
+      if (!polAllowed(area)) { polBounceT -= dt; if (polBounceT <= 0) { polBounceT = 2; transition(() => { placePlayer(IXP - 3.2, 0, -1.0, PI); }); ui.toast({ kind: 'warn', title: area === 'cyber' ? 'Cybercrime Unit' : 'Officer Tamm', text: area === 'cyber' ? 'A detective looks up from a screen. “Visitors wait in the lobby until I buzz them in.”' : '“Staff only, friend. The lobby is that way.” He walks you back out.' }); } return; }
+      if (area === 'staff' && bwActive()) store.checkText('STAFF in');
+      if (area === 'records' && bwActive()) { f.bwRecords = true; store.checkText('ENTER records'); }
+      polLastArea = area;
+    }
+  }
+  // the pretext at the front desk: two questions from the desk sergeant; a wrong answer gets you challenged
+  function bwCaught(why) {
+    ui.choice({ eyebrow: 'Blue Wall · challenged', title: 'Sergeant Farouk', text: why + '\n\nHer hand goes to the radio. “Stay right there. Who are you with?”', options: [
+      { label: 'Stop, stay calm, and hand over the letter', run() { store.state.flags.bwCaught = (store.state.flags.bwCaught || 0) + 1; ui.dialogue('Sergeant Farouk', ['She reads the letter twice, then dials the number on it herself, not one you give her. Good: that is exactly what she should do.', '“Integrity Office? ... Yes. ... Yes, ma’am.” She hangs up. “Your Commissioner says you are real. She also says you are done for tonight, and to try again after the next shift change.”', 'You did the right thing: when challenged, you stop and show the letter. And so did she. That goes in the report as a win for the station.'], () => {}, 'farouk'); } },
+      { label: 'Run for the door', run() { ui.toast({ kind: 'warn', title: 'Never run', text: 'Running turns a test into an incident, and somebody can get hurt. You stop, you stay calm, you show the letter.' }); bwCaught('You take one step toward the street door and think better of it.'); } }
+    ] });
+  }
+  function bwPretext() {
+    ui.choice({ eyebrow: 'Blue Wall · the front desk', title: 'Sergeant Farouk', text: 'The bell rings once. The sergeant looks up over her reading glasses. “Evening. What can I do for you?”', options: [
+      { label: 'Rowline Systems, work order RS-4471. Your printer in the staff corridor.', run() { ui.choice({ eyebrow: 'Blue Wall · the front desk', title: 'Sergeant Farouk', text: '“Rowline. That printer, honestly.” She pulls the visitor book over. “Who raised the work order?”', options: [
+        { label: 'Pia Holt, in records. She says tray two jams.', run() { store.state.flags.bwBuzzed = true; ui.dialogue('Sergeant Farouk', ['“Sounds like Pia.” She slides the book across. You sign in as a Rowline contractor and she hands you a yellow visitor lanyard.', '“Contractors are escorted. Tamm! ... He is on a call. Fine. I will buzz you through, the printer is right inside. Pia will find you.”', 'The staff door clicks green. Finding for the report: the work order was never checked with Rowline, and the escort rule bent the moment it was inconvenient.'], () => {}, 'farouk'); } },
+        { label: 'Your chief. He wants it fixed tonight.', run() { bwCaught('“The chief does not raise printer tickets.”'); } },
+        { label: 'No idea, I just go where the ticket says.', run() { ui.dialogue('Sergeant Farouk', ['“Then I cannot let you in, can I? Come back when you know who you are here for.”', 'Recon pays for itself: the notice board in this lobby names the person who deals with records.'], () => {}, 'farouk'); } }
+      ] }); } },
+      { label: 'Detective from the Harbour precinct. I need to see the evidence room.', run() { ui.toast({ kind: 'warn', title: 'Out of scope', text: 'Impersonating a police officer is a crime, and your letter forbids it in bold. No contract makes it legal.' }); bwCaught('“Harbour sent nobody tonight, and I know every detective there.”'); } },
+      { label: 'Just need a quick look round the back, if that is all right.', run() { ui.dialogue('Sergeant Farouk', ['“It is not all right, no. The back is staff only.”', 'No pretext is not a pretext. Your letter gives you a cover story: use it.'], () => {}, 'farouk'); } }
+    ] });
+  }
+  // the debrief: three questions; a wrong answer explains itself and asks again
+  function bwDebrief(step) {
+    const Q = [
+      { text: 'Commissioner Achebe opens a notebook. “First. What should the desk sergeant have done before buzzing you through?”', ok: 'Called Rowline on a number the station already has, to confirm the work order', bad: [['Asked to see some ID', 'ID can be printed. Verify the story through a channel the visitor does not control.'], ['Nothing. The story was good', 'A good story is exactly what a social engineer brings. Good stories get checked.']] },
+      { text: '“Second. What is the right fix for the records door?”', ok: 'Everyone badges in themselves, and staff challenge anyone who follows', bad: [['A stronger lock', 'The lock worked fine. A person held it open. Fix the habit, not the hardware.'], ['Take the RECORDS sign down', 'Hiding a door is not securing it. Anyone who watches the shift change finds it in minutes.']] },
+      { text: '“Last. What happens to the evidence you found?”', ok: 'It goes to you intact, with the hashes, and I touch nothing else', bad: [['I delete Vance’s account myself', 'Out of scope, and it destroys evidence. Testers report; the client acts.'], ['I confront Sergeant Vance', 'That warns the suspect and puts you in danger. The investigation is the Integrity Office’s job.']] }
+    ];
+    const q = Q[step]; if (!q) { store.state.flags.stationHardened = true; store.state.flags.bwBuzzed = false; store.checkText('REPORT bluewall'); return; }
+    const opts = [{ label: q.ok, run() { bwDebrief(step + 1); } }].concat(q.bad.map(b => ({ label: b[0], run() { ui.toast({ kind: 'warn', title: 'Not quite', text: b[1] }); bwDebrief(step); } })));
+    const order = step === 1 ? [1, 0, 2] : step === 2 ? [1, 2, 0] : [0, 1, 2];
+    ui.choice({ eyebrow: 'Blue Wall · debrief', title: 'Commissioner Achebe', text: q.text, options: order.map(i => opts[i]) });
   }
 
   /* ---------- camera: a free camera held high over the player, looking almost straight down, north up the screen ---------- */
@@ -3289,10 +3589,33 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   addInter({ id: 'mlog', zone: 'util', pos: V3(IXD + 1.4, 0, -4.3), r: 1.3, label: 'Read maintenance clipboard', run() { ui.examine('mlog'); } });
   addInter({ id: 'rack3', zone: 'util', pos: V3(IXD + 5.0, 0, 0.0), r: 1.5, label: 'Look at rack 3', run() { ui.examine('rack3'); } });
   // Meridian Police interior interactables, in world coordinates (IXP + local x).
-  addInter({ id: 'frontDesk', zone: 'police', pos: V3(IXP + 0.8, 0, -1.35), r: 1.1, label: 'Ring the front-desk bell', run() { const pg = 'plant_ghost'; if (store.state.quests[pg] === 'active' && store.isDone(pg, 'o1') && store.isDone(pg, 'o2') && !store.isDone(pg, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant takes the plant’s logs, intact, and adds them to the file. “Water and power, reporting to the same address. That is one for the morning. Good that you kept it clean.”' }); store.checkText('REPORT plant'); return; } const ph = 'side_customs'; if (store.state.quests[ph] === 'active' && store.isDone(ph, 'o1') && store.isDone(ph, 'o2') && !store.isDone(ph, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant photographs the screen: sender, link, time. “You did not click it? Good. Customs fees by text are the oldest trick there is.”' }); store.checkText('REPORT phish'); return; } const q = 'gig_cleanroom'; if (store.state.quests[q] === 'active' && store.isDone(q, 'o1') && store.isDone(q, 'o2') && !store.isDone(q, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant writes it all down: what, where, when you found it, and that you left both devices in place. “Good. Touch them and they stop being evidence.”' }); store.checkText('REPORT bugs'); return; } ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The bell rings once. A tired voice calls from the back: “Cybercrime is closed until Monday. Leave the logs.”' }); } });
-  addInter({ id: 'caseBoard', zone: 'police', pos: V3(IXP + 1.5, 0, 5.75), r: 1.1, label: 'Look at the case board', run() { ui.examine('policeNotice'); } });
-  addInter({ id: 'cyberDesk', zone: 'police', pos: V3(IXP + 5.2, 0, 3.85), r: 1.1, label: 'Use the cybercrime terminal', run() { ui.toast({ kind: 'ok', title: 'Cybercrime desk', text: 'Case MP-2610-044: Dara Okafor. Preserve original logs, write down the time, and record the host or address.' }); } });
-  addInter({ id: 'policeCells', zone: 'police', pos: V3(IXP - 6.5, 0, 3.5), r: 1.5, label: 'Look into the holding cell', run() { ui.toast({ kind: '', title: 'Holding cell', text: 'Empty tonight. The lock display blinks 03:12, then resets.' }); } });
+  addInter({ id: 'frontDesk', zone: 'police', pos: V3(IXP + 0.8, 0, -1.35), r: 1.1, label: 'Ring the front-desk bell', run() { const pg = 'plant_ghost'; if (store.state.quests[pg] === 'active' && store.isDone(pg, 'o1') && store.isDone(pg, 'o2') && !store.isDone(pg, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant takes the plant’s logs, intact, and adds them to the file. “Water and power, reporting to the same address. That is one for the morning. Good that you kept it clean.”' }); store.checkText('REPORT plant'); return; } const ph = 'side_customs'; if (store.state.quests[ph] === 'active' && store.isDone(ph, 'o1') && store.isDone(ph, 'o2') && !store.isDone(ph, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant photographs the screen: sender, link, time. “You did not click it? Good. Customs fees by text are the oldest trick there is.”' }); store.checkText('REPORT phish'); return; } const q = 'gig_cleanroom'; if (store.state.quests[q] === 'active' && store.isDone(q, 'o1') && store.isDone(q, 'o2') && !store.isDone(q, 'o3')) { ui.toast({ kind: 'ok', title: 'Meridian Police', text: 'The desk sergeant writes it all down: what, where, when you found it, and that you left both devices in place. “Good. Touch them and they stop being evidence.”' }); store.checkText('REPORT bugs'); return; } if (bwLetter() && !store.state.flags.bwBuzzed) { bwPretext(); return; } const st = store.state; ui.toast({ kind: 'ok', title: 'Sergeant Farouk', text: st.flags.stationHardened ? 'She checks your face against the visitor book before she says hello. “New rules. We ring every contractor’s office back now. Someone wrote a very rude report.”' : st.quests[CC] !== 'locked' && !st.flags.cyberDoor ? '“Detective Lind is in early, would you believe it. Intercom on the right of the Cybercrime door.”' : st.quests[CC] === 'locked' ? 'The bell rings once. “Cybercrime is closed until Monday. Leave the logs with me.”' : '“Evening. Lind is in the back if you need him.”' }); } });
+  addInter({ id: 'noticeIn', zone: 'police', pos: V3(IXP + 6.9, 0, -3.0), r: 1.2, label: 'Read the notice board', run() { ui.examine('policeNotice'); if (bwActive()) store.checkText('RECON notice'); } });
+  addInter({ id: 'cyberIntercom', zone: 'police', pos: V3(IXP + 6.9, 0, 0.8), r: 0.9, when: () => !store.state.flags.cyberDoor, get label() { return store.state.flags.polBadge ? 'Use the Cybercrime Unit keypad' : 'Press the Cybercrime Unit intercom'; },
+    run() { const st = store.state;
+      if (!st.flags.polBadge) { ui.dialogue('Detective Lind (intercom)', ZD.DIALOGUE.lind(st).concat(store.pitches('lind')), () => { store.offer('lind'); if (st.quests[CC] === 'active') { st.flags.polBadge = true; store.addDiscovery({ id: 'POL-BADGE', title: 'Cybercrime Unit visitor badge', text: 'A yellow visitor badge from the slot under the intercom: CYBERCRIME UNIT · VISITOR · DOOR CODE 1910. The day Lind was meant to be back: 19 October.' }); ui.toast({ kind: 'ok', title: 'Visitor badge', text: 'A yellow badge drops out of the slot: CYBERCRIME UNIT · VISITOR · DOOR 1910' }); } }, 'lind'); return; }
+      ui.openKeypad({ eyebrow: 'Meridian Police · Cybercrime Unit', note: 'CYBERCRIME UNIT. Four digits.', code: '1910', ok() { st.flags.cyberDoor = true; store.checkText('BADGE cyber'); }, fail: 'Red. The code is printed on your visitor badge (P, then Notebook).' }); } });
+  addInter({ id: 'lind', zone: 'police', pos: V3(IXP + 6.4, 0, 3.2), r: 1.3, label: 'Talk to Detective Lind', run() { const st = store.state; ui.dialogue('Detective Lind', ZD.DIALOGUE.lind(st).concat(store.pitches('lind')), () => { store.offer('lind'); }, 'lind'); } });
+  addInter({ id: 'evidenceTable', zone: 'police', pos: V3(IXP + 2.0, 0, 4.9), r: 1.0, label: 'Look at the evidence intake table', run() { ui.examine('evidenceBags'); } });
+  addInter({ id: 'comp-p-dfir', zone: 'police', pos: V3(IXP + 2.4, 0, 8.1), r: 1.3, label: 'Use the evidence workstation (dfir)', run() { ui.openTerminal('dfir'); } });
+  addInter({ id: 'caseBoard', zone: 'police', pos: V3(IXP + 5.0, 0, 10.9), r: 1.3, label: 'Look at the timeline wall', run() { const st = store.state; if (st.quests[CC] === 'active' && store.isDone(CC, 'o5') && !store.isDone(CC, 'o6')) { ui.toast({ kind: 'ok', title: 'Timeline wall', text: 'Nine lines, one source each, Sep 30 to Oct 4. Every 03:12 points to 10.0.3.1. Lind initials the bottom corner.' }); store.checkText('PIN timeline'); return; } ui.examine('timelineWall'); } });
+  addInter({ id: 'staffDoor', zone: 'police', pos: V3(IXP - 4, 0, 0.8), r: 0.9, when: () => !(bwLetter() && store.state.flags.bwBuzzed) && !POL.doors.staff?.npc, label: 'Try the staff door', run() { ui.toast({ kind: 'warn', title: 'STAFF ONLY', text: bwLetter() ? 'A badge reader and a camera dome. Your letter gives you a cover story for the front desk. Or wait for someone to come through.' : 'A badge reader and a camera dome above it. The red light stays red.' }); } });
+  addInter({ id: 'printer', zone: 'police', pos: V3(IXP - 2.2, 0, 3.1), r: 0.9, label: 'Look at the jammed printer', run() { ui.toast({ kind: '', title: 'Corridor printer', text: bwActive() ? 'The Rowline work order is real: paper jam, tray two. Your cover story holds up as long as you look busy.' : 'Paper jam, tray two. A sticky note: “Rowline coming. RS-4471. P.H.”' }); } });
+  addInter({ id: 'recordsDoor', zone: 'police', pos: V3(IXP - 2, 0, 6.3), r: 1.0, when: () => bwLetter() && !store.state.flags.bwRecords, get label() { return POL.doors.records && POL.doors.records.npc ? 'Slip in behind the clerk' : store.has('cloner') ? 'Badge in with the Proxmark' : 'Try the records door'; },
+    run() { const d = POL.doors.records, f = store.state.flags;
+      if (d && d.npc) { f.bwRecords = true; ui.toast({ kind: 'ok', title: 'Tailgate', text: 'You catch the door as Pia Holt walks through. She does not look back. Finding: nobody checks who follows them in.' }); return; }
+      if (store.has('cloner')) { f.bwRecords = true; ui.toast({ kind: 'ok', title: 'Proxmark', text: 'The cloner read Pia Holt’s badge when she passed you in the corridor. It replays it now: green. Finding: the badges can be read at arm’s length. Shielded sleeves fix that.' }); return; }
+      ui.toast({ kind: 'warn', title: 'RECORDS', text: 'Locked. Pia Holt walks in and out all night. Doors that close slowly are a finding.' }); } });
+  addInter({ id: 'comp-p-records', zone: 'police', pos: V3(IXP - 4.5, 0, 9.5), r: 1.3, label: 'Use the records terminal (records)', run() { ui.openTerminal('records'); } });
+  addInter({ id: 'armoury', zone: 'police', pos: V3(IXP - 7.3, 0, 6.0), r: 1.0, label: 'Armoury door', run() { ui.toast({ kind: 'warn', title: 'Out of scope', text: 'The letter says so in bold. A real tester never tests what the client did not sign for, however close it is.' }); } });
+  addInter({ id: 'policeCells', zone: 'police', pos: V3(IXP - 4.9, 0, 3.4), r: 1.1, label: 'Look into the holding cell', run() { ui.toast({ kind: '', title: 'Holding cell', text: 'Empty tonight. The lock display blinks 03:12, then resets.' + (bwActive() ? ' Out of scope, too.' : '') }); } });
+  addInter({ id: 'bwRecon', zone: 'out', pos: V3(STATION.x - 3, 0, -6.0), r: 1.8, when: () => bwActive() && !store.isDone(BW, 'o2'), label: 'Watch the station (recon)', run() { ui.examine('shiftChange'); store.checkText('RECON shift'); } });
+  addInter({ id: 'achebe', zone: 'out', pos: V3(ACHEBE()[0], 0, ACHEBE()[1]), r: 2.0, when: () => store.state.quests[BW] !== 'locked', get label() { return store.state.quests[BW] === 'available' ? 'Talk to the woman feeding the pigeons' : 'Talk to Commissioner Achebe'; },
+    run() { const st = store.state, q = st.quests[BW];
+      if (q === 'available') { ui.dialogue('Ngozi Achebe', ZD.DIALOGUE.achebe(st).concat(store.pitches('achebe')), () => { store.offer('achebe'); ui.examine('bwLetter'); store.checkText('READ letter'); }, 'achebe'); return; }
+      if (q === 'active' && !store.isDone(BW, 'o1')) { ui.examine('bwLetter'); store.checkText('READ letter'); return; }
+      const ready = q === 'active' && store.isDone(BW, 'o6') && store.isDone(BW, 'o7');
+      ui.dialogue('Commissioner Achebe', ZD.DIALOGUE.achebe(st), () => { if (ready) bwDebrief(0); }, 'achebe'); } });
   // Meridian Works: the estate north of the park and its control room
   addInter({ id: 'doorW', zone: 'out', pos: V3(WDOOR()[0], 0, WDOOR()[1]), r: 2.4, label: 'Enter Meridian Works', run() { transition(() => { setZone('works'); placePlayer(IXW, 0, -4.4, 0); if (store.state.quests.plant_coldstart === 'available') store.activateQuest('plant_coldstart'); }); } });
   addInter({ id: 'exitW', zone: 'works', pos: V3(IXW, 0, -5.2), r: 1.5, label: 'Leave Meridian Works', run() { transition(() => { setZone('out'); placePlayer(WDOOR()[0], 0, WDOOR()[1] - 2.4, PI); }); } });
@@ -3396,6 +3719,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     if (k === 'm' && state.ui !== 'term') { ui.setSound(SFX.toggle()); return; }
     if (k === 'n' && state.ui !== 'term') { ui.setMusic(SFX.toggleMusic()); return; }
     if (state.ui === 'phone' && PHONE.ringing) { if (k === 'e' || k === 'enter') answerPhone(); if (k === 'escape') declineRing(); return; }
+    if (state.ui === 'choice' && /^[1-4]$/.test(k)) { if (!e.repeat) ui.pick(+k - 1); return; }
     if (state.ui) { if (k === 'escape' || (k === 'i' && state.ui === 'inv') || ((k === 'j' || k === 'p') && state.ui === 'journal') || (k === 'l' && state.ui === 'settings')) ui.closeAll(); if ((k === 'e' || k === 'enter') && state.ui === 'dlg') ui.dlgAdvance(); if ((k === 'escape' || k === 'e' || k === 'enter') && state.ui === 'examine') ui.closeAll(); return; }
     if (!state.playing) return;
     keys[k] = true; if (k === 'e' || k === 'enter') interact(); if (k === 'j' || k === 'p') ui.openJournal(); if (k === 'l') ui.openSettings();
@@ -3468,7 +3792,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     const p = chars.player; if (!p) return; const pos = p.pivot.position; let best = null, bd = 1e9;
     if (state.driving) { best = leaveInter; } // E always gets you out, at any speed
     else {
-      inter.forEach(o => { if (o.zone !== state.zone) return; const d = Math.hypot(o.pos.x - pos.x, o.pos.z - pos.z); const dy = Math.abs(o.pos.y - pos.y); if (d < o.r && dy < 1.6 && d < bd) { bd = d; best = o; } });
+      inter.forEach(o => { if (o.zone !== state.zone || (o.when && !o.when())) return; const d = Math.hypot(o.pos.x - pos.x, o.pos.z - pos.z); const dy = Math.abs(o.pos.y - pos.y); if (d < o.r && dy < 1.6 && d < bd) { bd = d; best = o; } });
       if (!best && state.zone === 'out') { const c = nearestCar(pos.x, pos.z, 3.0); if (c) { carInter.car = c; carInter.label = (c.driver ? 'Jack the ' : 'Enter the ') + c.type.name.toLowerCase(); best = carInter; } }
       if (!best && state.zone === 'out') { const w = nearestPed(pos.x, pos.z, 2.3); if (w) { pedInter.ped = w; pedInter.label = 'Talk to ' + w.name; best = pedInter; } }
     }
@@ -3476,7 +3800,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   }
   function interact() { if (state.ui) return; if (state.driving) { leaveCar(); return; } if (!current) return; current.run(); } // in a car, E leaves it straight away, whatever the prompt shows this frame
   function updateNPCs(dt, t) {
-    ['rosa', 'julien', 'nadia', 'courier', 'mara', 'agnes', 'bram'].forEach(n => { const ch = chars[n]; if (!ch) return; let d = ch.yaw - ch.pivot.rotation.y; while (d > PI) d -= 2 * PI; while (d < -PI) d += 2 * PI; ch.pivot.rotation.y += d * Math.min(1, dt * 4); ch.talking = state.ui === 'dlg' && ui.dlgWho === n; ch.moving = false; animateChar(ch, dt); });
+    ['rosa', 'julien', 'nadia', 'courier', 'mara', 'agnes', 'bram', 'farouk', 'lind', 'achebe'].forEach(n => { const ch = chars[n]; if (!ch) return; let d = ch.yaw - ch.pivot.rotation.y; while (d > PI) d -= 2 * PI; while (d < -PI) d += 2 * PI; ch.pivot.rotation.y += d * Math.min(1, dt * 4); ch.talking = state.ui === 'dlg' && ui.dlgWho === n; ch.moving = false; animateChar(ch, dt); });
     if (beacon.node && beacon.node.isEnabled()) { beacon.arrow.position.y = 4.0 + Math.sin(t * 2.2) * 0.4; beacon.arrow.rotation.y = t * 1.5; beacon.ring.scaling.setAll(1 + Math.sin(t * 2.2) * 0.06); } // the beacon is silent in this cut; the minimap carries the objective
   }
   function spatial(pos, range) { const p = chars.player.pivot.position; const dx = pos.x - p.x, dz = pos.z - p.z; const d = Math.hypot(dx, dz); const att = Math.pow(Math.max(0, 1 - d / range), 1.4); const pan = d > 0.01 ? dx / d * 0.8 : 0; return { att, pan }; }
@@ -3844,7 +4168,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
   let t = 0; let blinkT = 0; let mapT = 0;
   scene.onBeforeRenderObservable.add(() => {
     const dt = Math.min(engine.getDeltaTime() / 1000, 0.05); t += dt;
-    if (state.playing) { updatePlayer(dt); updateCamera(dt); updateInteract(); updateNPCs(dt, t); if (SW.open) updateSweep(dt); updateMart(dt, t); updateAct2(dt, t); if (state.zone === 'out') { updateTraffic(dt); updatePeds(dt); rollWheels(dt); updateCops(dt, t); resolveBodies(dt); } mapT += dt; if (mapT > 0.08) { mapT = 0; drawMap(t); } }
+    if (state.playing) { updatePlayer(dt); updateCamera(dt); updateInteract(); updateNPCs(dt, t); if (state.zone === 'police') updatePolice(dt); if (SW.open) updateSweep(dt); updateMart(dt, t); updateAct2(dt, t); if (state.zone === 'out') { updateTraffic(dt); updatePeds(dt); rollWheels(dt); updateCops(dt, t); resolveBodies(dt); } mapT += dt; if (mapT > 0.08) { mapT = 0; drawMap(t); } }
     blinkT += dt; if (blinkT > 0.4) { blinkT = 0; const z = zones[state.zone]; if (z && z !== zones.out) z.meshes.forEach(m => { if (m.metadata && m.metadata.blink) m.setEnabled(!m.isEnabled()); }); }
   });
 
@@ -4601,7 +4925,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
       const next = $('qNext'); if (stt === 'completed') { const nq = store.nextQuest(q.id); next.hidden = false; next.textContent = nq ? 'Next: ' + nq.title + '. ' + nq.start : 'End of Act 2. The vault at 10.0.3.1 is the next build.'; } else next.hidden = true;
       if (state.ui === 'journal') ui.renderJournal();
     },
-    closeAll() { const wasDlg = state.ui === 'dlg', done = ui.dlgDone; ui.dlgDone = null; if (wasDlg) SFX.hush(); if (state.ui === 'term') SFX.termOff(); else if (state.ui === 'journal' || state.ui === 'examine' || state.ui === 'settings' || state.ui === 'shop' || state.ui === 'inv') SFX.close(); ['term', 'examine', 'dlg', 'settings', 'shop', 'inv', 'phone', 'keypad'].forEach(id => $(id).classList.add('off')); $('jr').classList.remove('on'); state.ui = null; if (state.touch) $('tE').hidden = !current; canvas.focus(); if (wasDlg && done) done(); },
+    closeAll() { const wasDlg = state.ui === 'dlg', done = ui.dlgDone; ui.dlgDone = null; if (wasDlg) SFX.hush(); if (state.ui === 'term') SFX.termOff(); else if (state.ui === 'journal' || state.ui === 'examine' || state.ui === 'settings' || state.ui === 'shop' || state.ui === 'inv') SFX.close(); ['term', 'examine', 'dlg', 'settings', 'shop', 'inv', 'phone', 'keypad', 'choice'].forEach(id => $(id).classList.add('off')); $('jr').classList.remove('on'); state.ui = null; if (state.touch) $('tE').hidden = !current; canvas.focus(); if (wasDlg && done) done(); },
     openTerminal(which) {
       state.ui = 'term'; SFX.termOn(); const host = ZD.HOSTS[which];
       if (!ui.shells) ui.shells = {}; const first = !ui.shells[which]; if (first) ui.shells[which] = ZD.makeShell(store, host); ui.shell = ui.shells[which];
@@ -4666,12 +4990,18 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
         list.appendChild(el);
       });
     },
-    openKeypad() { state.ui = 'keypad'; SFX.swish(); $('kpIn').value = ''; $('kpNote').textContent = 'MERIDIAN EXCHANGE. Four digits.'; $('keypad').classList.remove('off'); setTimeout(() => $('kpIn').focus(), 30); },
+    openKeypad(cfg) { ui.kp = cfg || null; state.ui = 'keypad'; SFX.swish(); $('kpIn').value = ''; $('kpEye').textContent = cfg ? cfg.eyebrow : 'Building X · street door'; $('kpNote').textContent = cfg ? cfg.note : 'MERIDIAN EXCHANGE. Four digits.'; $('keypad').classList.remove('off'); setTimeout(() => $('kpIn').focus(), 30); },
     keypadTry() {
       const v = $('kpIn').value.trim(); if (v.length < 4) return;
+      const kp = ui.kp; if (kp) { if (v === kp.code) { SFX.objective(); $('kpNote').textContent = 'The lock clicks. Green.'; setTimeout(() => { ui.closeAll(); kp.ok(); }, 450); } else { SFX.buzz(); $('kpIn').value = ''; $('kpNote').textContent = kp.fail; } return; }
       if (v === '0312') { SFX.objective(); store.state.flags.xchOpen = true; $('kpNote').textContent = 'The lock clicks. Green.'; const led = zones.out.meshes.find(m => m.name === 'keypadLed'); if (led) led.material = mat('keypadLedG', '#4ff08a', { emissive: '#4ff08a', unlit: true }); store.addDiscovery({ id: 'XCH-CODE', title: 'The exchange door code', text: '0312. The lineman set the keypad to Dara’s time, the minute everything on this street happens.' }); setTimeout(() => { ui.closeAll(); enterExchange(); }, 500); }
       else { SFX.buzz(); $('kpIn').value = ''; $('kpNote').textContent = 'The lock blinks red. ' + (store.state.quests.quest_z2_dialtone === 'completed' ? 'The door page said: the time everything on this street happens.' : 'Four digits. Someone on this street knows them.'); }
     },
+    // a short multiple-choice card: the pretext at the front desk, the challenge, the debrief. Keys 1 to 4 pick an option.
+    choice(o) { state.ui = 'choice'; SFX.swish(); ui.chOpts = o.options; $('chEye').textContent = o.eyebrow || ''; $('chTitle').textContent = o.title || ''; $('chText').innerHTML = o.text.split('\n\n').map(p => '<p>' + esc(p) + '</p>').join('');
+      const box = $('chOpts'); box.innerHTML = ''; o.options.forEach((op, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn ghost'; b.innerHTML = '<b>' + (i + 1) + '</b>' + esc(op.label); b.addEventListener('click', () => ui.pick(i)); box.appendChild(b); });
+      $('choice').classList.remove('off'); setTimeout(() => { const b = box.querySelector('button'); if (b) b.focus(); }, 30); },
+    pick(i) { const op = ui.chOpts && ui.chOpts[i]; if (!op) return; ui.chOpts = null; ui.closeAll(); op.run(); },
     cashPop(text) { const el = $('cashPop'); el.textContent = text; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); $('hudCredits').textContent = String(store.state.credits).padStart(6, '0'); },
     jrTab: 'quests',
     renderJournal() {
@@ -4900,7 +5230,7 @@ Byte Mart gear: man <cmd> (books)  scan (Pineapple)  duck (Rubber Ducky)`;
     rosa.pivot.position.set(-7.2, 0, 13.6); rosa.yaw = PI; rosa.pivot.rotation.y = PI;
     jul.pivot.position.set(10.2, 0, -13.4); jul.yaw = 0.2; jul.pivot.rotation.y = 0.2;
     [rosa, jul].forEach(ch => { const c = BABYLON.MeshBuilder.CreateCylinder('npcCol', { height: 1.8, diameter: 0.7 }, scene); c.position.set(ch.pivot.position.x, 0.9, ch.pivot.position.z); c.isVisible = false; c.isPickable = false; c.checkCollisions = true; c.parent = Z.root; });
-    placeNadia(); placeCourier(); placePlantNPCs();
+    placeNadia(); placeCourier(); placePlantNPCs(); placePoliceNPCs();
     spawnTraffic(22); spawnPeds(AV.ready ? 18 : 28); spawnPolice();
     [[-20, -5, PI / 2], [26, 5, -PI / 2], [-24, 5, -PI / 2], [-41, -20, 0], [41, 22, PI], [-41, 60, 0], [41, -60, PI], [-77, 20, 0], [77, -20, PI]].forEach(p => spawnCar({ x: p[0], z: p[1], heading: p[2], parked: true }));
     if (!NULL_ENGINE && AV.ready) { const sg = zones.out.sg; Object.values(chars).forEach(ch => { if (ch.kind === 'avatar' && ch !== chars.nadia) charMeshes(ch).forEach(m => sg.addShadowCaster(m)); }); }
